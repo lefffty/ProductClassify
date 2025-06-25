@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'ei.apps.EiConfig',
     'classes.apps.ClassesConfig',
     'products.apps.ProductsConfig',
+    'enums.apps.EnumsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
