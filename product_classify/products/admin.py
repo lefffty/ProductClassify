@@ -1,7 +1,8 @@
 from django.contrib import admin
 
 from .models import (
-    Prod
+    Prod,
+    ParProd
 )
 
 
@@ -20,6 +21,29 @@ class ProdAdmin(admin.ModelAdmin):
                 'short_name',
                 'class_id',
                 'image',
+            )
+        }),
+    )
+
+
+@admin.register(ParProd)
+class ParProdAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'prod',
+        'par',
+        'int_value',
+        'double_value',
+        'enum_val',
+    )
+    fieldsets = (
+        (None, {
+            'fields': (
+                'prod',
+                'par',
+                'int_value',
+                'double_value',
+                'enum_val',
             )
         }),
     )

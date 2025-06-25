@@ -7,9 +7,6 @@ from .constants import (
 from ei.models import (
     Ei,
 )
-from parametr.models import (
-    Parametr,
-)
 
 
 class ClassStruct(models.Model):
@@ -55,7 +52,7 @@ class ParClass(models.Model):
         on_delete=models.DO_NOTHING,
     )
     parametr = models.ForeignKey(
-        Parametr,
+        'parametr.Parametr',
         verbose_name='Параметр',
         on_delete=models.DO_NOTHING,
     )
