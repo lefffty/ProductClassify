@@ -50,6 +50,7 @@ class ParClass(models.Model):
         ClassStruct,
         verbose_name='Класс',
         on_delete=models.DO_NOTHING,
+        related_name='class_params'
     )
     parametr = models.ForeignKey(
         'parametr.Parametr',

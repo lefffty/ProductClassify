@@ -14,6 +14,7 @@ class Enums(models.Model):
         ClassStruct,
         verbose_name='Родительский класс',
         on_delete=models.CASCADE,
+        related_name='class_enum_values',
     )
     num = models.PositiveSmallIntegerField(
         verbose_name='Номер позиции в перечислении',

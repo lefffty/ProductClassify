@@ -31,6 +31,7 @@ class Parametr(models.Model):
         on_delete=models.CASCADE,
         null=False,
         blank=False,
+        related_name='type_parameters'
     )
     par_ei = models.ForeignKey(
         Ei,

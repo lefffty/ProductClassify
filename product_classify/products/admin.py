@@ -11,6 +11,7 @@ from .inlines import ParProdInline
 @admin.register(Prod)
 class ProdAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'name',
         'short_name',
         'class_field',

@@ -34,6 +34,7 @@ class Prod(models.Model):
         null=False,
         blank=False,
         on_delete=models.DO_NOTHING,
+        related_name='class_products',
     )
     image = models.ImageField(
         verbose_name='Изображение изделия',
@@ -55,6 +56,7 @@ class ParProd(models.Model):
         Prod,
         verbose_name='Изделие',
         on_delete=models.CASCADE,
+        related_name='product_params',
     )
     par = models.ForeignKey(
         Parametr,
