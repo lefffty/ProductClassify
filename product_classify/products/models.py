@@ -1,3 +1,44 @@
 from django.db import models
 
-# Create your models here.
+from classes.models import (
+    ClassStruct
+)
+from .constants import (
+    PROD_NAME_MAX_LENGTH,
+    PROD_SHORT_NAME_MAX_LENGTH,
+)
+
+
+class Prod(models.Model):
+    name = models.CharField(
+        verbose_name='Название изделия',
+        null=False,
+        blank=False,
+        max_length=PROD_NAME_MAX_LENGTH,
+    )
+    short_name = models.CharField(
+        verbose_name='Сокращенное название изделия',
+        null=False,
+        blank=False,
+        max_length=PROD_SHORT_NAME_MAX_LENGTH,
+    )
+    class_id = models.ForeignKey(
+        ClassStruct,
+        verbose_name='Родительский класс',
+        null=False,
+        blank=False,
+        on_delete=models.DO_NOTHING,
+    )
+    image = models.ImageField(
+        verbose_name='Изображение изделия',
+        blank=False,
+        null=False,
+        upload_to='product_images/',
+    )
+
+    class Meta:
+        verbose_name = 'Изделие'
+        verbose_name_plural = 'Изделия'
+    
+    def __str__(self):
+        return self.short_name

@@ -8,6 +8,7 @@ from .models import (
 @admin.register(Ei)
 class EiAdmin(admin.ModelAdmin):
     list_display = (
+        'id',
         'name',
         'short_name',
         'code',

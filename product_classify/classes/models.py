@@ -36,3 +36,10 @@ class ClassStruct(models.Model):
         blank=False,
         on_delete=models.CASCADE
     )
+
+    class Meta:
+        verbose_name = 'Классификатор'
+        verbose_name_plural = 'Классификатор'
+
+    def __str__(self):
+        return self.name
