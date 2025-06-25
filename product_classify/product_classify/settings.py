@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'classes.apps.ClassesConfig',
     'products.apps.ProductsConfig',
     'enums.apps.EnumsConfig',
+    'parametr.apps.ParametrConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
