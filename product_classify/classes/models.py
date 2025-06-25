@@ -7,6 +7,9 @@ from .constants import (
 from ei.models import (
     Ei,
 )
+from parametr.models import (
+    Parametr,
+)
 
 
 class ClassStruct(models.Model):
@@ -43,3 +46,40 @@ class ClassStruct(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ParClass(models.Model):
+    class_field = models.ForeignKey(
+        ClassStruct,
+        verbose_name='Класс',
+        on_delete=models.DO_NOTHING,
+    )
+    parametr = models.ForeignKey(
+        Parametr,
+        verbose_name='Параметр',
+        on_delete=models.DO_NOTHING,
+    )
+    num = models.PositiveSmallIntegerField(
+        verbose_name='Позиция в списке параметров класса',
+        null=False,
+        blank=False,
+    )
+    min_value = models.FloatField(
+        verbose_name='Минимальное значение параметра',
+    )
+    max_value = models.FloatField(
+        verbose_name='Максимальное значение параметра',
+    )
+
+    class Meta:
+        verbose_name = 'Параметр класса'
+        verbose_name_plural = 'Параметры класса'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['class_field', 'parametr'],
+                name='%(class)s_pk'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.class_field.name} - {self.parametr.name}'

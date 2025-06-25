@@ -1,7 +1,8 @@
 from django.contrib import admin
 
 from .models import (
-    ClassStruct
+    ClassStruct,
+    ParClass,
 )
 
 
@@ -21,6 +22,29 @@ class ClassStructAdmin(admin.ModelAdmin):
                 'short_name',
                 'base_ei',
                 'main_class',
+            )
+        }),
+    )
+
+
+@admin.register(ParClass)
+class ParClassAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'class_field',
+        'parametr',
+        'num',
+        'min_value',
+        'max_value',
+    )
+    fieldsets = (
+        (None, {
+            'fields': (
+                'class_field',
+                'parametr',
+                'num',
+                'min_value',
+                'max_value',
             )
         }),
     )
