@@ -16,7 +16,7 @@ class EnumsAdmin(admin.ModelAdmin):
         'short_name',
         'double_value',
         'int_value',
-        'image_value',
+        'image',
     )
     fieldsets = (
         (None, {
@@ -27,7 +27,7 @@ class EnumsAdmin(admin.ModelAdmin):
                 'short_name',
                 'double_value',
                 'int_value',
-                'image_value',
+                'image',
                 'display_image_value',
             )
         }),
@@ -39,7 +39,7 @@ class EnumsAdmin(admin.ModelAdmin):
     @admin.display(description='Изображение')
     @mark_safe
     def display_image_value(self, obj):
-        if obj.image_value:
-            return (f'<a href="{obj.image_value.url}" target="_blank"><img '
-                    f'src="{obj.image_value.url}" style="max-height:100px;"></a>')
+        if obj.image:
+            return (f'<a href="{obj.image.url}" target="_blank"><img '
+                    f'src="{obj.image.url}" style="max-height:100px;"></a>')
         return '-'

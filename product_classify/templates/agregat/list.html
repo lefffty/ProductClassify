@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}
+Список параметров
+{% endblock title %}
+
+{% block content %}
+<div>
+    {% for agregat in agregats %}
+    <div>
+    <div class="form-container rounded-box">
+        <ul>
+        <li>
+        <p>Идентификатор параметра: {{ agregat.par_id }}</p>
+        </li>
+        <li>
+            <p>Тип параметра: {{ agregat.parametr_type }}</p>
+        </li>
+        <li>
+            <p>Название параметра: {{ agregat.name }}</p>
+        </li>
+        <p>
+            <a href="{% url "agregat:agregat_detail" agregat.par_id %}">
+                Подробнее
+            </a>
+        </p>
+    </ul>
+    </div>
+</div>
+    {% endfor %}
+</div>
+{% endblock content %}

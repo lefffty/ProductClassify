@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}
+Описание параметра "{{ parameter.name }}"
+{% endblock title %}
+
+{% block content %}
+<div>
+    <div>
+        <div class="form-container rounded-box">
+            <h1>
+                <a href="{% url "parametr:parametr_list" %}">
+                    Параметры
+                </a>
+            </h1>
+            <ul>
+                <li>
+                    <p>Идентификатор параметра: {{ parameter.par_id }}</p>
+                </li>
+                <li>
+                    <p>Название параметра: {{ parameter.name }}</p>
+                </li>
+                <li>
+                    <p>Сокращенное название параметра: {{ parameter.short_name }}</p>
+                </li>
+                <li>
+                    <p>Тип параметра: {{ parameter.parametr_type.name }}</p>
+                </li>
+                <li>
+                    <p>Единица измерения параметра: {{ parameter.par_ei }}</p>
+                </li>
+                <p>
+                    <button class="submit-btn">
+                        <a href="{% url "parametr:edit_parametr" parameter.par_id %}">
+                            Редактировать параметр
+                        </a>
+                    </button>
+                    <button class="submit-btn">
+                        <a href="{% url "parametr:delete_parametr" parameter.par_id %}">
+                            Удалить параметр
+                        </a>
+                    </button>
+                </p>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock content %}

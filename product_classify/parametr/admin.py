@@ -3,6 +3,7 @@ from django.contrib import admin
 from .models import (
     Parametr
 )
+from .inlines import AgregatInline
 
 
 @admin.register(Parametr)
@@ -14,6 +15,7 @@ class ParametrAdmin(admin.ModelAdmin):
         'parametr_type',
         'par_ei',
     )
+    inlines = (AgregatInline,)
     fieldsets = (
         (None, {
             'fields': (

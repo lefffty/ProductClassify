@@ -22,7 +22,7 @@ class Parametr(models.Model):
     short_name = models.CharField(
         verbose_name='Сокращенное название параметра',
         max_length=PARAMETR_SHORT_NAME_MAX_LENGTH,
-        null=False,
+        null=True,
         blank=False,
     )
     parametr_type = models.ForeignKey(
@@ -36,7 +36,7 @@ class Parametr(models.Model):
         Ei,
         verbose_name='Единица измерения параметра',
         on_delete=models.CASCADE,
-        null=False,
+        null=True,
         blank=False,
     )
 

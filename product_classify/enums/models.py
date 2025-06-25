@@ -23,10 +23,12 @@ class Enums(models.Model):
     name = models.CharField(
         verbose_name='Название перечисления',
         max_length=ENUMS_NAME_MAX_LENGTH,
+        null=True,
     )
     short_name = models.CharField(
         verbose_name='Сокращенное название перечисления',
         max_length=ENUMS_SHORT_NAME_MAX_LENGTH,
+        null=True,
     )
     double_value = models.FloatField(
         verbose_name='Вещественное значение перечисления',
@@ -38,7 +40,7 @@ class Enums(models.Model):
         null=True,
         blank=True,
     )
-    image_value = models.ImageField(
+    image = models.ImageField(
         verbose_name='Изображение перечисления',
         upload_to='enum_images/',
     )

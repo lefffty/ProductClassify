@@ -24,11 +24,11 @@ class Prod(models.Model):
     )
     short_name = models.CharField(
         verbose_name='Сокращенное название изделия',
-        null=False,
+        null=True,
         blank=False,
         max_length=PROD_SHORT_NAME_MAX_LENGTH,
     )
-    class_id = models.ForeignKey(
+    class_field = models.ForeignKey(
         ClassStruct,
         verbose_name='Родительский класс',
         null=False,
@@ -76,6 +76,7 @@ class ParProd(models.Model):
         verbose_name='Значение перечисления параметра',
         on_delete=models.CASCADE,
         blank=True,
+        null=True,
     )
 
     class Meta:

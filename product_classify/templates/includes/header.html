@@ -1,0 +1,68 @@
+{% load static %}
+<header>
+  <div class="container">
+    <nav id="menu">
+      <a href="{% url "classes:index" %}" class="logo">
+        <img src="{% static "images/logo.jpg" %}" width="40" height="40" alt="">
+      </a>
+      <a aria-label="mobile menu" class="nav-toggle">
+      </a>
+        <ul class="menu-left">
+          <li><a href="{% url "classes:index" %}">Главная</a></li>
+          <li class="dropdown">
+            <a href="#">Классы</a>
+            <ul class="dropdown-menu">
+              {% for fastener_class in fastener_classes %}
+              <li>
+                <a href="{% url "classes:category_classes" fastener_class.class_id %}">
+                  {{ fastener_class.name }}
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </li>
+          <li>
+            <a href="{% url "ei:ei_list" %}">
+              Единицы измерения
+            </a>
+          </li>
+          <li class="dropdown">
+            <a href="#"> Перечисления </a>
+            <ul class="dropdown-menu">
+              <li>
+                <a href="{% url "enums:enums_list" 15 %}">
+                  Строковые перечисления
+                </a>
+              </li>
+              <li>
+                <a href="{% url "enums:enums_list" 16 %}">
+                  Перечисления изображений
+                </a>
+              </li>
+              <li>
+                <a href="{% url "enums:enums_list" 19 %}">
+                  Целочисленные перечисления
+                </a>
+              </li>
+              <li>
+                <a href="{% url "enums:enums_list" 18 %}">
+                  Вещественные перечисления
+                </a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <a href="{% url "parametr:parametr_list" %}">
+              Параметры
+            </a>
+          </li>
+          <li>
+            <a href="{% url "agregat:agregat_list" %}">
+              Агрегаты
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>

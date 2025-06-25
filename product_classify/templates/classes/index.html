@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}
+Главная страница
+{% endblock title %}
+
+{% block content %}
+<div class="container">
+  <p>
+    <a href="{% url "classes:add_prod_class" %}">
+      Добавить класс изделия
+    </a>
+  <p>
+    <a href="{% url "classes:add_enum_class" %}">
+        Добавить класс перечисления
+    </a>
+  </p>
+  <p>
+    <a href="{% url "ei:add_ei" %}">
+        Добавить единицу измерения
+    </a>
+  </p>
+  <p>
+    <a href="{% url "parametr:add_parametr" %}">
+        Добавить параметр
+    </a>
+  </p>
+  <p>
+    <a href="{% url "enums:add_enum" %}">
+        Добавить значение перечисления
+    </a>
+  </p>
+  <p>
+    <a href="{% url "products:add_product" %}">
+        Добавить изделие 
+    </a>
+  </p>
+</div>
+{% endblock content %}

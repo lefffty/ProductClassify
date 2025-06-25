@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}
+Список параметров
+{% endblock title %}
+
+{% block content %}
+<div>
+    {% for parameter in parameters %}
+    <div>
+    <div class="form-container rounded-box">
+        <ul>
+            <li>
+                <p>Название параметра: {{ parameter.name }}</p>
+            </li>
+            <li>
+                <p>Тип параметра: {{ parameter.parametr_type }}</p>
+            </li>
+            <p>
+                <a href="{% url "parametr:parametr_detail" parameter.par_id %}">
+                    Полное описание параметра
+                </a>
+            </p>
+        </ul>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% endblock content %}
+

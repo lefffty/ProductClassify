@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if '/edit/' in request.path %}
+Редактировать связку "параметр-изделие"
+{% elif '/delete/' in request.path %}
+Удалить связку "параметр-изделие"
+{% else %}
+Добавить связку "параметр-изделие"
+{% endif %}
+{% endblock title %}
+
+
+{% block content %}
+<div class="form-container rounded-box">
+    {% if '/edit/' in request.path %}
+    <h2>
+        Форма редактирования связки "параметр-изделие" изделия <a href="{% url "products:product_detail" instance.prod_id %}">{{ instance.prod.name }}</a>
+    </h2>
+    {% elif '/delete/' in request.path %}
+    <h2>
+        Форма удаления связки "параметр-изделие" изделия <a href="{% url "products:product_detail" instance.prod_id %}">{{ instance.prod.name }}</a>
+    </h2>
+    {% else %}
+    <h2>
+        Форма добавления связки "параметр-изделие" изделия <a href="{% url "products:product_detail" instance.prod_id %}">{{ instance.name }}</a>
+    </h2>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% if not 'delete' in request.path %}
+        <!-- Вывод всех ошибок формы -->
+            {% if form.non_field_errors %}
+            <div class="errorlist">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+        
+        <!-- Поля формы -->
+        {% for field in form %}
+        <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                
+                <!-- Вывод ошибок для конкретного поля -->
+                    {% if field.errors %}
+                    <ul class="errorlist">
+                        {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    
+                    <!-- Вывод подсказки -->
+                    {% if field.help_text %}
+                    <small style="color: #666;">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+        {% else %}
+            <p>
+                Название изделия: {{ instance.prod.name }}
+            </p>
+            <p>
+                Название параметра: {{ instance.par.name }}
+            </p>
+            <p>
+                Значение параметра: 
+                {% with prm_type=instance.par.parametr_type.class_id %}
+                {% if prm_type == 27 %}
+                    {{ instance.double_value }} {{ instance.par.par_ei.short_name }}
+                {% elif prm_type == 28 %}
+                    {{ instance.int_value }} {{ instance.par.par_ei.short_name }}
+                {% else %}
+                    {% if prm_type == 15 %}
+                    {{ instance.enum_val.name }}
+                    {% elif prm_type == 16 %}
+                    {{ instance.enum_val.picture_value }}
+                    {% elif prm_type == 19 %}
+                    {{ instance.enum_val.int_value }} {{ instance.par.par_ei.short_name }}
+                    {% elif prm_type == 18 %}
+                    {{ instance.enum_val.double_value }} {{ instance.par.par_ei.short_name }}
+                    {% endif %}
+                {% endif %}
+                {% endwith %}
+            </p>
+        {% endif %}
+            <!-- Серая кнопка отправки -->
+            <button type="submit" class="submit-btn">
+                {% if '/add/' in request.path %}
+                Добавить параметр изделию
+                {% elif '/edit/' in request.path %}
+                Изменить параметр изделия
+                {% elif '/delete/' in request.path %}
+                Удалить параметр изделия
+                {% endif %}
+            </button>
+        </form>
+</div>
+{% endblock content %}

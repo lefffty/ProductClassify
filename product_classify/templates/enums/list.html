@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}
+Список значений перечислений
+{% endblock title %}
+
+{% block content %}
+<div>
+    {% for enum in enums %}
+    <div>
+    <div class="form-container rounded-box">
+      <ul>
+        <li>
+          <p>Идентификатор перечисления: {{ enum.pos_id }}</p>
+        </li>
+        <li>
+          <p>Название перечисления: {{ enum.enum.name }}</p>
+        </li>
+        <li>
+          Сокращенное название перечисления: {{ enum.short_name }}
+        </li>
+        <li>
+          Значение перечисления: 
+          {% if enum.enum.main_class.class_id == 15 %}
+            {{ enum.name }}
+          {% elif enum.enum.main_class.class_id == 16 %}
+            {{ enum.picture_value }}
+          {% elif enum.enum.main_class.class_id == 19 %}
+            {{ enum.int_value }}
+          {% else %}
+            {{ enum.double_value }}
+          {% endif %}
+        </li>
+        <p>
+          <p>
+            <a href="{% url "enums:enums_detail" enum.enum.class_id enum.pos_id %}">
+              Подробное описание значения перечисления
+            </a>
+          </p>
+          <p>
+            <a href="{% url "enums:edit_enum" enum.enum.class_id enum.pos_id %}">
+              Редактировать значение перечисления
+            </a>
+          </p>
+          <p>
+            <a href="{% url "enums:delete_enum" enum.enum.class_id enum.pos_id %}">
+              Удалить значение перечисления
+            </a>
+          </p>
+        </p>
+      </ul>
+    </div>
+  </div>
+    {% endfor %}
+    <p>
+      <a href="{% url "enums:change_num" %}">
+        ИЗМЕНИТЬ НОМЕРА ПЕРЕЧИСЛЕНИЙ
+      </a>
+    </p>
+  </div>
+{% endblock content %}

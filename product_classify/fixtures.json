@@ -1,0 +1,2521 @@
+[
+  {
+    "model": "classes.classstruct",
+    "pk": 1,
+    "fields": {
+      "name": "Изделия",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 2,
+    "fields": {
+      "name": "Крепеж",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 1
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 3,
+    "fields": {
+      "name": "Болты",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 2
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 4,
+    "fields": {
+      "name": "Кронштейн",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 2
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 5,
+    "fields": {
+      "name": "Гайки",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 2
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 6,
+    "fields": {
+      "name": "Гайки стяжная шестигранная",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 5
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 7,
+    "fields": {
+      "name": "Гайка круглая шлицевая",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 5
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 8,
+    "fields": {
+      "name": "Гайка шестигранная с фаской",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 5
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 9,
+    "fields": {
+      "name": "Кронштейн настенный угловой консольный",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 4
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 11,
+    "fields": {
+      "name": "Болт крепления к пазам станочным",
+      "short_name": "БККПС",
+      "base_ei": null,
+      "main_class": 3
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 12,
+    "fields": {
+      "name": "Болт с шестигранной головкой, полная резьба",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 3
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 13,
+    "fields": {
+      "name": "КлассПо",
+      "short_name": "КлПО",
+      "base_ei": null,
+      "main_class": null
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 14,
+    "fields": {
+      "name": "Перечисление",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 15,
+    "fields": {
+      "name": "Перечисление строк",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 16,
+    "fields": {
+      "name": "Перечисление изображений",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 17,
+    "fields": {
+      "name": "Численное перечисление",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 18,
+    "fields": {
+      "name": "Вещественное перечисление",
+      "short_name": "ВещПр",
+      "base_ei": null,
+      "main_class": 17
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 19,
+    "fields": {
+      "name": "Целочисленное перечисление",
+      "short_name": "ЦелПр",
+      "base_ei": null,
+      "main_class": 17
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 20,
+    "fields": {
+      "name": "Высота головки",
+      "short_name": "k",
+      "base_ei": 1,
+      "main_class": 18
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 22,
+    "fields": {
+      "name": "Диаметр стержня",
+      "short_name": "d1",
+      "base_ei": 1,
+      "main_class": 19
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 23,
+    "fields": {
+      "name": "Размер под ключ",
+      "short_name": "S",
+      "base_ei": 1,
+      "main_class": 19
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 24,
+    "fields": {
+      "name": "Вид резьбы",
+      "short_name": "ВидРз",
+      "base_ei": null,
+      "main_class": 15
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 25,
+    "fields": {
+      "name": "Вариант исполнения",
+      "short_name": "ВрИсп",
+      "base_ei": null,
+      "main_class": 16
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 26,
+    "fields": {
+      "name": "Численные параметры",
+      "short_name": "ЧислПарам",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 27,
+    "fields": {
+      "name": "Вещественные параметры",
+      "short_name": "ВещПарам",
+      "base_ei": null,
+      "main_class": 26
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 28,
+    "fields": {
+      "name": "Целочисленные параметры",
+      "short_name": "ЦелПарам",
+      "base_ei": null,
+      "main_class": 26
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 29,
+    "fields": {
+      "name": "Крепление V-образное",
+      "short_name": "Крпл. V-обр.",
+      "base_ei": null,
+      "main_class": 4
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 30,
+    "fields": {
+      "name": "Агрегат",
+      "short_name": "Агрт",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 31,
+    "fields": {
+      "name": "Болт с трехгранной головкой и буртиком",
+      "short_name": null,
+      "base_ei": null,
+      "main_class": 3
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 32,
+    "fields": {
+      "name": "Диаметр отверстия в стержне",
+      "short_name": "d3",
+      "base_ei": null,
+      "main_class": 18
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 33,
+    "fields": {
+      "name": "Диаметр отверстия в головке",
+      "short_name": "d4",
+      "base_ei": null,
+      "main_class": 18
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 35,
+    "fields": {
+      "name": "Диаметр резьбы болта",
+      "short_name": "ДмтрРзБлт",
+      "base_ei": null,
+      "main_class": 19
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 36,
+    "fields": {
+      "name": "Длина болта",
+      "short_name": "ДлнБлт",
+      "base_ei": null,
+      "main_class": 19
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 37,
+    "fields": {
+      "name": "Диаметр резьбы гайки",
+      "short_name": "ДмтрРзбГйк",
+      "base_ei": null,
+      "main_class": 19
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 38,
+    "fields": {
+      "name": "Первый раз в первый класс",
+      "short_name": "ПРвПК",
+      "base_ei": 5,
+      "main_class": 29
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 39,
+    "fields": {
+      "name": "Крепление V-образное с укреплённым корпусом",
+      "short_name": "V-укреплённое",
+      "base_ei": 9,
+      "main_class": 29
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 1,
+    "fields": {
+      "class_field": 3,
+      "parametr": 3,
+      "min_value": null,
+      "max_value": null,
+      "num": 3
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 2,
+    "fields": {
+      "class_field": 3,
+      "parametr": 4,
+      "min_value": null,
+      "max_value": null,
+      "num": 4
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 7,
+    "fields": {
+      "class_field": 29,
+      "parametr": 6,
+      "min_value": 40,
+      "max_value": 100,
+      "num": 1
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 8,
+    "fields": {
+      "class_field": 3,
+      "parametr": 2,
+      "min_value": null,
+      "max_value": null,
+      "num": 1
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 9,
+    "fields": {
+      "class_field": 3,
+      "parametr": 1,
+      "min_value": null,
+      "max_value": null,
+      "num": 2
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 11,
+    "fields": {
+      "class_field": 5,
+      "parametr": 5,
+      "min_value": 101,
+      "max_value": 199,
+      "num": 1
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 12,
+    "fields": {
+      "class_field": 7,
+      "parametr": 5,
+      "min_value": 101,
+      "max_value": 199,
+      "num": 3
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 13,
+    "fields": {
+      "class_field": 8,
+      "parametr": 5,
+      "min_value": 101,
+      "max_value": 199,
+      "num": 4
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 14,
+    "fields": {
+      "class_field": 6,
+      "parametr": 5,
+      "min_value": 102,
+      "max_value": 198,
+      "num": 2
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 15,
+    "fields": {
+      "class_field": 29,
+      "parametr": 7,
+      "min_value": 80,
+      "max_value": 100,
+      "num": 2
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 17,
+    "fields": {
+      "class_field": 11,
+      "parametr": 7,
+      "min_value": 5,
+      "max_value": 10,
+      "num": 1
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 18,
+    "fields": {
+      "class_field": 3,
+      "parametr": 6,
+      "min_value": 10,
+      "max_value": 11,
+      "num": 1
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 19,
+    "fields": {
+      "class_field": 12,
+      "parametr": 11,
+      "min_value": null,
+      "max_value": null,
+      "num": 1
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 20,
+    "fields": {
+      "class_field": 12,
+      "parametr": 12,
+      "min_value": null,
+      "max_value": null,
+      "num": 1
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 22,
+    "fields": {
+      "class_field": 12,
+      "parametr": 13,
+      "min_value": null,
+      "max_value": null,
+      "num": 2
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 24,
+    "fields": {
+      "class_field": 9,
+      "parametr": 6,
+      "min_value": 0.14,
+      "max_value": 0.28,
+      "num": 2
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 25,
+    "fields": {
+      "class_field": 29,
+      "parametr": 5,
+      "min_value": 50,
+      "max_value": 200,
+      "num": 1
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 26,
+    "fields": {
+      "class_field": 7,
+      "parametr": 14,
+      "min_value": null,
+      "max_value": null,
+      "num": 1
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 27,
+    "fields": {
+      "class_field": 7,
+      "parametr": 11,
+      "min_value": null,
+      "max_value": null,
+      "num": 1
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 28,
+    "fields": {
+      "class_field": 12,
+      "parametr": 1,
+      "min_value": null,
+      "max_value": null,
+      "num": 1
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 32,
+    "fields": {
+      "class_field": 4,
+      "parametr": 4,
+      "min_value": null,
+      "max_value": null,
+      "num": 1
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 33,
+    "fields": {
+      "class_field": 9,
+      "parametr": 4,
+      "min_value": null,
+      "max_value": null,
+      "num": 2
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 34,
+    "fields": {
+      "class_field": 29,
+      "parametr": 4,
+      "min_value": null,
+      "max_value": null,
+      "num": 3
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 35,
+    "fields": {
+      "class_field": 38,
+      "parametr": 4,
+      "min_value": null,
+      "max_value": null,
+      "num": 4
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 36,
+    "fields": {
+      "class_field": 39,
+      "parametr": 4,
+      "min_value": null,
+      "max_value": null,
+      "num": 5
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 37,
+    "fields": {
+      "class_field": 4,
+      "parametr": 2,
+      "min_value": null,
+      "max_value": null,
+      "num": 2
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 38,
+    "fields": {
+      "class_field": 9,
+      "parametr": 2,
+      "min_value": null,
+      "max_value": null,
+      "num": 2
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 39,
+    "fields": {
+      "class_field": 29,
+      "parametr": 2,
+      "min_value": null,
+      "max_value": null,
+      "num": 4
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 40,
+    "fields": {
+      "class_field": 38,
+      "parametr": 2,
+      "min_value": null,
+      "max_value": null,
+      "num": 5
+    }
+  },
+  {
+    "model": "classes.parclass",
+    "pk": 41,
+    "fields": {
+      "class_field": 39,
+      "parametr": 2,
+      "min_value": null,
+      "max_value": null,
+      "num": 6
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 4,
+    "fields": {
+      "prod": 11,
+      "par": 7,
+      "int_value": null,
+      "double_value": 80,
+      "enum_val": null
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 11,
+    "fields": {
+      "prod": 10,
+      "par": 6,
+      "int_value": null,
+      "double_value": 60,
+      "enum_val": null
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 16,
+    "fields": {
+      "prod": 10,
+      "par": 7,
+      "int_value": null,
+      "double_value": 85,
+      "enum_val": null
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 17,
+    "fields": {
+      "prod": 12,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 18,
+    "fields": {
+      "prod": 12,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 17
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 19,
+    "fields": {
+      "prod": 12,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 25
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 20,
+    "fields": {
+      "prod": 13,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 21,
+    "fields": {
+      "prod": 13,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 17
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 22,
+    "fields": {
+      "prod": 13,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 26
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 23,
+    "fields": {
+      "prod": 9,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 24,
+    "fields": {
+      "prod": 9,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 18
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 25,
+    "fields": {
+      "prod": 9,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 25
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 26,
+    "fields": {
+      "prod": 17,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 27,
+    "fields": {
+      "prod": 17,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 17
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 29,
+    "fields": {
+      "prod": 18,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 30,
+    "fields": {
+      "prod": 18,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 17
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 31,
+    "fields": {
+      "prod": 18,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 28
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 32,
+    "fields": {
+      "prod": 19,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 33,
+    "fields": {
+      "prod": 19,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 17
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 34,
+    "fields": {
+      "prod": 19,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 29
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 35,
+    "fields": {
+      "prod": 17,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 27
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 36,
+    "fields": {
+      "prod": 20,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 37,
+    "fields": {
+      "prod": 20,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 17
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 38,
+    "fields": {
+      "prod": 20,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 30
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 39,
+    "fields": {
+      "prod": 21,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 40,
+    "fields": {
+      "prod": 21,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 18
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 41,
+    "fields": {
+      "prod": 21,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 31
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 42,
+    "fields": {
+      "prod": 22,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 43,
+    "fields": {
+      "prod": 22,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 18
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 44,
+    "fields": {
+      "prod": 22,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 32
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 45,
+    "fields": {
+      "prod": 23,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 46,
+    "fields": {
+      "prod": 23,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 18
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 47,
+    "fields": {
+      "prod": 23,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 26
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 48,
+    "fields": {
+      "prod": 24,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 49,
+    "fields": {
+      "prod": 24,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 18
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 50,
+    "fields": {
+      "prod": 24,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 27
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 51,
+    "fields": {
+      "prod": 25,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 52,
+    "fields": {
+      "prod": 25,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 18
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 53,
+    "fields": {
+      "prod": 25,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 28
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 55,
+    "fields": {
+      "prod": 10,
+      "par": 5,
+      "int_value": null,
+      "double_value": 60,
+      "enum_val": null
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 56,
+    "fields": {
+      "prod": 26,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 57,
+    "fields": {
+      "prod": 26,
+      "par": 14,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 41
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 58,
+    "fields": {
+      "prod": 26,
+      "par": 5,
+      "int_value": null,
+      "double_value": 150,
+      "enum_val": null
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 59,
+    "fields": {
+      "prod": 27,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 60,
+    "fields": {
+      "prod": 27,
+      "par": 14,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 42
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 61,
+    "fields": {
+      "prod": 27,
+      "par": 5,
+      "int_value": null,
+      "double_value": 120,
+      "enum_val": null
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 62,
+    "fields": {
+      "prod": 28,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 63,
+    "fields": {
+      "prod": 28,
+      "par": 14,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 43
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 64,
+    "fields": {
+      "prod": 28,
+      "par": 5,
+      "int_value": null,
+      "double_value": 155,
+      "enum_val": null
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 65,
+    "fields": {
+      "prod": 29,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 66,
+    "fields": {
+      "prod": 29,
+      "par": 14,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 44
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 67,
+    "fields": {
+      "prod": 29,
+      "par": 5,
+      "int_value": null,
+      "double_value": 190,
+      "enum_val": null
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 68,
+    "fields": {
+      "prod": 30,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 69,
+    "fields": {
+      "prod": 30,
+      "par": 14,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 45
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 70,
+    "fields": {
+      "prod": 30,
+      "par": 5,
+      "int_value": null,
+      "double_value": 160,
+      "enum_val": null
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 71,
+    "fields": {
+      "prod": 31,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 1
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 72,
+    "fields": {
+      "prod": 31,
+      "par": 14,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 46
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 73,
+    "fields": {
+      "prod": 31,
+      "par": 5,
+      "int_value": null,
+      "double_value": 170,
+      "enum_val": null
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 74,
+    "fields": {
+      "prod": 33,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 48
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 75,
+    "fields": {
+      "prod": 33,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 17
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 76,
+    "fields": {
+      "prod": 33,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 25
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 77,
+    "fields": {
+      "prod": 34,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 48
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 78,
+    "fields": {
+      "prod": 34,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 18
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 79,
+    "fields": {
+      "prod": 34,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 25
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 80,
+    "fields": {
+      "prod": 35,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 47
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 81,
+    "fields": {
+      "prod": 35,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 17
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 82,
+    "fields": {
+      "prod": 35,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 25
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 83,
+    "fields": {
+      "prod": 36,
+      "par": 11,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 47
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 84,
+    "fields": {
+      "prod": 36,
+      "par": 12,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 18
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 85,
+    "fields": {
+      "prod": 36,
+      "par": 13,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 25
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 86,
+    "fields": {
+      "prod": 9,
+      "par": 1,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 4
+    }
+  },
+  {
+    "model": "products.parprod",
+    "pk": 87,
+    "fields": {
+      "prod": 12,
+      "par": 1,
+      "int_value": null,
+      "double_value": null,
+      "enum_val": 5
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 9,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба M6Х10",
+      "class_field": 12,
+      "image": "products/блт_yRFUmYa.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 10,
+    "fields": {
+      "short_name": null,
+      "name": "Крепление V-образное M8",
+      "class_field": 29,
+      "image": "products/6311dbe473176265c5d30c0c_yhU3Q8C.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 11,
+    "fields": {
+      "short_name": null,
+      "name": "Крепление V-образное M10",
+      "class_field": 29,
+      "image": "products/6311dbe473176265c5d30c0c.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 12,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба M5Х10",
+      "class_field": 12,
+      "image": "products/блт_zzMU2MF.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 13,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба M5Х16",
+      "class_field": 12,
+      "image": "products/блт_HnKfz7b.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 17,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба M5Х20",
+      "class_field": 12,
+      "image": "products/блт_XloSwby.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 18,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба M5Х25",
+      "class_field": 12,
+      "image": "products/блт_YTasYtB.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 19,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба M5Х30",
+      "class_field": 12,
+      "image": "products/блт_QwpNDbe.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 20,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба M5Х40",
+      "class_field": 12,
+      "image": "products/блт_0EYjiEt.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 21,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба M6Х45",
+      "class_field": 12,
+      "image": "products/блт_WaFuoKG.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 22,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба M6Х50",
+      "class_field": 12,
+      "image": "products/блт_j3c8iGz.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 23,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба M6Х16",
+      "class_field": 12,
+      "image": "products/блт_70ahBMB.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 24,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба M6Х20",
+      "class_field": 12,
+      "image": "products/блт_MNEekWr.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 25,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба М6Х25",
+      "class_field": 12,
+      "image": "products/блт_CRZ12NK.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 26,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 1804 Гайка круглая шлицевая M6",
+      "class_field": 7,
+      "image": "products/гкш_P1Xbvl8.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 27,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 1804 Гайка круглая шлицевая M8",
+      "class_field": 7,
+      "image": "products/гкш_NzOJzsP.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 28,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 1804 Гайка круглая шлицевая M10",
+      "class_field": 7,
+      "image": "products/гкш.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 29,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 1804 Гайка круглая шлицевая M12",
+      "class_field": 7,
+      "image": "products/гкш_2wvHjPF.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 30,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 1804 Гайка круглая шлицевая M14",
+      "class_field": 7,
+      "image": "products/гкш_4We4r5v.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 31,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 1804 Гайка круглая шлицевая M16",
+      "class_field": 7,
+      "image": "products/гкш_4n96YQl.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 33,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба K5X10",
+      "class_field": 12,
+      "image": "products/блт.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 34,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба K6X10",
+      "class_field": 12,
+      "image": "products/блт_2E3Wh2F.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 35,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба ТР5X10",
+      "class_field": 12,
+      "image": "products/блт_STwlr7G.png"
+    }
+  },
+  {
+    "model": "products.prod",
+    "pk": 36,
+    "fields": {
+      "short_name": null,
+      "name": "DIN 558 Болт с шестигранной головкой, полная резьба ТР6X10",
+      "class_field": 12,
+      "image": "products/блт_qFioqR7.png"
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 1,
+    "fields": {
+      "name": "Метр",
+      "short_name": "м",
+      "code": "006",
+      "convert_factor": 1,
+      "main_class": null
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 2,
+    "fields": {
+      "name": "Миллиметр",
+      "short_name": "мм",
+      "code": "003",
+      "convert_factor": 1,
+      "main_class": 1
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 3,
+    "fields": {
+      "name": "Квадратный метр",
+      "short_name": "м^2",
+      "code": "055",
+      "convert_factor": 1,
+      "main_class": null
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 4,
+    "fields": {
+      "name": "Килограмм",
+      "short_name": "кг",
+      "code": "166",
+      "convert_factor": 1,
+      "main_class": null
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 5,
+    "fields": {
+      "name": "Тонна",
+      "short_name": "т",
+      "code": "168",
+      "convert_factor": 1000,
+      "main_class": 3
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 6,
+    "fields": {
+      "name": "Километр",
+      "short_name": "км",
+      "code": "1337",
+      "convert_factor": 1000,
+      "main_class": 1
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 9,
+    "fields": {
+      "name": "Граммы",
+      "short_name": "г",
+      "code": null,
+      "convert_factor": 1000,
+      "main_class": 4
+    }
+  },
+  {
+    "model": "parametr.parametr",
+    "pk": 1,
+    "fields": {
+      "parametr_type": 16,
+      "name": "Исполнение",
+      "short_name": "Исп",
+      "par_ei": null
+    }
+  },
+  {
+    "model": "parametr.parametr",
+    "pk": 2,
+    "fields": {
+      "parametr_type": 19,
+      "name": "Диаметр стержня",
+      "short_name": "d1",
+      "par_ei": 2
+    }
+  },
+  {
+    "model": "parametr.parametr",
+    "pk": 3,
+    "fields": {
+      "parametr_type": 23,
+      "name": "Размер под ключ",
+      "short_name": "S",
+      "par_ei": 2
+    }
+  },
+  {
+    "model": "parametr.parametr",
+    "pk": 4,
+    "fields": {
+      "parametr_type": 20,
+      "name": "Высота головки",
+      "short_name": "k",
+      "par_ei": 2
+    }
+  },
+  {
+    "model": "parametr.parametr",
+    "pk": 5,
+    "fields": {
+      "parametr_type": 27,
+      "name": "Вес",
+      "short_name": null,
+      "par_ei": 9
+    }
+  },
+  {
+    "model": "parametr.parametr",
+    "pk": 6,
+    "fields": {
+      "parametr_type": 27,
+      "name": "Длина",
+      "short_name": "",
+      "par_ei": 2
+    }
+  },
+  {
+    "model": "parametr.parametr",
+    "pk": 7,
+    "fields": {
+      "parametr_type": 27,
+      "name": "Ширина",
+      "short_name": "",
+      "par_ei": 2
+    }
+  },
+  {
+    "model": "parametr.parametr",
+    "pk": 8,
+    "fields": {
+      "parametr_type": 30,
+      "name": "Габариты",
+      "short_name": "",
+      "par_ei": null
+    }
+  },
+  {
+    "model": "parametr.parametr",
+    "pk": 9,
+    "fields": {
+      "parametr_type": 18,
+      "name": "Диаметр отверстия в стержне",
+      "short_name": "d3",
+      "par_ei": 2
+    }
+  },
+  {
+    "model": "parametr.parametr",
+    "pk": 11,
+    "fields": {
+      "parametr_type": 15,
+      "name": "Вид резьбы",
+      "short_name": "ВидРзб",
+      "par_ei": null
+    }
+  },
+  {
+    "model": "parametr.parametr",
+    "pk": 12,
+    "fields": {
+      "parametr_type": 19,
+      "name": "Диаметр резьбы болта",
+      "short_name": "ДмтрРзБлт",
+      "par_ei": 2
+    }
+  },
+  {
+    "model": "parametr.parametr",
+    "pk": 13,
+    "fields": {
+      "parametr_type": 19,
+      "name": "Длина болта",
+      "short_name": "ДлнБлт",
+      "par_ei": 2
+    }
+  },
+  {
+    "model": "parametr.parametr",
+    "pk": 14,
+    "fields": {
+      "parametr_type": 19,
+      "name": "Диаметр резьбы гайки",
+      "short_name": "ДмтрРзбГйк",
+      "par_ei": 2
+    }
+  },
+  {
+    "model": "agregat.agregat",
+    "pk": 7,
+    "fields": {
+      "agr": 8,
+      "par": 6,
+      "num": 2
+    }
+  },
+  {
+    "model": "agregat.agregat",
+    "pk": 10,
+    "fields": {
+      "agr": 8,
+      "par": 5,
+      "num": 2
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 1,
+    "fields": {
+      "enum": 24,
+      "num": 1,
+      "short_name": "Мтр",
+      "name": "Метрическая",
+      "double_value": null,
+      "int_value": null,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 4,
+    "fields": {
+      "enum": 25,
+      "num": 2,
+      "short_name": "ВарИсп1",
+      "name": "Вариант исполнения 1",
+      "double_value": null,
+      "int_value": null,
+      "image": "enums/Вариант_исполнения_1.jfif"
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 5,
+    "fields": {
+      "enum": 25,
+      "num": 1,
+      "short_name": "ВарИсп2",
+      "name": "Вариант исполнения 2",
+      "double_value": null,
+      "int_value": null,
+      "image": "enums/Вариант_исполнения_2.jfif"
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 6,
+    "fields": {
+      "enum": 25,
+      "num": 3,
+      "short_name": "ВарИсп3",
+      "name": "Вариант исполнения 3",
+      "double_value": null,
+      "int_value": null,
+      "image": "enums/Вариант_исполнения_3.jfif"
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 7,
+    "fields": {
+      "enum": 25,
+      "num": 4,
+      "short_name": "ВарИсп4",
+      "name": "Вариант исполнения 4",
+      "double_value": null,
+      "int_value": null,
+      "image": "enums/Вариант_исполнения_4.jfif"
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 8,
+    "fields": {
+      "enum": 22,
+      "num": 1,
+      "short_name": "d1",
+      "name": "",
+      "double_value": null,
+      "int_value": 6,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 9,
+    "fields": {
+      "enum": 23,
+      "num": 1,
+      "short_name": "S",
+      "name": null,
+      "double_value": null,
+      "int_value": 18,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 10,
+    "fields": {
+      "enum": 20,
+      "num": 1,
+      "short_name": "k",
+      "name": "",
+      "double_value": 5.3,
+      "int_value": null,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 13,
+    "fields": {
+      "enum": 23,
+      "num": 1,
+      "short_name": "S",
+      "name": null,
+      "double_value": null,
+      "int_value": 13,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 14,
+    "fields": {
+      "enum": 23,
+      "num": 1,
+      "short_name": "S",
+      "name": null,
+      "double_value": null,
+      "int_value": 13,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 15,
+    "fields": {
+      "enum": 23,
+      "num": 1,
+      "short_name": "S",
+      "name": null,
+      "double_value": null,
+      "int_value": 16,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 16,
+    "fields": {
+      "enum": 25,
+      "num": 5,
+      "short_name": "ВарИсп5",
+      "name": "Вариант исполнения 5",
+      "double_value": null,
+      "int_value": null,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 17,
+    "fields": {
+      "enum": 35,
+      "num": 1,
+      "short_name": "ДмтрРзБлт",
+      "name": "Диаметр резьбы болта",
+      "double_value": null,
+      "int_value": 5,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 18,
+    "fields": {
+      "enum": 35,
+      "num": 2,
+      "short_name": "ДмтрРзБлт",
+      "name": "Диаметр резьбы болта",
+      "double_value": null,
+      "int_value": 6,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 19,
+    "fields": {
+      "enum": 35,
+      "num": 3,
+      "short_name": "ДмтрРзБлт",
+      "name": "Диаметр резьбы болта",
+      "double_value": null,
+      "int_value": 8,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 20,
+    "fields": {
+      "enum": 35,
+      "num": 4,
+      "short_name": "ДмтрРзБлт",
+      "name": "Диаметр резьбы болта",
+      "double_value": null,
+      "int_value": 10,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 21,
+    "fields": {
+      "enum": 35,
+      "num": 5,
+      "short_name": "ДмтрРзБлт",
+      "name": "Диаметр резьбы болта",
+      "double_value": null,
+      "int_value": 12,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 22,
+    "fields": {
+      "enum": 35,
+      "num": 6,
+      "short_name": "ДмтрРзБлт",
+      "name": "Диаметр резьбы болта",
+      "double_value": null,
+      "int_value": 16,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 23,
+    "fields": {
+      "enum": 35,
+      "num": 7,
+      "short_name": "ДмтрРзБлт",
+      "name": "Диаметр резьбы болта",
+      "double_value": null,
+      "int_value": 20,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 24,
+    "fields": {
+      "enum": 35,
+      "num": 8,
+      "short_name": "ДмтрРзБлт",
+      "name": "Диаметр резьбы болта",
+      "double_value": null,
+      "int_value": 24,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 25,
+    "fields": {
+      "enum": 36,
+      "num": 1,
+      "short_name": "ДлнБлт",
+      "name": "",
+      "double_value": null,
+      "int_value": 10,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 26,
+    "fields": {
+      "enum": 36,
+      "num": 2,
+      "short_name": "ДлнБлт",
+      "name": "",
+      "double_value": null,
+      "int_value": 16,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 27,
+    "fields": {
+      "enum": 36,
+      "num": 3,
+      "short_name": "ДлнБлт",
+      "name": "",
+      "double_value": null,
+      "int_value": 20,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 28,
+    "fields": {
+      "enum": 36,
+      "num": 4,
+      "short_name": "ДлнБлт",
+      "name": "",
+      "double_value": null,
+      "int_value": 25,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 29,
+    "fields": {
+      "enum": 36,
+      "num": 5,
+      "short_name": "ДлнБлт",
+      "name": "",
+      "double_value": null,
+      "int_value": 30,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 30,
+    "fields": {
+      "enum": 36,
+      "num": 6,
+      "short_name": "ДлнБлт",
+      "name": "",
+      "double_value": null,
+      "int_value": 40,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 31,
+    "fields": {
+      "enum": 36,
+      "num": 7,
+      "short_name": "ДлнБлт",
+      "name": "",
+      "double_value": null,
+      "int_value": 45,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 32,
+    "fields": {
+      "enum": 36,
+      "num": 8,
+      "short_name": "ДлнБлт",
+      "name": "",
+      "double_value": null,
+      "int_value": 50,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 33,
+    "fields": {
+      "enum": 23,
+      "num": 1,
+      "short_name": "РзмПдКлч",
+      "name": "",
+      "double_value": null,
+      "int_value": 8,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 34,
+    "fields": {
+      "enum": 23,
+      "num": 2,
+      "short_name": "РзмПдКлч",
+      "name": "",
+      "double_value": null,
+      "int_value": 10,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 35,
+    "fields": {
+      "enum": 23,
+      "num": 3,
+      "short_name": "РзмПдКлч",
+      "name": "",
+      "double_value": null,
+      "int_value": 13,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 36,
+    "fields": {
+      "enum": 23,
+      "num": 4,
+      "short_name": "РзмПдКлч",
+      "name": "",
+      "double_value": null,
+      "int_value": 16,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 37,
+    "fields": {
+      "enum": 23,
+      "num": 5,
+      "short_name": "РзмПдКлч",
+      "name": "",
+      "double_value": null,
+      "int_value": 18,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 38,
+    "fields": {
+      "enum": 23,
+      "num": 6,
+      "short_name": "РзмПдКлч",
+      "name": "",
+      "double_value": null,
+      "int_value": 24,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 39,
+    "fields": {
+      "enum": 23,
+      "num": 7,
+      "short_name": "РзмПдКлч",
+      "name": "",
+      "double_value": null,
+      "int_value": 30,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 40,
+    "fields": {
+      "enum": 23,
+      "num": 8,
+      "short_name": "РзмПдКлч",
+      "name": "",
+      "double_value": null,
+      "int_value": 36,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 41,
+    "fields": {
+      "enum": 37,
+      "num": 1,
+      "short_name": "ДмтрРзбГйк",
+      "name": "",
+      "double_value": null,
+      "int_value": 6,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 42,
+    "fields": {
+      "enum": 37,
+      "num": 2,
+      "short_name": "ДмтрРзбГйк",
+      "name": "",
+      "double_value": null,
+      "int_value": 8,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 43,
+    "fields": {
+      "enum": 37,
+      "num": 3,
+      "short_name": "ДмтрРзбГйк",
+      "name": "",
+      "double_value": null,
+      "int_value": 10,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 44,
+    "fields": {
+      "enum": 37,
+      "num": 4,
+      "short_name": "ДмтрРзбГйк",
+      "name": "",
+      "double_value": null,
+      "int_value": 12,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 45,
+    "fields": {
+      "enum": 37,
+      "num": 5,
+      "short_name": "ДмтрРзбГйк",
+      "name": "",
+      "double_value": null,
+      "int_value": 14,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 46,
+    "fields": {
+      "enum": 37,
+      "num": 6,
+      "short_name": "ДмтрРзбГйк",
+      "name": "",
+      "double_value": null,
+      "int_value": 16,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 47,
+    "fields": {
+      "enum": 24,
+      "num": 3,
+      "short_name": "Трпдц",
+      "name": "Трапецеидальная",
+      "double_value": null,
+      "int_value": null,
+      "image": ""
+    }
+  },
+  {
+    "model": "enums.enums",
+    "pk": 48,
+    "fields": {
+      "enum": 24,
+      "num": 2,
+      "short_name": "Кнчск",
+      "name": "Коническая",
+      "double_value": null,
+      "int_value": null,
+      "image": ""
+    }
+  }
+]

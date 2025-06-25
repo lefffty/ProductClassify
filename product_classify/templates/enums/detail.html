@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ enum.enum.name }}
+{% endblock title %}
+
+{% block content %}
+<div>
+    <div>
+        <div class="form-container rounded-box">
+            <ul>
+                <li>
+                    Название перечисления: <a href="{% url "enums:enums_detail" enum.enum.class_id enum.pos_id %}">{{ enum.enum.name }}</a>
+                </li>
+                <li>
+                    Значение перечисления: 
+                    {% if enum.enum.main_class.class_id == 15 %}
+                      {{ enum.name }}
+                    {% elif enum.enum.main_class.class_id == 16 %}
+                      <a href="{{ enum.image. }}" target="_blank">
+                        <img src="{{ enum.image.url }}" alt="Изображение перечисления" height="150" width="400">
+                      </a>
+                    {% elif enum.enum.main_class.class_id == 19 %}
+                      {{ enum.int_value }}
+                    {% else %}
+                      {{ enum.double_value }}
+                    {% endif %}
+                  </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+

@@ -1,0 +1,26 @@
+{% extends "base.html" %} 
+{% block title %} Список единиц измерения 
+{% endblock title %} 
+{% block content %}
+<div>
+  {% for ei in eis %}
+  <div>
+  <div class="form-container rounded-box">
+    <ul>
+      <li>
+        <p>Идентификатор единицы измерения: {{ ei.ei_id }}</p>
+      </li>
+      <li>
+        <p>Название единицы измерения: {{ ei.name }}</p>
+      </li>
+      <p>
+        <a href="{% url "ei:ei_detail" ei.ei_id %}">
+          Подробное описание единицы измерения
+        </a>
+      </p>
+    </ul>
+  </div>
+</div>
+  {% endfor %}
+</div>
+{% endblock content %}

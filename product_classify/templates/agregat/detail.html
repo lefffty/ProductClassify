@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}
+Подробное описание агрегата
+{% endblock title %}
+
+{% block content %}
+<div>
+    <div>
+        <div class="form-container rounded-box">
+            <h1>
+                <a href="{% url "agregat:agregat_list" %}">
+                    Агрегаты
+                </a>
+            </h1>
+            <p>Название агрегата: {{ agregat.name }}</p>
+            <p>
+                Параметры, относящиеся к агрегату: 
+            </p>
+            {% for parametr in agr_parametrs %}
+                <ul>
+                    <p>
+                        <li>
+                            {{ parametr.par.name }}
+                        </li>
+                        <button class="submit-btn">
+                            <a href="{% url "agregat:delete_parametr_from_agregat" agregat.par_id parametr.par.par_id %}">
+                                Удалить параметр агрегата
+                            </a>    
+                        </button>
+                    </p>
+                </ul>
+            {% endfor %}
+            <hr>
+            <p>
+                <button class="submit-btn">
+                    <a href="{% url "agregat:add_parametr_to_agregat" agregat.par_id %}">
+                        Добавить параметр к агрегату
+                    </a>
+                </button>
+                <button class="submit-btn">
+                    <a href="{% url "agregat:change_agregat_num" agregat.par_id %}">
+                        Изменить номера параметров
+                    </a>
+                </button>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock content %}

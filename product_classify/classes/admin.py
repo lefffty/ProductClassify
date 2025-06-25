@@ -4,6 +4,7 @@ from .models import (
     ClassStruct,
     ParClass,
 )
+from .inlines import ParClassTabularInline
 
 
 @admin.register(ClassStruct)
@@ -15,6 +16,7 @@ class ClassStructAdmin(admin.ModelAdmin):
         'base_ei',
         'main_class',
     )
+    inlines = (ParClassTabularInline,)
     fieldsets = (
         (None, {
             'fields': (

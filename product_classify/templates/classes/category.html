@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}
+Подклассы класса "{{ main_class.name }}"
+{% endblock title %}
+
+{% block content %}
+        <ul>
+          <hr />
+          {% for class in classes %}
+          <li>
+            <p>Идентификатор класса: {{ class.class_id }}</p>
+          </li>
+          <li>
+            <p>Имя класса: {{ class.name }}</p>
+          </li>
+          <li>
+            <p>Сокращенное имя класса: {{ class.short_name }}</p>
+          </li>
+          <li>
+            <p>Единица измерения класса: {{ class.base_ei }}</p>
+          </li>
+          <li>
+            <p>Идентификатор родительского класса: {{ class.main_class }}</p>
+          </li>
+          <p>
+            <a href="{% url "products:class_products" class.main_class.class_id class.class_id %}">
+              Список изделий
+            </a>
+          </p>
+          <p>
+            <a href="{% url "classes:edit_class" class.class_id %}">
+              Редактировать класс
+            </a>
+          </p>
+            <p>
+            <a href="{% url "classes:delete_class" class.class_id %}">
+              Удалить класс
+            </a>
+          </p>
+            <p>
+            <a href="{% url "classes:class_params_list" class.class_id %}">
+              Список параметров класса
+            </a>
+          </p>
+          <hr />
+          {% endfor %}
+        </ul>
+<div>
+  <div>
+    <p>
+      <a href="{% url "classes:delete_class" main_class.class_id %}">
+        УДАЛИТЬ КЛАСС
+      </a>
+    </p>
+    <p>
+      <a href="{% url "classes:edit_class" main_class.class_id %}">
+        РЕДАКТИРОВАТЬ КЛАСС
+      </a>
+    </p>
+    <p>
+      <a href={% url "classes:add_param_class" main_class.class_id %}>
+        ДОБАВИТЬ ПАРАМЕТР К КЛАССУ
+      </a>
+    </p>
+    <p>
+      <a href="{% url "classes:class_params_list" main_class.class_id %}">
+        ПРОСМОТР ПАРАМЕТРОВ КЛАССА
+      </a>
+    </p>
+  </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %} 
+{% block title %} Список единиц измерения 
+{% endblock title %} 
+{% block content %}
+<div>
+  <div>
+    <div class="form-container rounded-box">
+      <ul>
+        <li>
+          <p>Идентификатор единицы измерения: {{ ei.ei_id }}</p>
+        </li>
+        <li>
+          <p>Название единицы измерения: {{ ei.name }}</p>
+        </li>
+        <li>
+          <p>Сокращенное название единицы измерения: {{ ei.short_name }}</p>
+        </li>
+        <li>
+          <p>Код единицы измерения: {{ ei.code }}</p>
+        </li>
+        <li>
+          <p>Множитель единицы измерения: {{ ei.convert_factor }}</p>
+        </li>
+        <li>
+          <p>Идентификатор родительского класса единицы измерения: {{ ei.main_class }}</p>
+        </li>
+        <p>
+          <button class="submit-btn">
+              <a href="{% url "ei:edit_ei" ei.ei_id %}">
+                  Редактировать единицу измерения
+              </a>
+          </button>
+          <button class="submit-btn">
+              <a href="{% url "ei:delete_ei" ei.ei_id %}">
+                  Удалить единицу измерения
+              </a>
+          </button>
+        </p>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock content %}

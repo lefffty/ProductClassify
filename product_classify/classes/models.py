@@ -18,8 +18,8 @@ class ClassStruct(models.Model):
     )
     short_name = models.CharField(
         verbose_name='Сокращенное название класса',
-        blank=False,
-        null=False,
+        blank=True,
+        null=True,
         max_length=CLASS_STRUCT_SHORT_NAME_MAX_LENGTH,
     )
     base_ei = models.ForeignKey(
@@ -63,9 +63,13 @@ class ParClass(models.Model):
     )
     min_value = models.FloatField(
         verbose_name='Минимальное значение параметра',
+        null=True,
+        blank=True,
     )
     max_value = models.FloatField(
         verbose_name='Максимальное значение параметра',
+        null=True,
+        blank=True,
     )
 
     class Meta:

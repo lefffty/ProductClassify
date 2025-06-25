@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}
+Параметры класса "{{ class.name }}"
+{% endblock title %}
+
+{% block content %}
+<div>
+    <div>
+        <div class="form-container rounded-box">
+            <h2>
+                Параметры класса "<a href="{% url "products:class_products" class.main_class.class_id class.class_id %}">{{ class.name }}</a>"
+            </h2>
+            <ul>
+                <hr>
+                {% for param in params %}
+                <li>
+                    <p>Название параметра: {{ param.parametr.name }}, {{ param.parametr.par_ei.short_name }} 
+                        {% if param.parametr.parametr_type.class_id == 27 or param.parametr.parametr_type.class_id == 28 %}
+                            - ({{ param.min_value }} - {{ param.max_value }})
+                        {% endif %}
+                    </p>
+                </li>
+                {% if param.parametr.parametr_type.class_id == 27 or param.parametr.parametr_type.class_id == 28 %}
+                <p>
+                    <button class="submit-btn">
+                        <a href="{% url "classes:edit_param_class" class.class_id param.parametr.par_id %}">
+                            Редактировать параметр класса
+                        </a>
+                    </button>
+                </p>
+                {% endif %}
+                <p>
+                    <button class="submit-btn">
+                        <a href="{% url "classes:delete_param_class" class.class_id param.parametr.par_id %}">
+                            Удалить параметр класса
+                        </a>
+                    </button>
+                </p>
+                <hr>
+                {% endfor %}
+                <p>
+                    <button class="submit-btn">
+                        <a href="{% url "classes:add_param_class" class.class_id %}">
+                            Добавить параметр класса
+                        </a>
+                    </button>
+                    <button class="submit-btn">
+                        <a href="{% url "classes:change_parclass_num" class.class_id %}">
+                            Изменить номера параметров
+                        </a>
+                    </button>
+                </p>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}
+Изделия класса "{{ cls.name }}"
+{% endblock title %}
+
+{% block content %}
+<div class="form-container rounded-box" style="padding: 20px;">
+  <h1>Фильтр изделий класса "<a href="{% url 'classes:category_classes' cls.main_class.class_id %}">{{ cls.name }}</a>"</h1>
+  <form method="get" action="{% url 'products:class_products' main_class_id class_id %}">
+    {% csrf_token %}
+    {{ search_form.as_p }}
+    <button type="submit">Найти</button>
+  </form>
+</div>
+<div>
+  {% for product in products %}
+  <div>
+    <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
+      <thead>
+        <tr style="background-color: #f2f2f2;">
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Идентификатор изделия</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Название изделия</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Родительский класс</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">Изображение</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background-color: #f9f9f9;">
+              <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">{{ product.prod.prod_id }}</td>
+              <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">{{ product.prod.name }}</td>
+              <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">{{ product.prod.class_field }}</td>
+              <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
+                <a href="{{ product.prod.image. }}" target="_blank">
+                  <img src="{{ product.prod.image.url }}" alt="Изображение изделия" style="width: 100px; height: 100px;">
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          <a href="{% url "products:product_detail" product.prod.prod_id %}">
+            Подробное описание изделия
+          </a>
+        </p>
+      </div>
+      {% endfor %}
+      {% for product in products_no_params %}
+      <div>
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
+          <thead>
+            <tr style="background-color: #f2f2f2;">
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Идентификатор изделия</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Название изделия</th>
+              <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Родительский класс</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background-color: #f9f9f9;"> 
+              <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">{{ product.prod_id }}</td>    
+              <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">{{ product.name }}</td>
+              <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">{{ product.class_field }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          <a href="{% url "products:product_detail" product.prod_id %}">
+            Подробное описание изделия
+          </a>
+        </p>
+      </div>
+      {% endfor %}
+</div>
+{% endblock content %}

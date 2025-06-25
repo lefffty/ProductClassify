@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Изменение номера параметра
+{% endblock %}
+
+{% block content %}
+<h1>Изменение номера параметра</h1>
+<form method="post">
+    {% csrf_token %}
+
+    {% for field in form %}
+    <div class="form-group">
+        {{ field.label_tag }} {{ field }}
+    </div>
+
+    {% if field.errors %}
+    <div class="alert alert-danger">
+        {{ field.errors }}
+    </div>
+    {% endif %}
+
+    {% if field.help_text %}
+    <div class="alert alert-info">
+        {{ field.help_text }}
+    </div>
+    {% endif %}
+
+    {% endfor %}
+    <button type="submit">Изменить</button>
+</form>
+{% endblock %}
+

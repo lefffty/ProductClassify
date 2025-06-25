@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if '/delete/' in request.path %}
+    Удалить параметр агрегата "{{ instance.name }}"
+  {% else %}
+    Добавить параметр агрегату "{{ instance.name }}"
+  {% endif %}
+{% endblock title %}
+
+{% block content %}
+<div class="form-container rounded-box">
+    {% if '/delete/' in request.path %}
+    <h2>Форма удаления параметра агрегата "{{ instance.name }}"</h2>
+    {% else %}
+    <h2>Форма добавления параметра агрегату "{{ instance.name }}"</h2>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% if not 'delete' in request.path %}
+        <!-- Вывод всех ошибок формы -->
+        {% if form.non_field_errors %}
+        <div class="errorlist">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+        
+        <!-- Поля формы -->
+        {% for field in form %}
+        <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                
+                <!-- Вывод ошибок для конкретного поля -->
+                {% if field.errors %}
+                    <ul class="errorlist">
+                        {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    
+                    <!-- Вывод подсказки -->
+                    {% if field.help_text %}
+                    <small style="color: #666;">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+        {% else %}
+        <p>
+            Агрегат: {{ instance.agr.name }}
+        </p>
+        <p>
+            Параметр: {{ instance.par.name }}
+        </p>
+        {% endif %}
+        <!-- Серая кнопка отправки -->
+        <button type="submit" class="submit-btn">
+            {% if '/delete/' in request.path %}
+            Удалить параметр агрегата
+            {% else %}
+            Добавить параметр агрегату
+            {% endif %}
+        </button>
+    </form>
+</div>
+{% endblock content %}

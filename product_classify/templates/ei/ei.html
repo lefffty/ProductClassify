@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if '/edit/' in request.path %}
+    Редактирование единицы измерения
+  {% elif "/delete/" in request.path %}
+    Удаление единицы измерения
+  {% else %}
+    Добавление единицы измерения
+  {% endif %}
+{% endblock title %}
+
+{% block content %}
+<div class="form-container rounded-box">
+    {% if '/edit/' in request.path %}
+    <h2>Форма редактирования единицы измерения</h2>
+    {% elif '/delete/' in request.path %}
+    <h2>Форма удаления единицы измерения</h2>
+    {% else %}
+    <h2>Форма добавления единицы измерения</h2>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% if not '/delete/' in request.path %}
+        <!-- Вывод всех ошибок формы -->
+        {% if form.non_field_errors %}
+        <div class="errorlist">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+        
+        <!-- Поля формы -->
+        {% for field in form %}
+        <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                
+                <!-- Вывод ошибок для конкретного поля -->
+                {% if field.errors %}
+                    <ul class="errorlist">
+                        {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    
+                    <!-- Вывод подсказки -->
+                    {% if field.help_text %}
+                    <small style="color: #666;">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+                {% endfor %}
+        {% else %}
+        <p>
+            Идентификатор единицы измерения: {{ instance.ei_id }}
+        </p>
+        <p>
+            Название единицы измерения: {{ instance.name }}
+        </p>
+        <p>
+            Сокращенное название единицы измерения: {{ instance.short_name }}
+        </p>
+        {% endif %}
+        <!-- Серая кнопка отправки -->
+        <button type="submit" class="submit-btn">
+            {% if '/add/' in request.path %}
+            Добавить единицу измерения
+            {% elif '/edit/' in request.path %}
+            Изменить единицу измерения
+            {% elif '/delete/' in request.path %}
+            Удалить единицу измерения
+            {% endif %}
+        </button>
+    </form>
+</div>
+{% endblock content %}

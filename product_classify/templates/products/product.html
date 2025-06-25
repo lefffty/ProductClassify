@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+{% if '/edit/' in request.path %}
+Редактирование изделия
+{% elif '/delete/' in request.path %}
+Удаление изделия
+{% else %}
+Добавление изделия
+{% endif %}
+{% endblock title %}
+
+{% block content %}
+<div class="form-container rounded-box">
+    {% if '/edit/' in request.path %}
+    <h2>Форма редактирования изделия <a href="{% url "products:product_detail" instance.prod_id %}">{{ instance.name }}</a></h2>
+    {% elif '/delete' in request.path %}
+    <h2>Форма удаления изделия <a href="{% url "products:product_detail" instance.prod_id %}">{{ instance.name }}</a></h2>
+    {% else %}
+    <h2>Форма добавления изделия</h2>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        {% if not '/delete/' in request.path %}
+        <!-- Вывод всех ошибок формы -->
+        {% if form.non_field_errors %}
+        <div class="errorlist">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+        
+        <!-- Поля формы -->
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            
+            <!-- Вывод ошибок для конкретного поля -->
+            {% if field.errors %}
+            <ul class="errorlist">
+                {% for error in field.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            
+            <!-- Вывод подсказки -->
+            {% if field.help_text %}
+            <small style="color: #666;">{{ field.help_text }}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+    <div>
+        <p>Идентификатор изделия: {{ instance.prod_id }}</p>
+        <p>Название изделия: {{ instance.name }}</p>
+        <p>Родительский класс: {{ instance.class_field }}</p>
+    </div>
+    {% endif %}
+    <!-- Серая кнопка отправки -->
+    <button type="submit" class="submit-btn">
+        {% if '/edit/' in request.path %}
+        Изменить изделие
+        {% elif '/delete/' in request.path %}
+        Удалить изделие
+        {% else %}
+        Добавить изделие
+        {% endif %}
+        </button>
+    </form>
+</div>
+{% endblock content %}
