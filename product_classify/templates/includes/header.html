@@ -14,7 +14,7 @@
             <ul class="dropdown-menu">
               {% for fastener_class in fastener_classes %}
               <li>
-                <a href="{% url "classes:category_classes" fastener_class.class_id %}">
+                <a href="{% url "classes:category_classes" fastener_class.id %}">
                   {{ fastener_class.name }}
                 </a>
               </li>

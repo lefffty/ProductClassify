@@ -15,7 +15,7 @@
             </h1>
             <ul>
                 <li>
-                    <p>Идентификатор параметра: {{ parameter.par_id }}</p>
+                    <p>Идентификатор параметра: {{ parameter.id }}</p>
                 </li>
                 <li>
                     <p>Название параметра: {{ parameter.name }}</p>
@@ -31,12 +31,12 @@
                 </li>
                 <p>
                     <button class="submit-btn">
-                        <a href="{% url "parametr:edit_parametr" parameter.par_id %}">
+                        <a href="{% url "parametr:edit_parametr" parameter.id %}">
                             Редактировать параметр
                         </a>
                     </button>
                     <button class="submit-btn">
-                        <a href="{% url "parametr:delete_parametr" parameter.par_id %}">
+                        <a href="{% url "parametr:delete_parametr" parameter.id %}">
                             Удалить параметр
                         </a>
                     </button>

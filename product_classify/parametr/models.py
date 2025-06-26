@@ -3,6 +3,7 @@ from django.db import models
 from .constants import (
     PARAMETR_NAME_MAX_LENGTH,
     PARAMETR_SHORT_NAME_MAX_LENGTH,
+    AGREGAT_TYPE_ID
 )
 from classes.models import (
     ClassStruct
@@ -10,6 +11,20 @@ from classes.models import (
 from ei.models import (
     Ei
 )
+
+
+class Parameters(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().exclude(
+            parametr_type__exact=AGREGAT_TYPE_ID,
+        )
+
+
+class Agregats(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            parametr_type__exact=AGREGAT_TYPE_ID,
+        )
 
 
 class Parametr(models.Model):
@@ -40,6 +55,11 @@ class Parametr(models.Model):
         null=True,
         blank=False,
     )
+
+    objects = models.Manager()
+
+    parameters = Parameters()
+    agregats = Agregats()
 
     class Meta:
         verbose_name = 'Параметр'

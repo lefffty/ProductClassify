@@ -9,7 +9,7 @@
           <hr />
           {% for class in classes %}
           <li>
-            <p>Идентификатор класса: {{ class.class_id }}</p>
+            <p>Идентификатор класса: {{ class.id }}</p>
           </li>
           <li>
             <p>Имя класса: {{ class.name }}</p>
@@ -24,22 +24,22 @@
             <p>Идентификатор родительского класса: {{ class.main_class }}</p>
           </li>
           <p>
-            <a href="{% url "products:class_products" class.main_class.class_id class.class_id %}">
+            <a href="{% url "products:class_products" class.main_class.id class.id %}">
               Список изделий
             </a>
           </p>
           <p>
-            <a href="{% url "classes:edit_class" class.class_id %}">
+            <a href="{% url "classes:edit_class" class.id %}">
               Редактировать класс
             </a>
           </p>
             <p>
-            <a href="{% url "classes:delete_class" class.class_id %}">
+            <a href="{% url "classes:delete_class" class.id %}">
               Удалить класс
             </a>
           </p>
             <p>
-            <a href="{% url "classes:class_params_list" class.class_id %}">
+            <a href="{% url "classes:class_params_list" class.id %}">
               Список параметров класса
             </a>
           </p>
@@ -49,22 +49,22 @@
 <div>
   <div>
     <p>
-      <a href="{% url "classes:delete_class" main_class.class_id %}">
+      <a href="{% url "classes:delete_class" main_class.id %}">
         УДАЛИТЬ КЛАСС
       </a>
     </p>
     <p>
-      <a href="{% url "classes:edit_class" main_class.class_id %}">
+      <a href="{% url "classes:edit_class" main_class.id %}">
         РЕДАКТИРОВАТЬ КЛАСС
       </a>
     </p>
     <p>
-      <a href={% url "classes:add_param_class" main_class.class_id %}>
+      <a href={% url "classes:add_param_class" main_class.id %}>
         ДОБАВИТЬ ПАРАМЕТР К КЛАССУ
       </a>
     </p>
     <p>
-      <a href="{% url "classes:class_params_list" main_class.class_id %}">
+      <a href="{% url "classes:class_params_list" main_class.id %}">
         ПРОСМОТР ПАРАМЕТРОВ КЛАССА
       </a>
     </p>

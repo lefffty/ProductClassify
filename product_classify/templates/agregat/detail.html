@@ -24,7 +24,7 @@
                             {{ parametr.par.name }}
                         </li>
                         <button class="submit-btn">
-                            <a href="{% url "agregat:delete_parametr_from_agregat" agregat.par_id parametr.par.par_id %}">
+                            <a href="{% url "agregat:delete_parametr_from_agregat" agregat.id parametr.par.id %}">
                                 Удалить параметр агрегата
                             </a>    
                         </button>
@@ -34,12 +34,12 @@
             <hr>
             <p>
                 <button class="submit-btn">
-                    <a href="{% url "agregat:add_parametr_to_agregat" agregat.par_id %}">
+                    <a href="{% url "agregat:add_parametr_to_agregat" agregat.id %}">
                         Добавить параметр к агрегату
                     </a>
                 </button>
                 <button class="submit-btn">
-                    <a href="{% url "agregat:change_agregat_num" agregat.par_id %}">
+                    <a href="{% url "agregat:change_agregat_num" agregat.id %}">
                         Изменить номера параметров
                     </a>
                 </button>

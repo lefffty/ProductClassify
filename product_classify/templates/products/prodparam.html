@@ -15,15 +15,15 @@
 <div class="form-container rounded-box">
     {% if '/edit/' in request.path %}
     <h2>
-        Форма редактирования связки "параметр-изделие" изделия <a href="{% url "products:product_detail" instance.prod_id %}">{{ instance.prod.name }}</a>
+        Форма редактирования связки "параметр-изделие" изделия <a href="{% url "products:product_detail" instance.id %}">{{ instance.prod.name }}</a>
     </h2>
     {% elif '/delete/' in request.path %}
     <h2>
-        Форма удаления связки "параметр-изделие" изделия <a href="{% url "products:product_detail" instance.prod_id %}">{{ instance.prod.name }}</a>
+        Форма удаления связки "параметр-изделие" изделия <a href="{% url "products:product_detail" instance.id %}">{{ instance.prod.name }}</a>
     </h2>
     {% else %}
     <h2>
-        Форма добавления связки "параметр-изделие" изделия <a href="{% url "products:product_detail" instance.prod_id %}">{{ instance.name }}</a>
+        Форма добавления связки "параметр-изделие" изделия <a href="{% url "products:product_detail" instance.id %}">{{ instance.name }}</a>
     </h2>
     {% endif %}
     <form method="post" enctype="multipart/form-data">
@@ -66,7 +66,7 @@
             </p>
             <p>
                 Значение параметра: 
-                {% with prm_type=instance.par.parametr_type.class_id %}
+                {% with prm_type=instance.par.parametr_type.id %}
                 {% if prm_type == 27 %}
                     {{ instance.double_value }} {{ instance.par.par_ei.short_name }}
                 {% elif prm_type == 28 %}

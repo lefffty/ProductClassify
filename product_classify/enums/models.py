@@ -6,7 +6,39 @@ from classes.models import (
 from .constants import (
     ENUMS_NAME_MAX_LENGTH,
     ENUMS_SHORT_NAME_MAX_LENGTH,
+    IMAGE_ENUMS_ID,
+    STRING_ENUMS_ID,
+    INT_ENUMS_ID,
+    DOUBLE_ENUMS_ID,
 )
+
+
+class ImageEnums(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            enum__main_class__class_id=IMAGE_ENUMS_ID
+        )
+
+
+class StringEnums(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            enum__main_class__class_id=STRING_ENUMS_ID
+        )
+
+
+class IntEnums(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            enum__main_class__class_id=INT_ENUMS_ID
+        )
+
+
+class DoubleEnums(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            enum__main_class__class_id=DOUBLE_ENUMS_ID
+        )
 
 
 class Enums(models.Model):

@@ -14,9 +14,9 @@
 <div class="form-container rounded-box">
     <h2>
     {% if '/edit/' in request.path %}
-        Форма редактирования значения перечисления <a href="{% url "enums:enums_detail" instance.enum.class_id instance.pos_id %}">"{{ instance.enum.name }} - {{ instance.name }}"</a>
+        Форма редактирования значения перечисления <a href="{% url "enums:enums_detail" instance.enum.id instance.id %}">"{{ instance.enum.name }} - {{ instance.name }}"</a>
     {% elif '/delete/' in request.path %}
-        Форма удаления значения перечисления <a href="{% url "enums:enums_detail" instance.enum.class_id instance.pos_id %}">"{{ instance.enum.name }} - {{ instance.name }}"</a>
+        Форма удаления значения перечисления <a href="{% url "enums:enums_detail" instance.enum.id instance.id %}">"{{ instance.enum.name }} - {{ instance.name }}"</a>
     {% else %}
         Форма добавления значения перечисления
     {% endif %}

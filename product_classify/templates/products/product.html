@@ -14,9 +14,9 @@
 {% block content %}
 <div class="form-container rounded-box">
     {% if '/edit/' in request.path %}
-    <h2>Форма редактирования изделия <a href="{% url "products:product_detail" instance.prod_id %}">{{ instance.name }}</a></h2>
+    <h2>Форма редактирования изделия <a href="{% url "products:product_detail" instance.id %}">{{ instance.name }}</a></h2>
     {% elif '/delete' in request.path %}
-    <h2>Форма удаления изделия <a href="{% url "products:product_detail" instance.prod_id %}">{{ instance.name }}</a></h2>
+    <h2>Форма удаления изделия <a href="{% url "products:product_detail" instance.id %}">{{ instance.name }}</a></h2>
     {% else %}
     <h2>Форма добавления изделия</h2>
     {% endif %}
@@ -54,7 +54,7 @@
         {% endfor %}
     {% else %}
     <div>
-        <p>Идентификатор изделия: {{ instance.prod_id }}</p>
+        <p>Идентификатор изделия: {{ instance.id }}</p>
         <p>Название изделия: {{ instance.name }}</p>
         <p>Родительский класс: {{ instance.class_field }}</p>
     </div>

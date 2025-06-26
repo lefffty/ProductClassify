@@ -7,7 +7,7 @@
     <div class="form-container rounded-box">
       <ul>
         <li>
-          <p>Идентификатор единицы измерения: {{ ei.ei_id }}</p>
+          <p>Идентификатор единицы измерения: {{ ei.id }}</p>
         </li>
         <li>
           <p>Название единицы измерения: {{ ei.name }}</p>
@@ -26,12 +26,12 @@
         </li>
         <p>
           <button class="submit-btn">
-              <a href="{% url "ei:edit_ei" ei.ei_id %}">
+              <a href="{% url "ei:edit_ei" ei.id %}">
                   Редактировать единицу измерения
               </a>
           </button>
           <button class="submit-btn">
-              <a href="{% url "ei:delete_ei" ei.ei_id %}">
+              <a href="{% url "ei:delete_ei" ei.id %}">
                   Удалить единицу измерения
               </a>
           </button>

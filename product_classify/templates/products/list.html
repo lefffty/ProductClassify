@@ -6,8 +6,8 @@
 
 {% block content %}
 <div class="form-container rounded-box" style="padding: 20px;">
-  <h1>Фильтр изделий класса "<a href="{% url 'classes:category_classes' cls.main_class.class_id %}">{{ cls.name }}</a>"</h1>
-  <form method="get" action="{% url 'products:class_products' main_class_id class_id %}">
+  <h1>Фильтр изделий класса "<a href="{% url 'classes:category_classes' cls.main_class.id %}">{{ cls.name }}</a>"</h1>
+  <form method="get" action="{% url 'products:class_products' main_class_id id %}">
     {% csrf_token %}
     {{ search_form.as_p }}
     <button type="submit">Найти</button>
@@ -27,7 +27,7 @@
           </thead>
           <tbody>
             <tr style="background-color: #f9f9f9;">
-              <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">{{ product.prod.prod_id }}</td>
+              <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">{{ product.prod.id }}</td>
               <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">{{ product.prod.name }}</td>
               <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">{{ product.prod.class_field }}</td>
               <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
@@ -39,7 +39,7 @@
           </tbody>
         </table>
         <p>
-          <a href="{% url "products:product_detail" product.prod.prod_id %}">
+          <a href="{% url "products:product_detail" product.prod.id %}">
             Подробное описание изделия
           </a>
         </p>
@@ -57,14 +57,14 @@
           </thead>
           <tbody>
             <tr style="background-color: #f9f9f9;"> 
-              <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">{{ product.prod_id }}</td>    
+              <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">{{ product.id }}</td>    
               <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">{{ product.name }}</td>
               <td style="border: 1px solid #ddd; padding: 8px; text-align: left;">{{ product.class_field }}</td>
             </tr>
           </tbody>
         </table>
         <p>
-          <a href="{% url "products:product_detail" product.prod_id %}">
+          <a href="{% url "products:product_detail" product.id %}">
             Подробное описание изделия
           </a>
         </p>

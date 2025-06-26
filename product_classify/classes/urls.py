@@ -1,0 +1,63 @@
+from django.urls import path
+from . import views
+
+
+app_name = 'classes'
+
+urlpatterns = [
+    path(
+        '',
+        views.index,
+        name='index',
+    ),
+    path(
+        '<int:class_id>/',
+        views.get_category_classes,
+        name='category_classes',
+    ),
+    path(
+        'add_prod_class/',
+        views.add_prod_class,
+        name='add_prod_class',
+    ),
+    path(
+        'add_enum_class/',
+        views.add_enum_class,
+        name='add_enum_class',
+    ),
+    path(
+        '<int:class_id>/edit/',
+        views.edit_class,
+        name='edit_class',
+    ),
+    path(
+        '<int:class_id>/delete/',
+        views.delete_class,
+        name='delete_class',
+    ),
+    path(
+        '<int:class_id>/params/',
+        views.class_params_list,
+        name='class_params_list',
+    ),
+    path(
+        '<int:class_id>/params/add/',
+        views.add_param_class,
+        name='add_param_class',
+    ),
+    path(
+        '<int:class_id>/params/<int:param_id>/edit/',
+        views.edit_param_class,
+        name='edit_param_class',
+    ),
+    path(
+        '<int:class_id>/params/<int:param_id>/delete/',
+        views.delete_param_class,
+        name='delete_param_class',
+    ),
+    path(
+        'change_parclass_num/<int:class_id>/',
+        views.change_parclass_num,
+        name='change_parclass_num',
+    ),
+]

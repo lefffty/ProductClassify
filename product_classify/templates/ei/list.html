@@ -8,13 +8,13 @@
   <div class="form-container rounded-box">
     <ul>
       <li>
-        <p>Идентификатор единицы измерения: {{ ei.ei_id }}</p>
+        <p>Идентификатор единицы измерения: {{ ei.id }}</p>
       </li>
       <li>
         <p>Название единицы измерения: {{ ei.name }}</p>
       </li>
       <p>
-        <a href="{% url "ei:ei_detail" ei.ei_id %}">
+        <a href="{% url "ei:ei_detail" ei.id %}">
           Подробное описание единицы измерения
         </a>
       </p>

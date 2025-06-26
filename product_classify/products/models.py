@@ -48,7 +48,9 @@ class Prod(models.Model):
         verbose_name_plural = 'Изделия'
 
     def __str__(self):
-        return self.short_name
+        if self.name is None:
+            return 'sdfsdf'
+        return self.name
 
 
 class ParProd(models.Model):
@@ -90,3 +92,33 @@ class ParProd(models.Model):
                 name='%(class)s_pk',
             )
         ]
+
+    def __str__(self):
+        if self.enum_val:
+            if self.enum_val.enum.main_class.class_id == 15:
+                return self.prod.name + ' - ' + self.enum_val.name
+            elif self.enum_val.enum.main_class.class_id == 16:
+                return self.prod.name + ' - ' + self.enum_val.short_name
+            elif self.enum_val.enum.main_class.class_id == 18:
+                return self.prod.name + ' - ' + self.enum_val.short_name + ' - ' + str(self.enum_val.double_value)
+            elif self.enum_val.enum.main_class.class_id == 19:
+                return self.prod.name + ' - ' + self.enum_val.short_name + ' - ' + str(self.enum_val.int_value)
+        if self.int_value:
+            return self.prod.name + ' - ' + self.par.name + ' - ' + str(self.int_value)
+        if self.double_value:
+            return self.prod.name + ' - ' + self.par.name + ' - ' + str(self.double_value)
+
+    def get_value(self):
+        if self.int_value:
+            return self.int_value
+        elif self.double_value:
+            return self.double_value
+        elif self.enum_val:
+            if self.enum_val.enum.main_class.class_id == 15:
+                return self.enum_val.name
+            elif self.enum_val.enum.main_class.class_id == 16:
+                return self.enum_val.image.instance
+            elif self.enum_val.enum.main_class.class_id == 18:
+                return self.enum_val.double_value
+            elif self.enum_val.enum.main_class.class_id == 19:
+                return self.enum_val.int_value

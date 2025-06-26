@@ -12,13 +12,13 @@
         <div class="form-container rounded-box">
 <ul>
 <li>
-    <p>Идентификатор изделия: {{ product.prod_id }}</p>
+    <p>Идентификатор изделия: {{ product.id }}</p>
 </li>
 <li>
     <p>Название изделия: {{ product.name }}</p>
 </li>
 <li>
-    <p>Родительский класс: <a href="{% url "products:class_products" product.class_field.main_class.class_id product.class_field.class_id %}">{{ product.class_field }}</a></p>
+    <p>Родительский класс: <a href="{% url "products:class_products" product.class_field.main_class.id product.class_field.id %}">{{ product.class_field }}</a></p>
 </li>
 </ul>
 <hr/>
@@ -30,8 +30,8 @@
     {% for param in params %}
     <li>
         <div class="responsive-container">
-            {% if param.enum_val.enum.main_class.class_id == 16 %}
-            <a href="{% url "enums:enums_detail" param.enum_val.enum.main_class.class_id param.enum_val.pos_id %}">
+            {% if param.enum_val.enum.main_class.id == 16 %}
+            <a href="{% url "enums:enums_detail" param.enum_val.enum.main_class.id param.enum_val.id %}">
                 <img src="{{ param.enum_val.image.url }}" alt="Изображение перечисления" height="150" width="400">
             </a>
             {% else %}
@@ -40,12 +40,12 @@
             </p>
             {% endif %}
             <button class="responsive-button" height="30" width="30">
-                <a href="{% url "products:edit_param_from_product" product.prod_id param.par_id %}">
+                <a href="{% url "products:edit_param_from_product" product.id param.id %}">
                     Редактировать параметр
                 </a>
             </button>
             <button class="responsive-button" height="30" width="30">
-                <a href="{% url "products:delete_param_from_product" product.prod_id param.par_id %}">
+                <a href="{% url "products:delete_param_from_product" product.id param.id %}">
                     Удалить параметр
                 </a>
             </button>
@@ -55,17 +55,17 @@
 </ul>
 <p>
     <button class="submit-btn">
-        <a href="{% url "products:edit_product" product.prod_id %}">
+        <a href="{% url "products:edit_product" product.id %}">
             Редактировать изделие
         </a>
     </button>
     <button class="submit-btn">
-        <a href="{% url "products:delete_product" product.prod_id %}">
+        <a href="{% url "products:delete_product" product.id %}">
             Удалить изделие
         </a>
     </button>
     <button class="submit-btn">
-        <a href="{% url "products:add_param_to_product" product.prod_id %}">
+        <a href="{% url "products:add_param_to_product" product.id %}">
             Добавить параметр
         </a>
     </button>
