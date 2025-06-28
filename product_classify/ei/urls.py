@@ -8,7 +8,7 @@ app_name = 'ei'
 urlpatterns = [
     path(
         'ei/',
-        views.ei_list,
+        views.EiListView.as_view(),
         name='ei_list',
     ),
     path(

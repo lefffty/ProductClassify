@@ -1,6 +1,10 @@
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
 from django.db import connection
+from django.views.generic import (
+    ListView,
+    DetailView,
+)
 
 from .models import Ei
 from classes.models import (
@@ -12,31 +16,23 @@ from .constants import (
 )
 
 
-def ei_list(
-    request: HttpRequest,
-) -> HttpResponse:
-    """
-    Список единиц измерения
-    """
-    eis = Ei.objects.all().order_by('id')
-    main_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
+class EiListView(ListView):
+    model = Ei
+    template_name = 'ei/list.html'
+    ordering = 'id'
+    context_object_name = 'eis'
 
-    context = {
-        'main_classes': main_classes,
-        'fastener_classes': fastener_classes,
-        'eis': eis,
-    }
-
-    return render(
-        request,
-        'ei/list.html',
-        context
-    )
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        main_classes = ClassStruct.objects.filter(
+            main_class__exact=FASTENER_ID
+        )
+        fastener_classes = ClassStruct.objects.filter(
+            main_class__exact=FASTENER_ID
+        )
+        context['main_classes'] = main_classes
+        context['fastener_classes'] = fastener_classes
+        return context
 
 
 def ei_detail(
