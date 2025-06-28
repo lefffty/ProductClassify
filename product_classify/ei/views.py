@@ -1,31 +1,29 @@
-from django.shortcuts import render, redirect
-from django.http import HttpRequest, HttpResponse
-from django.db import connection
+from django.urls import reverse_lazy
+from django.views.generic.base import ContextMixin
 from django.views.generic import (
     ListView,
     DetailView,
+    DeleteView,
+    UpdateView,
+    CreateView,
 )
 
 from .models import Ei
+from .forms import EiForm
 from classes.models import (
     ClassStruct,
 )
-from .forms import EiForm
 from .constants import (
     FASTENER_ID,
 )
 
 
-class CommonContextMixin:
+class CommonContextMixin(ContextMixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        main_classes = ClassStruct.objects.filter(
-            main_class__exact=FASTENER_ID
-        )
         fastener_classes = ClassStruct.objects.filter(
             main_class__exact=FASTENER_ID
         )
-        context['main_classes'] = main_classes
         context['fastener_classes'] = fastener_classes
         return context
 
@@ -44,108 +42,55 @@ class EiDetailView(DetailView, CommonContextMixin):
     pk_url_kwarg = 'ei_id'
 
 
-def edit_ei(
-    request: HttpRequest,
-    ei_id: int,
-) -> HttpResponse:
-    """
-    Редактирование единицы измерения
-    """
-    main_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    instance = Ei.objects.get(pk=ei_id)
-    form = EiForm(request.POST or None, instance=instance)
-    if form.is_valid():
-        form.save(commit=True)
-        return redirect('ei:ei_detail', ei_id)
-    context = {
-        'form': form,
-        'main_classes': main_classes,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'ei/ei.html',
-        context,
-    )
+class EiCreateMixin:
+    form_class = EiForm
+    template_name = 'ei/ei.html'
+    model = Ei
+    pk_url_kwarg = 'ei_id'
+    success_url = reverse_lazy('ei:ei_list')
 
 
-def delete_ei(
-    request: HttpRequest,
-    ei_id: int,
-) -> HttpResponse:
-    """
-    Удаление единицы измерения
-    """
-    main_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    instance = Ei.objects.get(pk=ei_id)
-
-    if request.method == 'POST':
-        with connection.cursor() as cursor:
-            cursor.execute(
-                '''SELECT COUNT(*) FROM class_struct
-                WHERE base_ei = %s;''',
-                [ei_id]
-            )
-            ref_count = cursor.fetchone()[0]
-
-            if ref_count > 0:
-                cursor.execute(
-                    '''UPDATE class_struct SET base_ei = NULL
-                    WHERE base_ei = %s;''',
-                    [ei_id]
-                )
-
-        instance.delete()
-        return redirect('ei:ei_list')
-
-    context = {
-        'instance': instance,
-        'main_classes': main_classes,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'ei/ei.html',
-        context,
-    )
+class EiDeleteMixin:
+    template_name = 'ei/ei.html'
+    model = Ei
+    pk_url_kwarg = 'ei_id'
+    success_url = reverse_lazy('ei:ei_list')
 
 
-def add_ei(
-    request: HttpRequest,
-) -> HttpResponse:
-    """
-    Добавление единицы измерения
-    """
-    main_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    if request.method == 'POST':
-        form = EiForm(request.POST)
-        if form.is_valid():
-            form.save(commit=True)
-            return redirect('ei:ei_list')
-    else:
-        form = EiForm()
-    context = {
-        'main_classes': main_classes,
-        'fastener_classes': fastener_classes,
-        'form': form,
-    }
-    return render(
-        request,
-        'ei/ei.html',
-        context,
-    )
+class EiCreateView(
+    EiCreateMixin,
+    CreateView,
+    CommonContextMixin,
+):
+    form_class = EiForm
+    template_name = 'ei/ei.html'
+    model = Ei
+    pk_url_kwarg = 'ei_id'
+    success_url = reverse_lazy('ei:ei_list')
+
+
+class EiDeleteView(
+    EiDeleteMixin,
+    DeleteView,
+    CommonContextMixin,
+):
+    template_name = 'ei/ei.html'
+    model = Ei
+    pk_url_kwarg = 'ei_id'
+    success_url = reverse_lazy('ei:ei_list')
+
+
+class EiUpdateView(
+    UpdateView,
+    CommonContextMixin,
+):
+    form_class = EiForm
+    template_name = 'ei/ei.html'
+    model = Ei
+    pk_url_kwarg = 'ei_id'
+
+    def get_success_url(self):
+        pk = self.get_object().pk
+        return reverse_lazy('ei:ei_detail', kwargs={
+            'ei_id': pk,
+        })

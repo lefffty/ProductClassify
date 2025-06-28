@@ -177,9 +177,6 @@ def add_product(
     """
     Добавление изделия
     """
-    main_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
     fastener_classes = ClassStruct.objects.filter(
         main_class__exact=FASTENER_ID
     )
@@ -191,7 +188,6 @@ def add_product(
     else:
         form = ProdForm()
     context = {
-        'main_classes': main_classes,
         'form': form,
         'fastener_classes': fastener_classes,
     }

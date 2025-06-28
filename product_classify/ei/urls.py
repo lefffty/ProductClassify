@@ -13,7 +13,7 @@ urlpatterns = [
     ),
     path(
         'ei/add/',
-        views.add_ei,
+        views.EiCreateView.as_view(),
         name='add_ei',
     ),
     path(
@@ -23,12 +23,12 @@ urlpatterns = [
     ),
     path(
         'ei/<int:ei_id>/edit/',
-        views.edit_ei,
+        views.EiUpdateView.as_view(),
         name='edit_ei',
     ),
     path(
         'ei/<int:ei_id>/delete/',
-        views.delete_ei,
+        views.EiDeleteView.as_view(),
         name='delete_ei',
     ),
 ]
