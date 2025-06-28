@@ -32,7 +32,6 @@ def index(
     """
     Главная страница проекта
     """
-    print(fastener_classes)
     context = {
         'main_classes': main_classes,
         'fastener_classes': fastener_classes,

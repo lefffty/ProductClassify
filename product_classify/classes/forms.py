@@ -176,11 +176,6 @@ class ParClassForm(ModelForm):
                 максимального и минимального значений!'''
             )
 
-        print('cls_id: ', cls_id)
-        print('param.par_id: ', param.id)
-        print('min_val: ', min_val)
-        print('max_val: ', max_val)
-
         with connection.cursor() as cursor:
             if param.parametr_type.id in [15, 16, 18, 19]:
                 cursor.execute(
