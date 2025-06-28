@@ -16,12 +16,7 @@ from .constants import (
 )
 
 
-class EiListView(ListView):
-    model = Ei
-    template_name = 'ei/list.html'
-    ordering = 'id'
-    context_object_name = 'eis'
-
+class CommonContextMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         main_classes = ClassStruct.objects.filter(
@@ -35,30 +30,18 @@ class EiListView(ListView):
         return context
 
 
-def ei_detail(
-    request: HttpRequest,
-    ei_id: int,
-) -> HttpResponse:
-    """
-    Страница единицы измерения
-    """
-    main_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    ei = Ei.objects.get(pk=ei_id)
-    context = {
-        'ei': ei,
-        'main_classes': main_classes,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'ei/detail.html',
-        context,
-    )
+class EiListView(ListView, CommonContextMixin):
+    model = Ei
+    template_name = 'ei/list.html'
+    ordering = 'id'
+    context_object_name = 'eis'
+
+
+class EiDetailView(DetailView, CommonContextMixin):
+    model = Ei
+    context_object_name = 'ei'
+    template_name = 'ei/detail.html'
+    pk_url_kwarg = 'ei_id'
 
 
 def edit_ei(

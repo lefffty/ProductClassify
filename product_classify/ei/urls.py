@@ -18,7 +18,7 @@ urlpatterns = [
     ),
     path(
         'ei/<int:ei_id>/',
-        views.ei_detail,
+        views.EiDetailView.as_view(),
         name='ei_detail',
     ),
     path(
