@@ -10,7 +10,7 @@
         <div class="form-container rounded-box">
             <ul>
                 <li>
-                    Название перечисления: <a href="{% url "enums:enums_detail" enum.enum.id enum.id %}">{{ enum.enum.name }}</a>
+                    Название перечисления: <a href="{% url "enums:enums_list" enum.enum.main_class.pk %}">{{ enum.enum.name }}</a>
                 </li>
                 <li>
                     Значение перечисления: 

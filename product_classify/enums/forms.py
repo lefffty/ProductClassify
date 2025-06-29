@@ -57,7 +57,7 @@ class EnumsForm(ModelForm):
         cleaned_data = super().clean()
         picture_value = str(cleaned_data.get('picture_value'))
         enum = cleaned_data.get('enum')
-        parent_id = enum.main_class.class_id
+        parent_id = enum.main_class.id
         int_value = cleaned_data['int_value']
         double_value = cleaned_data['double_value']
 
@@ -93,8 +93,13 @@ class EnumsForm(ModelForm):
                     '''Целочисленное перечисление не должно иметь
                     вещественного значения и путь к изображению'''
                 )
-
+        cleaned_data['num'] = Enums.objects.filter(enum=enum).count() + 1
         return cleaned_data
+
+    def save(self):
+        instance = super().save(commit=False)
+        instance.num = self.cleaned_data['num']
+        return instance.save()
 
 
 class ChangeNumForm(Form):

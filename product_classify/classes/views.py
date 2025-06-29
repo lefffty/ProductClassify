@@ -7,10 +7,10 @@ from classes.models import (
     ParClass,
 )
 from classes.forms import (
+    ChangeParclassNumForm,
     ProdClassForm,
     EnumClassForm,
     ParClassForm,
-    ChangeParclassNumForm,
 )
 from .constants import (
     ENUM_CLASSES_IDS,

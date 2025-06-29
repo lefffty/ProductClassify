@@ -8,27 +8,27 @@ app_name = 'enums'
 urlpatterns = [
     path(
         'enums/<int:class_id>/',
-        views.enums_list,
+        views.EnumsListView.as_view(),
         name='enums_list',
     ),
     path(
         'enums/<int:class_id>/<int:enum_id>/',
-        views.enums_detail,
+        views.EnumsDetailView.as_view(),
         name='enums_detail',
     ),
     path(
         'enums/add/',
-        views.add_enum,
+        views.EnumsCreateView.as_view(),
         name='add_enum',
     ),
     path(
         'enums/<int:class_id>/<int:enum_id>/edit/',
-        views.edit_enum,
+        views.EnumsUpdateView.as_view(),
         name='edit_enum'
     ),
     path(
         'enums/<int:class_id>/<int:enum_id>/delete/',
-        views.delete_enum,
+        views.EnumsDeleteView.as_view(),
         name='delete_enum',
     ),
     path(

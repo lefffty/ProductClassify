@@ -1,8 +1,3 @@
-from django.shortcuts import render, redirect
-from django.http import (
-    HttpRequest,
-    HttpResponse,
-)
 from django.urls import reverse_lazy
 from django.views.generic.base import ContextMixin
 from django.views.generic import (
