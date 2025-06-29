@@ -40,9 +40,6 @@ def class_products(
     cls = ClassStruct.objects.get(
         pk=class_id,
     )
-    main_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
     fastener_classes = ClassStruct.objects.filter(
         main_class__exact=FASTENER_ID
     )
@@ -125,7 +122,6 @@ def class_products(
     context = {
         'class_id': class_id,
         'main_class_id': main_class_id,
-        'main_classes': main_classes,
         'search_form': search_form,
         'products': products,
         'products_no_params': products_no_params,
@@ -148,9 +144,6 @@ def product_detail(
     """
     Страница изделия
     """
-    main_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
     fastener_classes = ClassStruct.objects.filter(
         main_class__exact=FASTENER_ID
     )
@@ -159,7 +152,6 @@ def product_detail(
         prod=product_id
     )
     context = {
-        'main_classes': main_classes,
         'product': product,
         'params': params,
         'fastener_classes': fastener_classes,
@@ -205,9 +197,6 @@ def edit_product(
     """
     Редактирование изделия
     """
-    main_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
     fastener_classes = ClassStruct.objects.filter(
         main_class__exact=FASTENER_ID
     )
@@ -221,7 +210,6 @@ def edit_product(
         return redirect('products:product_detail', prod_id)
     context = {
         'form': form,
-        'main_classes': main_classes,
         'instance': instance,
         'fastener_classes': fastener_classes,
     }
@@ -239,9 +227,6 @@ def delete_product(
     """
     Удаление изделия
     """
-    main_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
     fastener_classes = ClassStruct.objects.filter(
         main_class__exact=FASTENER_ID
     )
@@ -258,7 +243,6 @@ def delete_product(
         )
     context = {
         'instance': instance,
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
     }
     return render(
@@ -276,9 +260,6 @@ def edit_param_from_product(
     """
     Редактирование параметра изделия
     """
-    main_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID,
-    )
     fastener_classes = ClassStruct.objects.filter(
         main_class__exact=FASTENER_ID
     )
@@ -298,7 +279,6 @@ def edit_param_from_product(
         )
     context = {
         'instance': instance,
-        'main_classes': main_classes,
         'form': form,
         'fastener_classes': fastener_classes,
     }
@@ -317,9 +297,6 @@ def delete_param_from_product(
     """
     Удаление параметра из изделия
     """
-    main_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
     fastener_classes = ClassStruct.objects.filter(
         main_class__exact=FASTENER_ID
     )
@@ -332,7 +309,6 @@ def delete_param_from_product(
         return redirect('products:product_detail', prod_id)
     context = {
         'instance': instance,
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
     }
     return render(
@@ -349,9 +325,6 @@ def add_param_to_product(
     """
     Добавление параметра в изделие
     """
-    main_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
     fastener_classes = ClassStruct.objects.filter(
         main_class__exact=FASTENER_ID
     )
@@ -368,7 +341,6 @@ def add_param_to_product(
         form = ParProdForm(id=prod_id)
     context = {
         'instance': instance,
-        'main_classes': main_classes,
         'form': form,
         'fastener_classes': fastener_classes,
     }

@@ -10,6 +10,7 @@ from enums.models import (
     Enums,
 )
 from .constants import (
+    ENUM_CLASSES_IDS,
     PROD_NAME_MAX_LENGTH,
     PROD_SHORT_NAME_MAX_LENGTH,
 )
@@ -95,13 +96,13 @@ class ParProd(models.Model):
 
     def __str__(self):
         if self.enum_val:
-            if self.enum_val.enum.main_class.class_id == 15:
+            if self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[0]:
                 return self.prod.name + ' - ' + self.enum_val.name
-            elif self.enum_val.enum.main_class.class_id == 16:
+            elif self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[1]:
                 return self.prod.name + ' - ' + self.enum_val.short_name
-            elif self.enum_val.enum.main_class.class_id == 18:
+            elif self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[2]:
                 return self.prod.name + ' - ' + self.enum_val.short_name + ' - ' + str(self.enum_val.double_value)
-            elif self.enum_val.enum.main_class.class_id == 19:
+            elif self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[3]:
                 return self.prod.name + ' - ' + self.enum_val.short_name + ' - ' + str(self.enum_val.int_value)
         if self.int_value:
             return self.prod.name + ' - ' + self.par.name + ' - ' + str(self.int_value)
@@ -114,11 +115,11 @@ class ParProd(models.Model):
         elif self.double_value:
             return self.double_value
         elif self.enum_val:
-            if self.enum_val.enum.main_class.class_id == 15:
+            if self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[0]:
                 return self.enum_val.name
-            elif self.enum_val.enum.main_class.class_id == 16:
+            elif self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[1]:
                 return self.enum_val.image.instance
-            elif self.enum_val.enum.main_class.class_id == 18:
+            elif self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[2]:
                 return self.enum_val.double_value
-            elif self.enum_val.enum.main_class.class_id == 19:
+            elif self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[3]:
                 return self.enum_val.int_value
