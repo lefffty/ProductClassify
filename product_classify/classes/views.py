@@ -17,10 +17,6 @@ from .constants import (
     FASTENER_ID,
 )
 
-main_classes = ClassStruct.objects.filter(
-    main_class__exact=FASTENER_ID
-)
-
 fastener_classes = ClassStruct.objects.filter(
     main_class__exact=FASTENER_ID
 )
@@ -33,7 +29,6 @@ def index(
     Главная страница проекта
     """
     context = {
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
     }
     return render(
@@ -57,7 +52,6 @@ def get_category_classes(
     context = {
         'main_class': main_class,
         'classes': classes,
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
     }
     return render(
@@ -81,7 +75,6 @@ def add_prod_class(
     else:
         form = ProdClassForm()
     context = {
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
         'form': form,
     }
@@ -106,7 +99,6 @@ def add_enum_class(
     else:
         form = EnumClassForm()
     context = {
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
         'form': form,
     }
@@ -126,12 +118,10 @@ def edit_class(
     """
     _class = ClassStruct.objects.get(pk=class_id)
     context = {
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
     }
     if _class.id in ENUM_CLASSES_IDS:
         context = {
-            'main_classes': main_classes,
             'fastener_classes': fastener_classes,
         }
         form = EnumClassForm(
@@ -179,7 +169,6 @@ def delete_class(
     _class = ClassStruct.objects.get(pk=class_id)
     main_class_id = _class.main_class.id
     context = {
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
         'instance': _class,
     }
@@ -219,7 +208,6 @@ def class_params_list(
     context = {
         'class': _class,
         'params': params,
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
     }
     return render(
@@ -249,7 +237,6 @@ def add_param_class(
         form = ParClassForm(class_field=_class)
     context = {
         'instance': _class,
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
         'form': form,
     }
@@ -284,7 +271,6 @@ def edit_param_class(
         )
     context = {
         'instance': instance,
-        'main_classes': main_classes,
         'form': form,
         'fastener_classes': fastener_classes,
     }
@@ -315,7 +301,6 @@ def delete_param_class(
         )
     context = {
         'instance': instance,
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
     }
     return render(
@@ -349,7 +334,6 @@ def change_parclass_num(
     else:
         form = ChangeParclassNumForm(class_id=class_id)
     context = {
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
         'instance': _class,
         'form': form,

@@ -5,11 +5,14 @@ from django.forms import (
 )
 from django.core.exceptions import ValidationError
 
-from classes.models import (
-    ClassStruct,
-)
+from classes.models import ClassStruct
 from ei.models import Ei
 from parametr.models import Parametr
+from .constants import (
+    IMAGE_ENUMS_ID,
+    STRING_ENUMS_ID,
+    PARAMETR_FORM_NAME_MAX_LENGTH,
+)
 
 
 class ParametrForm(ModelForm):
@@ -23,7 +26,7 @@ class ParametrForm(ModelForm):
         required=False,
     )
     name = CharField(
-        max_length=75,
+        max_length=PARAMETR_FORM_NAME_MAX_LENGTH,
         required=True,
         label='Название параметра',
     )
@@ -51,8 +54,8 @@ class ParametrForm(ModelForm):
         parametr_tp = cleaned_data.get('parametr_type')
         par_ei = cleaned_data.get('par_ei')
 
-        str_enum = ClassStruct.objects.get(pk=15)
-        img_enum = ClassStruct.objects.get(pk=16)
+        str_enum = ClassStruct.objects.get(pk=IMAGE_ENUMS_ID)
+        img_enum = ClassStruct.objects.get(pk=STRING_ENUMS_ID)
 
         if parametr_tp == str_enum and par_ei is not None:
             raise ValidationError(

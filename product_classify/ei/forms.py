@@ -6,6 +6,10 @@ from django.forms import (
 
 from .models import Ei
 from .validators import validate_positive
+from .constants import (
+    EI_FORM_NAME_MAX_LENGTH,
+    EI_FORM_SHORT_NAME_MAX_LENGTH
+)
 
 
 class EiForm(ModelForm):
@@ -14,12 +18,12 @@ class EiForm(ModelForm):
         validators=[validate_positive,]
     )
     name = CharField(
-        max_length=75,
+        max_length=EI_FORM_NAME_MAX_LENGTH,
         required=True,
         label='Название единицы измерения',
     )
     short_name = CharField(
-        max_length=15,
+        max_length=EI_FORM_SHORT_NAME_MAX_LENGTH,
         required=True,
         label='Сокращенное название единицы измерения',
     )

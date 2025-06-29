@@ -4,6 +4,7 @@ from .constants import (
     CLASS_STRUCT_SHORT_NAME_MAX_LENGTH,
     CLASS_STRUCT_NAME_MAX_LENGTH,
     ENUM_PARENT_NODE_ID,
+    ENUM_CLASSES_IDS,
     NUM_PARAM_ID,
     FASTENER_ID,
     NUM_ENUM_ID,
@@ -41,8 +42,8 @@ class TerminalEnumClasses(models.Manager):
 
 class ParametrTypeClasses(models.Manager):
     def get_queryset(self):
-        string_enum = ClassStruct.objects.filter(pk=15)
-        image_enum = ClassStruct.objects.filter(pk=16)
+        string_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[0])
+        image_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[1])
         num_enums = ClassStruct.objects.filter(main_class__exact=NUM_ENUM_ID)
         num_params = ClassStruct.objects.filter(main_class__exact=NUM_PARAM_ID)
         result_queryset = string_enum | image_enum | num_params | num_enums
@@ -54,7 +55,7 @@ class AllEnumClasses(models.Manager):
         classes_ids = None
         with connection.cursor() as cursor:
             cursor.execute(
-                f'SELECT * FROM find_gr_gr({14});'
+                f'SELECT * FROM find_gr_gr({ENUM_PARENT_NODE_ID});'
             )
             classes_ids = cursor.fetchall()
             classes_ids = [
@@ -66,8 +67,8 @@ class AllEnumClasses(models.Manager):
 
 class EnumClasses(models.Manager):
     def get_queryset(self):
-        string_enum = ClassStruct.objects.filter(pk=15)
-        image_enum = ClassStruct.objects.filter(pk=16)
+        string_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[0])
+        image_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[1])
         num_enums = ClassStruct.objects.filter(main_class__exact=NUM_ENUM_ID)
         return string_enum | image_enum | num_enums
 

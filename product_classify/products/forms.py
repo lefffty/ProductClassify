@@ -92,7 +92,6 @@ class ParProdForm(ModelForm):
         )
         mn_value = par_class.min_value
         mx_value = par_class.max_value
-        # вещественный параметр
         if par.parametr_type.class_id == 28:
             cleaned_data['double_value'] = None
             cleaned_data['enum_val'] = None
@@ -100,7 +99,6 @@ class ParProdForm(ModelForm):
                 raise ValidationError(
                     'Целочисленное значение не входит в границы диапазона'
                 )
-        # целочисленный параметр
         elif par.parametr_type.class_id == 27:
             cleaned_data['int_value'] = None
             cleaned_data['enum_val'] = None
@@ -108,7 +106,6 @@ class ParProdForm(ModelForm):
                 raise ValidationError(
                     'Вещественное значение не входит в границы диапазона'
                 )
-        # параметр-перечисление
         else:
             cleaned_data['int_value'] = None
             cleaned_data['double_value'] = None
@@ -133,7 +130,6 @@ class SearchForm(Form):
         super().__init__(*args, **kwargs)
 
         for par_class in ParClass.objects.filter(class_field=cls):
-            # вещественный параметр
             if par_class.parametr.parametr_type.id == 27 and ParProd.objects.filter(par=par_class.parametr).exists():
                 self.fields[f'{par_class.parametr.name}'] = RangeField(
                     label=f'{par_class.parametr.name}',
@@ -141,7 +137,6 @@ class SearchForm(Form):
                     help_text=f'''Вводить в формате "min-max" (например, "10.0-20.0").
                             <br>Границы диапазоны: {par_class.min_value}-{par_class.max_value}''',
                 )
-            # параметр-перечисление
             elif par_class.parametr.parametr_type.id in ClassStruct.enum_classes.all().values_list('id', flat=True) and ParProd.objects.filter(par=par_class.parametr).exists():
                 self.fields[par_class.parametr.name] = ModelChoiceField(
                     queryset=Enums.objects.filter(

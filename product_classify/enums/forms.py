@@ -8,6 +8,14 @@ from django.core.exceptions import ValidationError
 
 from .models import Enums
 from classes.models import ClassStruct
+from .constants import (
+    INT_ENUMS_ID,
+    IMAGE_ENUMS_ID,
+    DOUBLE_ENUMS_ID,
+    STRING_ENUMS_ID,
+    ENUMS_FORM_NAME_MAX_LENGTH,
+    ENUMS_FORM_SHORT_NAME_MAX_LENGTH,
+)
 
 
 class EnumsForm(ModelForm):
@@ -22,15 +30,15 @@ class EnumsForm(ModelForm):
         label='Путь к изображению',
         required=False,
     )
-    short_name = CharField(
-        max_length=15,
-        required=True,
-        label='Сокращенное название перечисления',
-    )
     name = CharField(
-        max_length=75,
+        max_length=ENUMS_FORM_NAME_MAX_LENGTH,
         label='Название перечисления',
         required=False,
+    )
+    short_name = CharField(
+        max_length=ENUMS_FORM_SHORT_NAME_MAX_LENGTH,
+        required=True,
+        label='Сокращенное название перечисления',
     )
 
     class Meta:
@@ -61,14 +69,14 @@ class EnumsForm(ModelForm):
         int_value = cleaned_data['int_value']
         double_value = cleaned_data['double_value']
 
-        if parent_id == 15:
+        if parent_id == STRING_ENUMS_ID:
             if any([picture_value, int_value, double_value]):
                 raise ValidationError(
                     '''Значение перечисления строк не должно иметь
                     пути к изображению, целочисленного и вещественного
                     значений'''
                 )
-        elif parent_id == 16:
+        elif parent_id == IMAGE_ENUMS_ID:
             if any([int_value, double_value]):
                 raise ValidationError(
                     '''Значение перечисления изображений не должно
@@ -81,13 +89,13 @@ class EnumsForm(ModelForm):
                     '''Неверный формат изображения!
                     Разрешенные форматы изображений: ["jpg", "png"]'''
                 )
-        elif parent_id == 18:
+        elif parent_id == INT_ENUMS_ID:
             if any([int_value, picture_value]):
                 raise ValidationError(
                     '''Вещественное перечисление не должно иметь
                     целочисленного значения и путь к изображению'''
                 )
-        elif parent_id == 19:
+        elif parent_id == DOUBLE_ENUMS_ID:
             if any([double_value, picture_value]):
                 raise ValidationError(
                     '''Целочисленное перечисление не должно иметь
