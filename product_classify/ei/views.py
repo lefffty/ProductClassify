@@ -46,7 +46,6 @@ class EiCreateMixin:
     form_class = EiForm
     template_name = 'ei/ei.html'
     model = Ei
-    pk_url_kwarg = 'ei_id'
     success_url = reverse_lazy('ei:ei_list')
 
 

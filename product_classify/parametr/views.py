@@ -3,6 +3,15 @@ from django.http import (
     HttpRequest,
     HttpResponse,
 )
+from django.urls import reverse_lazy
+from django.views.generic.base import ContextMixin
+from django.views.generic import (
+    ListView,
+    DeleteView,
+    DetailView,
+    CreateView,
+    UpdateView,
+)
 
 from .models import Parametr
 from .forms import ParametrForm
@@ -13,117 +22,73 @@ from .constants import (
 )
 
 
-main_classes = ClassStruct.objects.filter(
-    main_class__exact=FASTENER_ID
-)
+class CommonContextMixin(ContextMixin):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        main_classes = ClassStruct.objects.filter(
+           main_class__exact=FASTENER_ID
+        )
+        context['main_classes'] = main_classes
+        return context
 
 
-def parametr_list(
-    request: HttpRequest,
-) -> HttpResponse:
-    """
-    Список параметров
-    """
-    parameters = Parametr.objects.exclude(
-        parametr_type__exact=AGREGAT_TYPE_ID
-    )
-    context = {
-        'main_classes': main_classes,
-        'parameters': parameters
-    }
-    return render(
-        request,
-        'parametr/list.html',
-        context,
-    )
+class ParametrListView(
+    ListView,
+    CommonContextMixin,
+):
+    template_name = 'parametr/list.html'
+    context_object_name = 'parameters'
+    ordering = 'id'
+
+    def get_queryset(self):
+        parameters = Parametr.objects.exclude(
+            parametr_type__exact=AGREGAT_TYPE_ID
+        )
+        return parameters
 
 
-def parametr_detail(
-    request: HttpRequest,
-    parametr_id: int,
-) -> HttpResponse:
-    """
-    Страница параметра
-    """
-    parameter = Parametr.objects.get(pk=parametr_id)
-    context = {
-        'parameter': parameter,
-        'main_classes': main_classes,
-    }
-    return render(
-        request,
-        'parametr/detail.html',
-        context,
-    )
+class ParametrDetailView(
+    DetailView,
+    CommonContextMixin,
+):
+    pk_url_kwarg = 'parametr_id'
+    model = Parametr
+    template_name = 'parametr/detail.html'
+    context_object_name = 'parameter'
 
 
-def add_parametr(
-    request: HttpRequest,
-) -> HttpResponse:
-    """
-    Добавление параметра
-    """
-    if request.method == 'POST':
-        form = ParametrForm(request.POST)
-        if form.is_valid():
-            form.save(commit=True)
-            return redirect('parametr:parametr_list')
-    else:
-        form = ParametrForm()
-    context = {
-        'form': form,
-        'main_classes': main_classes,
-    }
-    return render(
-        request,
-        'parametr/parametr.html',
-        context,
-    )
+class ParametrCreateView(
+    CreateView,
+    CommonContextMixin,
+):
+    model = Parametr
+    template_name = 'parametr/parametr.html'
+    success_url = reverse_lazy('parametr:parametr_list')
+    form_class = ParametrForm
 
 
-def edit_parametr(
-    request: HttpRequest,
-    parametr_id: int,
-) -> HttpResponse:
-    """
-    Редактирование параметра
-    """
-    instance = Parametr.objects.get(pk=parametr_id)
-    form = ParametrForm(
-        request.POST or None,
-        instance=instance,
-    )
-    if form.is_valid():
-        form.save(commit=True)
-        return redirect('parametr:parametr_detail', id=parametr_id,)
-    context = {
-        'main_classes': main_classes,
-        'form': form,
-    }
-    return render(
-        request,
-        'parametr/parametr.html',
-        context,
-    )
+class ParametrUpdateView(
+    UpdateView,
+    CommonContextMixin,
+):
+    model = Parametr
+    form_class = ParametrForm
+    pk_url_kwarg = 'parametr_id'
+    template_name = 'parametr/parametr.html'
+
+    def get_success_url(self):
+        pk = self.get_object().pk
+        return reverse_lazy('parametr:parametr_detail', kwargs={
+            'parametr_id': pk,
+        })
 
 
-def delete_parametr(
-    request: HttpRequest,
-    parametr_id: int,
-) -> HttpResponse:
-    """
-    Удаление параметра
-    """
-    instance = Parametr.objects.get(pk=parametr_id)
-    if request.method == 'POST':
-        instance.delete()
-        return redirect('parametr:parametr_list')
-    context = {
-        'instance': instance,
-        'main_classes': main_classes,
-    }
-    return render(
-        request,
-        'parametr/parametr.html',
-        context,
-    )
+class ParametrDeleteView(
+    DeleteView,
+    CommonContextMixin,
+):
+    model = Parametr
+    pk_url_kwarg = 'parametr_id'
+    template_name = 'parametr/parametr.html'
+    success_url = reverse_lazy('parametr:parametr_list')
+    context_object_name = 'instance'

@@ -8,27 +8,27 @@ app_name = 'parametr'
 urlpatterns = [
     path(
         'parameters/list/',
-        views.parametr_list,
+        views.ParametrListView.as_view(),
         name='parametr_list'
     ),
     path(
         'parameters/<int:parametr_id>/',
-        views.parametr_detail,
+        views.ParametrDetailView.as_view(),
         name='parametr_detail',
     ),
     path(
         'parameters/add/',
-        views.add_parametr,
+        views.ParametrCreateView.as_view(),
         name='add_parametr',
     ),
     path(
         'parameters/<int:parametr_id>/edit/',
-        views.edit_parametr,
+        views.ParametrUpdateView.as_view(),
         name='edit_parametr',
     ),
     path(
         'parameters/<int:parametr_id>/delete/',
-        views.delete_parametr,
+        views.ParametrDeleteView.as_view(),
         name='delete_parametr',
     ),
 ]
