@@ -8,12 +8,12 @@ app_name = 'agregat'
 urlpatterns = [
     path(
         'agregat/list/',
-        views.agregat_list,
+        views.AgregatListView.as_view(),
         name='agregat_list'
     ),
     path(
         'agregat/<int:agregat_id>/',
-        views.agregat_detail,
+        views.AgregatDetailView.as_view(),
         name='agregat_detail',
     ),
     path(

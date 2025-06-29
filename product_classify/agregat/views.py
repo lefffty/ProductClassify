@@ -1,5 +1,14 @@
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
+from django.urls import reverse_lazy
+from django.views.generic.base import ContextMixin
+from django.views.generic import (
+    ListView,
+    DetailView,
+    DeleteView,
+    UpdateView,
+    CreateView,
+)
 
 from parametr.models import Parametr
 from .models import Agregat
@@ -11,56 +20,45 @@ from .constants import (
 )
 
 
-main_classes = ClassStruct.objects.filter(
-    main_class__exact=FASTENER_ID
-)
+class CommonContextMixin(ContextMixin):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        fastener_classes = ClassStruct.objects.filter(
+            main_class__exact=FASTENER_ID
+        )
+        context['fastener_classes'] = fastener_classes
+        return context
 
-fastener_classes = ClassStruct.objects.filter(
-    main_class__exact=FASTENER_ID
-)
 
-
-def agregat_list(
-    request: HttpRequest,
-) -> HttpResponse:
-    """
-    Список агрегатов
-    """
-    agregats = Parametr.objects.filter(
+class AgregatListView(
+    CommonContextMixin,
+    ListView,
+):
+    queryset = Parametr.objects.filter(
         parametr_type__exact=AGREGAT_TYPE_ID,
     )
-    context = {
-        'main_classes': main_classes,
-        'agregats': agregats,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'agregat/list.html',
-        context,
-    )
+    template_name = 'agregat/list.html'
+    context_object_name = 'agregats'
 
 
-def agregat_detail(
-    request: HttpRequest,
-    agregat_id: int,
-) -> HttpResponse:
-    """
-    Страница агрегата
-    """
-    agregat = Parametr.objects.get(pk=agregat_id)
-    agr_parametrs = Agregat.objects.filter(agr=agregat.id).order_by('num')
-    context = {
-        'agregat': agregat,
-        'main_classes': main_classes,
-        'agr_parametrs': agr_parametrs,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'agregat/detail.html',
-        context,
-    )
+class AgregatDetailView(
+    CommonContextMixin,
+    DetailView,
+):
+    template_name = 'agregat/detail.html'
+    pk_url_kwarg = 'agregat_id'
+
+    def get_object(self):
+        agregat_id = self.kwargs.get('agregat_id')
+        agregat = Parametr.objects.get(pk=agregat_id)
+        return agregat
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        agregat_parametrs = Agregat.objects.filter(agr=self.get_object())
+        context['agr_parametrs'] = agregat_parametrs
+        context['agregat'] = self.get_object()
+        return context
 
 
 def add_parametr_to_agregat(
@@ -88,7 +86,6 @@ def add_parametr_to_agregat(
     context = {
         'instance': agregat,
         'form': form,
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
     }
     return render(
@@ -121,7 +118,6 @@ def delete_parametr_from_agregat(
         )
     context = {
         'instance': instance,
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
     }
     return render(
@@ -157,7 +153,6 @@ def change_agregat_num(
     context = {
         'instance': agregat,
         'form': form,
-        'main_classes': main_classes,
         'fastener_classes': fastener_classes,
     }
     return render(
