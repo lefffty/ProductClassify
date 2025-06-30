@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
+from django.urls import reverse_lazy
 from django.db import connection
 from django.views.generic.base import ContextMixin
 from django.views.generic import (
@@ -69,61 +70,24 @@ class CategoryClassesListView(
         main_class = ClassStruct.objects.get(pk=class_id)
         context['main_class'] = main_class
         return context
-    
+
 
 class ProdClassCreateView(
     CreateView,
     CommonContextMixin,
 ):
-    pass
+    form_class = ProdClassForm
+    success_url = reverse_lazy('classes:index')
+    template_name = 'classes/prod_class.html'
 
 
-def add_prod_class(
-    request: HttpRequest,
-) -> HttpResponse:
-    """
-    Добавление нового класса изделия
-    """
-    if request.method == 'POST':
-        form = ProdClassForm(request.POST)
-        if form.is_valid():
-            form.save(commit=True)
-            return redirect('classes:index')
-    else:
-        form = ProdClassForm()
-    context = {
-        'fastener_classes': fastener_classes,
-        'form': form,
-    }
-    return render(
-        request,
-        'classes/prod_class.html',
-        context
-    )
-
-
-def add_enum_class(
-    request: HttpRequest,
-) -> HttpResponse:
-    """
-    Добавление нового класса перечисления
-    """
-    if request.method == 'POST':
-        form = EnumClassForm(request.POST)
-        if form.is_valid():
-            form.save(commit=True)
-            return redirect('classes:index')
-    else:
-        form = EnumClassForm()
-    context = {
-        'fastener_classes': fastener_classes,
-        'form': form,
-    }
-    return render(
-        request,
-        'classes/enum_class.html',
-        context
-    )
+class EnumClassCreateView(
+    CreateView,
+    CommonContextMixin,
+):
+    form_class = EnumClassForm
+    success_url = reverse_lazy('classes:index')
+    template_name = 'classes/enum_class.html'
 
 
 def edit_class(

@@ -17,12 +17,12 @@ urlpatterns = [
     ),
     path(
         'add_prod_class/',
-        views.add_prod_class,
+        views.ProdClassCreateView.as_view(),
         name='add_prod_class',
     ),
     path(
         'add_enum_class/',
-        views.add_enum_class,
+        views.EnumClassCreateView.as_view(),
         name='add_enum_class',
     ),
     path(

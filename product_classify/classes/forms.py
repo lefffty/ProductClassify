@@ -12,9 +12,9 @@ from .models import (
     ClassStruct,
     ParClass,
 )
+from .validators import positive_validate
 from ei.models import Ei
 from parametr.models import Parametr
-from .validators import positive_validate
 
 
 class ProdClassForm(ModelForm):
@@ -54,9 +54,10 @@ class ProdClassForm(ModelForm):
 
     def clean(self):
         with connection.cursor() as cursor:
-            data = self.cleaned_data
+            self.instance.save()
             class_id = self.instance.pk
-            main_class_id = data['main_class'].id
+            main_class_id = self.cleaned_data['main_class'].id
+            print(class_id, main_class_id)
             cursor.execute(
                 f'''SELECT * FROM check_class_struct_cycles(
                     {class_id},
@@ -102,9 +103,9 @@ class EnumClassForm(ModelForm):
 
     def clean(self):
         with connection.cursor() as cursor:
-            data = self.cleaned_data
+            self.instance.save()
             class_id = self.instance.pk
-            main_class_id = data['main_class'].id
+            main_class_id = self.cleaned_data['main_class'].id
             cursor.execute(
                 f'''SELECT * FROM check_class_struct_cycles(
                     {class_id},

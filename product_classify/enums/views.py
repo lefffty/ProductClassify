@@ -40,6 +40,7 @@ class EnumsListView(
         enums = Enums.objects.filter(
             enum__main_class__id=class_id
         ).order_by('id')
+        print(enums)
         return enums
 
 
@@ -66,10 +67,7 @@ class EnumsCreateView(
     model = Enums
     form_class = EnumsForm
     template_name = 'enums/enum.html'
-
-    def get_success_url(self):
-        print(self.get_object())
-        return super().get_success_url()
+    success_url = reverse_lazy('classes:index')
 
 
 class EnumsDeleteView(
