@@ -27,7 +27,7 @@ urlpatterns = [
     ),
     path(
         '<int:class_id>/edit/',
-        views.EditClassUpdateView.as_view(),
+        views.ClassUpdateView.as_view(),
         name='edit_class',
     ),
     path(

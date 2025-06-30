@@ -90,7 +90,7 @@ class EnumClassCreateView(
     template_name = 'classes/enum_class.html'
 
 
-class EditClassUpdateView(
+class ClassUpdateView(
     UpdateView,
     CommonContextMixin,
 ):
