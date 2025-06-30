@@ -57,7 +57,6 @@ class ProdClassForm(ModelForm):
             self.instance.save()
             class_id = self.instance.pk
             main_class_id = self.cleaned_data['main_class'].id
-            print(class_id, main_class_id)
             cursor.execute(
                 f'''SELECT * FROM check_class_struct_cycles(
                     {class_id},

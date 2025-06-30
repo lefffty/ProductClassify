@@ -40,7 +40,6 @@ class EnumsListView(
         enums = Enums.objects.filter(
             enum__main_class__id=class_id
         ).order_by('id')
-        print(enums)
         return enums
 
 

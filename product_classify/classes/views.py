@@ -90,6 +90,40 @@ class EnumClassCreateView(
     template_name = 'classes/enum_class.html'
 
 
+class EditClassUpdateView(
+    UpdateView,
+    CommonContextMixin,
+):
+    def get_object(self):
+        class_id = self.kwargs.get('class_id')
+        _class = ClassStruct.objects.get(pk=class_id)
+        return _class
+
+    def get_template_names(self):
+        class_id = self.kwargs.get('class_id')
+        _class = ClassStruct.objects.get(pk=class_id)
+        if _class.pk in ENUM_CLASSES_IDS:
+            return ['classes/enum_class.html']
+        return ['classes/prod_class.html']
+
+    def get_form_class(self):
+        class_id = self.kwargs.get('class_id')
+        _class = ClassStruct.objects.get(pk=class_id)
+        if _class.pk in ENUM_CLASSES_IDS:
+            return EnumClassForm
+        return ProdClassForm
+
+    def get_success_url(self):
+        class_id = self.kwargs.get('class_id')
+        _class = ClassStruct.objects.get(pk=class_id)
+        return reverse_lazy(
+            'classes:category_classes',
+            kwargs={
+                'class_id': _class.main_class.pk,
+            }
+        )
+
+
 def edit_class(
     request: HttpRequest,
     class_id: int,
@@ -195,31 +229,6 @@ class ClassParamsListView(
         )
         context['class'] = _class
         return context
-
-
-def class_params_list(
-    request: HttpRequest,
-    class_id: int,
-) -> HttpResponse:
-    """
-    Страница параметров класса
-    """
-    _class = ClassStruct.objects.get(
-        pk=class_id,
-    )
-    params = ParClass.objects.filter(
-        class_field=class_id,
-    ).order_by('num')
-    context = {
-        'class': _class,
-        'params': params,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'classes/params.html',
-        context,
-    )
 
 
 def add_param_class(

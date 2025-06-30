@@ -62,7 +62,6 @@ class EnumsForm(ModelForm):
         self.fields['enum'].queryset = ClassStruct.terminal_enum_classes.all()
 
     def clean(self):
-        print('Очистка данных')
         cleaned_data = super().clean()
         picture_value = str(cleaned_data.get('picture_value'))
         enum = cleaned_data.get('enum')
@@ -106,7 +105,6 @@ class EnumsForm(ModelForm):
         return cleaned_data
 
     def save(self, commit=True):
-        print('Сохранение данных')
         instance = super().save(commit=False)
         instance.num = self.cleaned_data['num']
         if commit:
