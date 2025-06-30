@@ -1,6 +1,15 @@
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
 from django.db import connection
+from django.views.generic.base import ContextMixin
+from django.views.generic import (
+    ListView,
+    DetailView,
+    DeleteView,
+    UpdateView,
+    CreateView,
+    TemplateView,
+)
 
 from classes.models import (
     ClassStruct,
@@ -22,43 +31,51 @@ fastener_classes = ClassStruct.objects.filter(
 )
 
 
-def index(
-    request: HttpRequest,
-) -> HttpResponse:
-    """
-    Главная страница проекта
-    """
-    context = {
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'classes/index.html',
-        context
-    )
+class CommonContextMixin(ContextMixin):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        fastener_classes = ClassStruct.objects.filter(
+            main_class__exact=FASTENER_ID
+        )
+        context['fastener_classes'] = fastener_classes
+        return context
 
 
-def get_category_classes(
-    request: HttpRequest,
-    class_id: int,
-) -> HttpResponse:
-    """
-    Страница категории классов
-    """
-    main_class = ClassStruct.objects.get(pk=class_id)
-    classes = ClassStruct.objects.filter(
-        main_class__exact=class_id
-    ).order_by('id')
-    context = {
-        'main_class': main_class,
-        'classes': classes,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'classes/category.html',
-        context,
-    )
+class MainPageTemplateView(
+    TemplateView,
+    CommonContextMixin,
+):
+    template_name = 'classes/index.html'
+
+
+class CategoryClassesListView(
+    ListView,
+    CommonContextMixin,
+):
+    template_name = 'classes/category.html'
+    model = ClassStruct
+    context_object_name = 'classes'
+
+    def get_queryset(self):
+        class_id = self.kwargs.get('class_id')
+        classes = ClassStruct.objects.filter(
+            main_class__exact=class_id
+        ).order_by('id')
+        return classes
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        class_id = self.kwargs.get('class_id')
+        main_class = ClassStruct.objects.get(pk=class_id)
+        context['main_class'] = main_class
+        return context
+    
+
+class ProdClassCreateView(
+    CreateView,
+    CommonContextMixin,
+):
+    pass
 
 
 def add_prod_class(

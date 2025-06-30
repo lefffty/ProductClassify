@@ -7,12 +7,12 @@ app_name = 'classes'
 urlpatterns = [
     path(
         '',
-        views.index,
+        views.MainPageTemplateView.as_view(),
         name='index',
     ),
     path(
         '<int:class_id>/',
-        views.get_category_classes,
+        views.CategoryClassesListView.as_view(),
         name='category_classes',
     ),
     path(

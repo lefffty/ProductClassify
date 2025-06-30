@@ -61,6 +61,11 @@ class AgregatDetailView(
         return context
 
 
+fastener_classes = ClassStruct.objects.filter(
+    main_class__exact=FASTENER_ID
+)
+
+
 def add_parametr_to_agregat(
     request: HttpRequest,
     agregat_id: int,
