@@ -37,7 +37,7 @@ urlpatterns = [
     ),
     path(
         '<int:class_id>/params/',
-        views.class_params_list,
+        views.ClassParamsListView.as_view(),
         name='class_params_list',
     ),
     path(

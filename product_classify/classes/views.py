@@ -173,6 +173,30 @@ def delete_class(
     )
 
 
+class ClassParamsListView(
+    ListView,
+    CommonContextMixin,
+):
+    template_name = 'classes/params.html'
+    context_object_name = 'params'
+
+    def get_queryset(self):
+        class_id = self.kwargs.get('class_id')
+        params = ParClass.objects.filter(
+            class_field=class_id,
+        ).order_by('num')
+        return params
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        class_id = self.kwargs.get('class_id')
+        _class = ClassStruct.objects.get(
+            pk=class_id,
+        )
+        context['class'] = _class
+        return context
+
+
 def class_params_list(
     request: HttpRequest,
     class_id: int,
