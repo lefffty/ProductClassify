@@ -115,11 +115,11 @@ class ParProd(models.Model):
         elif self.double_value:
             return self.double_value
         elif self.enum_val:
-            if self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[0]:
+            if self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[0]:
                 return self.enum_val.name
-            elif self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[1]:
+            elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[1]:
                 return self.enum_val.image.instance
-            elif self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[2]:
+            elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[2]:
                 return self.enum_val.double_value
-            elif self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[3]:
+            elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[3]:
                 return self.enum_val.int_value

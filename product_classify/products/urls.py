@@ -12,7 +12,7 @@ urlpatterns = [
     ),
     path(
         'products/<int:product_id>/',
-        views.product_detail,
+        views.ProductDetailView.as_view(),
         name='product_detail',
     ),
     path(

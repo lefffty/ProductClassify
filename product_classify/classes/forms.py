@@ -170,7 +170,7 @@ class ParClassForm(ModelForm):
         cls_id = cleaned_data['class_field'].id
 
         if param_tp in ClassStruct.enum_classes.values_list(
-                'class_id', flat=True) and (min_val or max_val):
+                'id', flat=True) and (min_val or max_val):
             raise ValidationError(
                 '''У параметра-перечисления не должно быть
                 максимального и минимального значений!'''
@@ -182,14 +182,14 @@ class ParClassForm(ModelForm):
                     '''SELECT * FROM to_add_parametr_to_class(
                         %s, %s, %s, %s
                     ); ''',
-                    [cls_id, param.id, None, None]
+                    [cls_id, param.pk, None, None]
                 )
             else:
                 cursor.execute(
                     '''SELECT * FROM to_add_parametr_to_class(
                         %s, %s, %s, %s
                     );''',
-                    [cls_id, param.id, min_val, max_val]
+                    [cls_id, param.pk, min_val, max_val]
                 )
         return cleaned_data
 

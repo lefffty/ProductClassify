@@ -7,6 +7,14 @@ from django.http import (
     HttpResponse,
 )
 from django.db.models import Q
+from django.views.generic import (
+    ListView,
+    DetailView,
+    CreateView,
+    UpdateView,
+    DeleteView,
+)
+from django.views.generic.base import ContextMixin
 
 from classes.models import (
     ClassStruct,
@@ -24,6 +32,18 @@ from .models import (
 from .constants import (
     FASTENER_ID
 )
+
+
+class CommonContextMixin(
+    ContextMixin
+):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        fastener_classes = ClassStruct.objects.filter(
+            main_class__exact=FASTENER_ID
+        )
+        context['fastener_classes'] = fastener_classes
+        return context
 
 
 def class_products(
@@ -113,14 +133,14 @@ def class_products(
         products = ParProd.objects.filter(base_query)
 
     products_no_params = Prod.objects.exclude(
-        parprod__isnull=False,
+        product_params__isnull=False,
     ).filter(
         class_field__exact=class_id
     )
     products = products.distinct('prod')
 
     context = {
-        'class_id': class_id,
+        'id': class_id,
         'main_class_id': main_class_id,
         'search_form': search_form,
         'products': products,
@@ -135,6 +155,22 @@ def class_products(
         'products/list.html',
         context,
     )
+
+
+class ProductDetailView(
+    DetailView,
+    CommonContextMixin,
+):
+    model = Prod
+    template_name = 'products/detail.html'
+    pk_url_kwarg = 'product_id'
+    context_object_name = 'product'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        prod = self.get_object()
+        context['params'] = ParProd.objects.filter(prod=prod)
+        return context
 
 
 def product_detail(

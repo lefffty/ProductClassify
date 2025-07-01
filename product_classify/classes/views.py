@@ -124,56 +124,6 @@ class ClassUpdateView(
         )
 
 
-def edit_class(
-    request: HttpRequest,
-    class_id: int,
-) -> HttpResponse:
-    """
-    Редактирование класса
-    """
-    _class = ClassStruct.objects.get(pk=class_id)
-    context = {
-        'fastener_classes': fastener_classes,
-    }
-    if _class.id in ENUM_CLASSES_IDS:
-        context = {
-            'fastener_classes': fastener_classes,
-        }
-        form = EnumClassForm(
-            request.POST or None,
-            instance=_class,
-        )
-        if form.is_valid():
-            form.save(commit=True)
-            return redirect(
-                'classes:category_classes',
-                _class.main_class.id,
-            )
-        context['form'] = form
-        return render(
-            request,
-            'classes/enum_class.html',
-            context,
-        )
-    else:
-        form = ProdClassForm(
-            request.POST or None,
-            instance=_class,
-        )
-        if form.is_valid():
-            form.save(commit=True)
-            return redirect(
-                'classes:category_classes',
-                _class.main_class.id,
-            )
-        context['form'] = form
-        return render(
-            request,
-            'classes/prod_class.html',
-            context,
-        )
-
-
 def delete_class(
     request: HttpRequest,
     class_id: int,
@@ -229,6 +179,28 @@ class ClassParamsListView(
         )
         context['class'] = _class
         return context
+
+
+class ClassParamCreateView(
+    CreateView,
+    CommonContextMixin,
+):
+    template_name = 'classes/param_class.html'
+    form_class = ParClassForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        _class = ClassStruct.objects.get(pk=self.kwargs.get('class_id'))
+        context['instance'] = _class
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'classes:class_params_list',
+            kwargs={
+                'class_id': self.kwargs.get('class_id')
+            }
+        )
 
 
 def add_param_class(
@@ -357,3 +329,36 @@ def change_parclass_num(
         'classes/change_parclass_num.html',
         context,
     )
+
+
+class ChangeNumView(
+    UpdateView,
+    CommonContextMixin,
+):
+    queryset = ParClass.objects.all()
+    form_class = ChangeParclassNumForm
+    template_name = 'classes/change_parclass_num.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        class_id = self.kwargs.get('class_id')
+        _class = ClassStruct.objects.get(pk=class_id)
+        context['instance'] = _class
+        return context
+
+    def form_valid(self, form):
+        instance_1 = form.cleaned_data['class_field_1']
+        instance_2 = form.cleaned_data['class_field_2']
+        instance_1.num = instance_2.num
+        instance_2.num = instance_1.num
+        instance_1.save()
+        instance_2.save()
+
+    def get_success_url(self):
+        class_id = self.kwargs.get('class_id')
+        return reverse_lazy(
+            'classes:class_params_list',
+            kwargs={
+                'class_id': class_id,
+            }
+        )
