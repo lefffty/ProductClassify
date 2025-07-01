@@ -204,36 +204,27 @@ class ProductUpdateView(
         )
 
 
-def delete_product(
-    request: HttpRequest,
-    prod_id: int,
-) -> HttpResponse:
-    """
-    Удаление изделия
-    """
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    instance = Prod.objects.get(pk=prod_id)
-    main_class_id = ClassStruct.objects.get(
-        class_id__exact=instance.class_field.id
-    ).main_class.id
-    if request.method == 'POST':
-        instance.delete()
-        return redirect(
+class ProductDeleteView(
+    DeleteView,
+    CommonContextMixin,
+):
+    template_name = 'products/product.html'
+    model = Prod
+    context_object_name = 'instance'
+    pk_url_kwarg = 'prod_id'
+
+    def get_success_url(self):
+        prod_id = self.kwargs.get('prod_id')
+        product = Prod.objects.get(pk=prod_id)
+        class_id = product.class_field.pk
+        main_class_id = product.class_field.main_class.pk
+        return reverse_lazy(
             'products:class_products',
-            main_class_id,
-            instance.class_field.id,
+            kwargs={
+                'main_class_id': main_class_id,
+                'class_id': class_id,
+            }
         )
-    context = {
-        'instance': instance,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'products/product.html',
-        context,
-    )
 
 
 def edit_param_from_product(
