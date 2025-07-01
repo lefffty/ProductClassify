@@ -32,7 +32,7 @@ urlpatterns = [
     ),
     path(
         'products/<int:prod_id>/param/<int:param_id>/delete/',
-        views.delete_param_from_product,
+        views.ProductParamDeleteView.as_view(),
         name='delete_param_from_product',
     ),
     path(

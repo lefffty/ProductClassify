@@ -9,7 +9,6 @@ from django.http import (
 )
 from django.db.models import Q
 from django.views.generic import (
-    ListView,
     DetailView,
     CreateView,
     UpdateView,
@@ -254,33 +253,31 @@ class ProductParamUpdateView(
         )
 
 
-def delete_param_from_product(
-    request: HttpRequest,
-    prod_id: int,
-    param_id: int,
-) -> HttpResponse:
-    """
-    Удаление параметра из изделия
-    """
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    instance = ParProd.objects.get(
-        prod=prod_id,
-        par=param_id,
-    )
-    if request.method == 'POST':
-        instance.delete()
-        return redirect('products:product_detail', prod_id)
-    context = {
-        'instance': instance,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'products/prodparam.html',
-        context,
-    )
+class ProductParamDeleteView(
+    DeleteView,
+    CommonContextMixin,
+):
+    model = ParProd
+    template_name = 'products/prodparam.html'
+    context_object_name = 'instance'
+
+    def get_object(self):
+        prod_id = self.kwargs.get('prod_id')
+        param_id = self.kwargs.get('param_id')
+        instance = ParProd.objects.get(
+            prod=prod_id,
+            par=param_id,
+        )
+        return instance
+
+    def get_success_url(self):
+        prod_id = self.kwargs.get('prod_id')
+        return reverse_lazy(
+            'products:product_detail',
+            kwargs={
+                'product_id': prod_id,
+            }
+        )
 
 
 def add_param_to_product(
