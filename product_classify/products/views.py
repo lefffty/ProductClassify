@@ -254,43 +254,6 @@ class ProductParamUpdateView(
         )
 
 
-def edit_param_from_product(
-    request: HttpRequest,
-    prod_id: int,
-    param_id: int,
-) -> HttpResponse:
-    """
-    Редактирование параметра изделия
-    """
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    instance = ParProd.objects.get(
-        prod=prod_id,
-        par=param_id,
-    )
-    form = ParProdForm(
-        request.POST or None,
-        instance=instance,
-    )
-    if form.is_valid():
-        form.save(commit=True)
-        return redirect(
-            'products:product_detail',
-            prod_id,
-        )
-    context = {
-        'instance': instance,
-        'form': form,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'products/prodparam.html',
-        context,
-    )
-
-
 def delete_param_from_product(
     request: HttpRequest,
     prod_id: int,
