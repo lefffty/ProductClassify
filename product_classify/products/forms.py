@@ -82,7 +82,7 @@ class ParProdForm(ModelForm):
         cls_id = prod.class_field.id
         class_params_ids = ParClass.objects.filter(
             class_field=cls_id,).values_list('parametr', flat=True)
-        if par.par_id not in class_params_ids:
+        if par.id not in class_params_ids:
             raise ValidationError(
                 'У класса изделия нет таких параметров!'
             )
@@ -92,14 +92,14 @@ class ParProdForm(ModelForm):
         )
         mn_value = par_class.min_value
         mx_value = par_class.max_value
-        if par.parametr_type.class_id == 28:
+        if par.parametr_type.id == 28:
             cleaned_data['double_value'] = None
             cleaned_data['enum_val'] = None
             if cleaned_data['int_value'] < mn_value or cleaned_data['int_value'] > mx_value:
                 raise ValidationError(
                     'Целочисленное значение не входит в границы диапазона'
                 )
-        elif par.parametr_type.class_id == 27:
+        elif par.parametr_type.id == 27:
             cleaned_data['int_value'] = None
             cleaned_data['enum_val'] = None
             if cleaned_data['double_value'] < mn_value or cleaned_data['double_value'] > mx_value:

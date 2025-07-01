@@ -83,4 +83,9 @@ class Enums(models.Model):
         verbose_name_plural = 'Значения перечисления'
 
     def __str__(self):
-        return self.short_name
+        if self.enum.main_class.id == 15 or self.enum.main_class.id == 16:
+            return self.short_name
+        elif self.enum.main_class.id == 18:
+            return self.short_name + ' - ' + str(self.double_value)
+        else:
+            return self.short_name + ' - ' + str(self.int_value)

@@ -37,7 +37,7 @@ urlpatterns = [
     ),
     path(
         'products/<int:prod_id>/param/<int:param_id>/edit/',
-        views.edit_param_from_product,
+        views.ProductParamUpdateView.as_view(),
         name='edit_param_from_product',
     ),
     path(

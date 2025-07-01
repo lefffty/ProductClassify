@@ -227,6 +227,33 @@ class ProductDeleteView(
         )
 
 
+class ProductParamUpdateView(
+    UpdateView,
+    CommonContextMixin,
+):
+    template_name = 'products/prodparam.html'
+    form_class = ParProdForm
+    context_object_name = 'instance'
+
+    def get_object(self):
+        prod_id = self.kwargs.get('prod_id')
+        param_id = self.kwargs.get('param_id')
+        instance = ParProd.objects.get(
+            prod=prod_id,
+            par=param_id,
+        )
+        return instance
+
+    def get_success_url(self):
+        prod_id = self.kwargs.get('prod_id')
+        return reverse_lazy(
+            'products:product_detail',
+            kwargs={
+                'product_id': prod_id,
+            }
+        )
+
+
 def edit_param_from_product(
     request: HttpRequest,
     prod_id: int,

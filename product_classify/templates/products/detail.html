@@ -40,12 +40,12 @@
             </p>
             {% endif %}
             <button class="responsive-button" height="30" width="30">
-                <a href="{% url "products:edit_param_from_product" product.id param.id %}">
+                <a href="{% url "products:edit_param_from_product" product.id param.par.id %}">
                     Редактировать параметр
                 </a>
             </button>
             <button class="responsive-button" height="30" width="30">
-                <a href="{% url "products:delete_param_from_product" product.id param.id %}">
+                <a href="{% url "products:delete_param_from_product" product.id param.par.id %}">
                     Удалить параметр
                 </a>
             </button>

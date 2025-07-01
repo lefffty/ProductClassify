@@ -96,13 +96,13 @@ class ParProd(models.Model):
 
     def __str__(self):
         if self.enum_val:
-            if self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[0]:
+            if self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[0]:
                 return self.prod.name + ' - ' + self.enum_val.name
-            elif self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[1]:
+            elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[1]:
                 return self.prod.name + ' - ' + self.enum_val.short_name
-            elif self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[2]:
+            elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[2]:
                 return self.prod.name + ' - ' + self.enum_val.short_name + ' - ' + str(self.enum_val.double_value)
-            elif self.enum_val.enum.main_class.class_id == ENUM_CLASSES_IDS[3]:
+            elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[3]:
                 return self.prod.name + ' - ' + self.enum_val.short_name + ' - ' + str(self.enum_val.int_value)
         if self.int_value:
             return self.prod.name + ' - ' + self.par.name + ' - ' + str(self.int_value)
