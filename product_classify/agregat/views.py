@@ -66,38 +66,37 @@ fastener_classes = ClassStruct.objects.filter(
 )
 
 
-def add_parametr_to_agregat(
-    request: HttpRequest,
-    agregat_id: int,
-) -> HttpResponse:
-    """
-    Добавление параметра в агрегат
-    """
-    agregat = Parametr.objects.get(pk=agregat_id)
-    if request.method == 'POST':
-        form = AgregatForm(request.POST)
-        if form.is_valid():
-            instance = form.save(commit=False)
-            counter = Agregat.objects.filter(agr=agregat_id).count() + 1
-            instance.agr = Parametr.objects.get(id=agregat_id)
-            instance.num = counter
-            instance.save()
-            return redirect(
-                'agregat:agregat_detail',
-                agregat_id,
-            )
-    else:
-        form = AgregatForm(agr=agregat)
-    context = {
-        'instance': agregat,
-        'form': form,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'agregat/agregat.html',
-        context,
-    )
+class AgregatParametrCreateView(
+    CommonContextMixin,
+    CreateView,
+):
+    form_class = AgregatForm
+    model = Agregat
+    template_name = 'agregat/agregat.html'
+
+    def get_success_url(self):
+        agregat_id = self.kwargs.get('agregat_id')
+        return reverse_lazy(
+            'agregat:agregat_detail',
+            kwargs={
+                'agregat_id': agregat_id,
+            },
+        )
+
+    def form_valid(self, form):
+        instance = form.save(commit=False)
+        agregat_id = self.kwargs.get('agregat_id')
+        num = Agregat.objects.filter(agr=agregat_id).count() + 1
+        setattr(instance, 'num', num)
+        instance.save()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        agregat_id = self.kwargs.get('agregat_id')
+        agregat = Parametr.objects.get(pk=agregat_id)
+        context['instance'] = agregat
+        return context
 
 
 def delete_parametr_from_agregat(
@@ -113,7 +112,7 @@ def delete_parametr_from_agregat(
         instance.delete()
 
         for par_agr in Agregat.objects.filter(agr=agregat_id):
-            if par_agr.num > instance.num:
+            if par_agr.num >= instance.num:
                 par_agr.num = par_agr.num - 1
                 par_agr.save()
 

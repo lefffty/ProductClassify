@@ -18,7 +18,7 @@ urlpatterns = [
     ),
     path(
         'agregat/<int:agregat_id>/add/',
-        views.add_parametr_to_agregat,
+        views.AgregatParametrCreateView.as_view(),
         name='add_parametr_to_agregat',
     ),
     path(
