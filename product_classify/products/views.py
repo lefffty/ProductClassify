@@ -2,6 +2,7 @@ from django.shortcuts import (
     render,
     redirect,
 )
+from django.urls import reverse_lazy
 from django.http import (
     HttpRequest,
     HttpResponse,
@@ -171,59 +172,16 @@ class ProductDetailView(
         prod = self.get_object()
         context['params'] = ParProd.objects.filter(prod=prod)
         return context
+    
 
-
-def product_detail(
-    request: HttpRequest,
-    product_id: int,
-) -> HttpResponse:
-    """
-    Страница изделия
-    """
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    product = Prod.objects.get(pk=product_id)
-    params = ParProd.objects.filter(
-        prod=product_id
-    )
-    context = {
-        'product': product,
-        'params': params,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'products/detail.html',
-        context
-    )
-
-
-def add_product(
-    request: HttpRequest,
-) -> HttpResponse:
-    """
-    Добавление изделия
-    """
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    if request.method == 'POST':
-        form = ProdForm(request.POST)
-        if form.is_valid():
-            form.save(commit=True)
-            return redirect('classes:index')
-    else:
-        form = ProdForm()
-    context = {
-        'form': form,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'products/product.html',
-        context
-    )
+class ProductCreateView(
+    CreateView,
+    CommonContextMixin,
+):
+    template_name = 'products/product.html'
+    model = Prod
+    form_class = ProdForm
+    success_url = reverse_lazy('classes:index')
 
 
 def edit_product(

@@ -17,7 +17,7 @@ urlpatterns = [
     ),
     path(
         'products/add/',
-        views.add_product,
+        views.ProductCreateView.as_view(),
         name='add_product',
     ),
     path(
