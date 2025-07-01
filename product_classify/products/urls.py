@@ -42,7 +42,7 @@ urlpatterns = [
     ),
     path(
         'products/<int:prod_id>/param/add/',
-        views.add_param_to_product,
+        views.ProductParamCreateView.as_view(),
         name='add_param_to_product',
     ),
 ]

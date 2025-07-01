@@ -280,34 +280,26 @@ class ProductParamDeleteView(
         )
 
 
-def add_param_to_product(
-    request: HttpRequest,
-    prod_id: int,
-) -> HttpResponse:
-    """
-    Добавление параметра в изделие
-    """
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    instance = Prod.objects.get(pk=prod_id)
-    if request.method == 'POST':
-        form = ParProdForm(request.POST)
-        if form.is_valid():
-            form.save(commit=True)
-            return redirect(
-                'products:product_detail',
-                prod_id,
-            )
-    else:
-        form = ParProdForm(id=prod_id)
-    context = {
-        'instance': instance,
-        'form': form,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'products/prodparam.html',
-        context,
-    )
+class ProductParamCreateView(
+    CreateView,
+    CommonContextMixin,
+):
+    template_name = 'products/prodparam.html'
+    form_class = ParProdForm
+    model = ParProd
+
+    def get_success_url(self):
+        prod_id = self.kwargs.get('prod_id')
+        return reverse_lazy(
+            'products:product_detail',
+            kwargs={
+                'product_id': prod_id,
+            }
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        prod_id = self.kwargs.get('prod_id')
+        product = Prod.objects.get(pk=prod_id)
+        context['instance'] = product
+        return context
