@@ -14,6 +14,8 @@ from django.views.generic import (
     UpdateView,
     DeleteView,
 )
+from django.contrib.auth.views import RedirectURLMixin
+from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.base import ContextMixin
 
 from classes.models import (
@@ -226,14 +228,22 @@ class ProductDeleteView(
         )
 
 
-class ProductParamUpdateView(
-    UpdateView,
-    CommonContextMixin,
+class ProductParamSuccessURL(
+    RedirectURLMixin,
 ):
-    template_name = 'products/prodparam.html'
-    form_class = ParProdForm
-    context_object_name = 'instance'
+    def get_success_url(self):
+        prod_id = self.kwargs.get('prod_id')
+        return reverse_lazy(
+            'products:product_detail',
+            kwargs={
+                'product_id': prod_id,
+            }
+        )
 
+
+class ProductParamSingleObject(
+    SingleObjectMixin,
+):
     def get_object(self):
         prod_id = self.kwargs.get('prod_id')
         param_id = self.kwargs.get('param_id')
@@ -243,59 +253,37 @@ class ProductParamUpdateView(
         )
         return instance
 
-    def get_success_url(self):
-        prod_id = self.kwargs.get('prod_id')
-        return reverse_lazy(
-            'products:product_detail',
-            kwargs={
-                'product_id': prod_id,
-            }
-        )
+
+class ProductParamUpdateView(
+    ProductParamSuccessURL,
+    ProductParamSingleObject,
+    CommonContextMixin,
+    UpdateView,
+):
+    form_class = ParProdForm
+    context_object_name = 'instance'
+    template_name = 'products/prodparam.html'
 
 
 class ProductParamDeleteView(
-    DeleteView,
+    ProductParamSuccessURL,
+    ProductParamSingleObject,
     CommonContextMixin,
+    DeleteView,
 ):
     model = ParProd
     template_name = 'products/prodparam.html'
     context_object_name = 'instance'
 
-    def get_object(self):
-        prod_id = self.kwargs.get('prod_id')
-        param_id = self.kwargs.get('param_id')
-        instance = ParProd.objects.get(
-            prod=prod_id,
-            par=param_id,
-        )
-        return instance
-
-    def get_success_url(self):
-        prod_id = self.kwargs.get('prod_id')
-        return reverse_lazy(
-            'products:product_detail',
-            kwargs={
-                'product_id': prod_id,
-            }
-        )
-
 
 class ProductParamCreateView(
-    CreateView,
+    ProductParamSuccessURL,
     CommonContextMixin,
+    CreateView,
 ):
     template_name = 'products/prodparam.html'
     form_class = ParProdForm
     model = ParProd
-
-    def get_success_url(self):
-        prod_id = self.kwargs.get('prod_id')
-        return reverse_lazy(
-            'products:product_detail',
-            kwargs={
-                'product_id': prod_id,
-            }
-        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
