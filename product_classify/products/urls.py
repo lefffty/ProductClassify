@@ -22,7 +22,7 @@ urlpatterns = [
     ),
     path(
         'products/<int:prod_id>/edit/',
-        views.edit_product,
+        views.ProductUpdateView.as_view(),
         name='edit_product',
     ),
     path(

@@ -172,7 +172,7 @@ class ProductDetailView(
         prod = self.get_object()
         context['params'] = ParProd.objects.filter(prod=prod)
         return context
-    
+
 
 class ProductCreateView(
     CreateView,
@@ -184,34 +184,24 @@ class ProductCreateView(
     success_url = reverse_lazy('classes:index')
 
 
-def edit_product(
-    request: HttpRequest,
-    prod_id: int,
-) -> HttpResponse:
-    """
-    Редактирование изделия
-    """
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
-    instance = Prod.objects.get(pk=prod_id)
-    form = ProdForm(
-        request.POST or None,
-        instance=instance,
-    )
-    if form.is_valid():
-        form.save(commit=True)
-        return redirect('products:product_detail', prod_id)
-    context = {
-        'form': form,
-        'instance': instance,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'products/product.html',
-        context,
-    )
+class ProductUpdateView(
+    UpdateView,
+    CommonContextMixin,
+):
+    template_name = 'products/product.html'
+    pk_url_kwarg = 'prod_id'
+    form_class = ProdForm
+    context_object_name = 'instance'
+    model = Prod
+
+    def get_success_url(self):
+        prod_id = self.kwargs.get('prod_id')
+        return reverse_lazy(
+            'products:product_detail',
+            kwargs={
+                'product_id': prod_id,
+            },
+        )
 
 
 def delete_product(
