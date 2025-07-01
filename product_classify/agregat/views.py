@@ -99,36 +99,38 @@ class AgregatParametrCreateView(
         return context
 
 
-def delete_parametr_from_agregat(
-    request: HttpRequest,
-    agregat_id: int,
-    param_id: int,
-) -> HttpResponse:
-    """
-    Удаление параметра из агрегата
-    """
-    instance = Agregat.objects.get(agr=agregat_id, par=param_id)
-    if request.method == 'POST':
+class AgregatParametrDeleteView(
+    CommonContextMixin,
+    DeleteView,
+):
+    model = Agregat
+    template_name = 'agregat/agregat.html'
+    context_object_name = 'instance'
+
+    def get_object(self):
+        agregat_id = self.kwargs.get('agregat_id')
+        param_id = self.kwargs.get('param_id')
+        return Agregat.objects.get(agr=agregat_id, par=param_id)
+
+    def get_success_url(self):
+        agregat_id = self.kwargs.get('agregat_id')
+        return reverse_lazy(
+            'agregat:agregat_detail',
+            kwargs={
+                'agregat_id': agregat_id,
+            }
+        )
+
+    def form_valid(self, form):
+        agregat_id = self.kwargs.get('agregat_id')
+        instance = self.get_object()
         instance.delete()
 
         for par_agr in Agregat.objects.filter(agr=agregat_id):
-            if par_agr.num >= instance.num:
+            if par_agr.num > instance.num:
                 par_agr.num = par_agr.num - 1
                 par_agr.save()
-
-        return redirect(
-            'agregat:agregat_detail',
-            agregat_id,
-        )
-    context = {
-        'instance': instance,
-        'fastener_classes': fastener_classes,
-    }
-    return render(
-        request,
-        'agregat/agregat.html',
-        context,
-    )
+        return super().form_valid(form)
 
 
 def change_agregat_num(

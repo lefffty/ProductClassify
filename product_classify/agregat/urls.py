@@ -23,7 +23,7 @@ urlpatterns = [
     ),
     path(
         'agregat/<int:agregat_id>/param/<int:param_id>/delete/',
-        views.delete_parametr_from_agregat,
+        views.AgregatParametrDeleteView.as_view(),
         name='delete_parametr_from_agregat',
     ),
     path(
