@@ -46,30 +46,33 @@ class ParametrDetailView(
     DetailView,
     CommonContextMixin,
 ):
-    pk_url_kwarg = 'parametr_id'
     model = Parametr
     template_name = 'parametr/detail.html'
+    pk_url_kwarg = 'parametr_id'
     context_object_name = 'parameter'
 
 
-class ParametrCreateView(
-    CreateView,
-    CommonContextMixin,
-):
+class ParametrCreateUpdateDeleteMixin:
     model = Parametr
     template_name = 'parametr/parametr.html'
-    success_url = reverse_lazy('parametr:parametr_list')
+
+
+class ParametrCreateView(
+    ParametrCreateUpdateDeleteMixin,
+    CommonContextMixin,
+    CreateView,
+):
     form_class = ParametrForm
+    success_url = reverse_lazy('parametr:parametr_list')
 
 
 class ParametrUpdateView(
-    UpdateView,
+    ParametrCreateUpdateDeleteMixin,
     CommonContextMixin,
+    UpdateView,
 ):
-    model = Parametr
     form_class = ParametrForm
     pk_url_kwarg = 'parametr_id'
-    template_name = 'parametr/parametr.html'
 
     def get_success_url(self):
         pk = self.get_object().pk
@@ -79,11 +82,10 @@ class ParametrUpdateView(
 
 
 class ParametrDeleteView(
-    DeleteView,
+    ParametrCreateUpdateDeleteMixin,
     CommonContextMixin,
+    DeleteView,
 ):
-    model = Parametr
-    pk_url_kwarg = 'parametr_id'
-    template_name = 'parametr/parametr.html'
     success_url = reverse_lazy('parametr:parametr_list')
+    pk_url_kwarg = 'parametr_id'
     context_object_name = 'instance'
