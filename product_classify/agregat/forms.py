@@ -20,7 +20,9 @@ class AgregatForm(ModelForm):
 
     class Meta:
         model = Agregat
-        fields = ['agr', 'par']
+        fields = (
+            'agr', 'par'
+        )
 
     def __init__(self, *args, **kwargs):
         agr = kwargs.pop('agr', None)

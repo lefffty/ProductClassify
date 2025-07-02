@@ -43,11 +43,11 @@ class EnumsForm(ModelForm):
 
     class Meta:
         model = Enums
-        fields = [
+        fields = (
             'enum', 'name',
             'short_name', 'double_value',
             'int_value', 'picture_value',
-        ]
+        )
         labels = {
             'enum': 'Родитель перечисления',
             'name': 'Название перечисления',

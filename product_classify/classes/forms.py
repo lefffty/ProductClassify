@@ -13,6 +13,10 @@ from .models import (
     ParClass,
 )
 from .validators import positive_validate
+from .constants import (
+    PROD_CLASS_FORM_MAX_LENGTH,
+    ENUM_CLASS_FORM_NAME_MAX_LENGTH,
+)
 from ei.models import Ei
 from parametr.models import Parametr
 
@@ -30,17 +34,17 @@ class ProdClassForm(ModelForm):
         empty_label='Выберите родительский класс',
     )
     name = CharField(
-        max_length=75,
+        max_length=PROD_CLASS_FORM_MAX_LENGTH,
         required=True,
         label='Название класса',
     )
 
     class Meta:
         model = ClassStruct
-        fields = [
+        fields = (
             'name', 'short_name',
             'base_ei', 'main_class'
-        ]
+        )
         labels = {
             'name': 'Название класса',
             'short_name': 'Сокращенное название класса',
@@ -79,17 +83,17 @@ class EnumClassForm(ModelForm):
         empty_label='Выберите родительский класс',
     )
     name = CharField(
-        max_length=75,
+        max_length=ENUM_CLASS_FORM_NAME_MAX_LENGTH,
         required=True,
         label='Название класса',
     )
 
     class Meta:
         model = ClassStruct
-        fields = [
+        fields = (
             'name', 'short_name',
             'main_class'
-        ]
+        )
         labels = {
             'name': 'Название класса',
             'short_name': 'Сокращенное название класса',
@@ -142,10 +146,10 @@ class ParClassForm(ModelForm):
 
     class Meta:
         model = ParClass
-        fields = [
+        fields = (
             'class_field', 'parametr', 'min_value',
             'max_value',
-        ]
+        )
         labels = {
             'class_field': 'Класс изделия',
             'parametr': 'Параметр',

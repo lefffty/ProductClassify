@@ -6,9 +6,13 @@ from django.forms import (
 )
 from django.core.exceptions import ValidationError
 
-from .models import Parametr, ParProd, Prod
 from enums.models import Enums
 from classes.models import ClassStruct, ParClass
+from .models import Parametr, ParProd, Prod
+from .constants import (
+    INT_PARAMS,
+    FLOAT_PARAMS,
+)
 
 
 class ProdForm(ModelForm):
@@ -19,10 +23,10 @@ class ProdForm(ModelForm):
 
     class Meta:
         model = Prod
-        fields = [
+        fields = (
             'name', 'short_name',
             'class_field',
-        ]
+        )
         labels = {
             'name': 'Название изделия',
             'short_name': 'Сокращенное название изделия',
@@ -52,11 +56,11 @@ class ParProdForm(ModelForm):
 
     class Meta:
         model = ParProd
-        fields = [
+        fields = (
             'prod', 'par',
             'int_value', 'double_value',
             'enum_val',
-        ]
+        )
         labels = {
             'prod': 'Изделие',
             'par': 'Параметр',
@@ -92,14 +96,14 @@ class ParProdForm(ModelForm):
         )
         mn_value = par_class.min_value
         mx_value = par_class.max_value
-        if par.parametr_type.id == 28:
+        if par.parametr_type.id == FLOAT_PARAMS:
             cleaned_data['double_value'] = None
             cleaned_data['enum_val'] = None
             if cleaned_data['int_value'] < mn_value or cleaned_data['int_value'] > mx_value:
                 raise ValidationError(
                     'Целочисленное значение не входит в границы диапазона'
                 )
-        elif par.parametr_type.id == 27:
+        elif par.parametr_type.id == INT_PARAMS:
             cleaned_data['int_value'] = None
             cleaned_data['enum_val'] = None
             if cleaned_data['double_value'] < mn_value or cleaned_data['double_value'] > mx_value:
@@ -130,7 +134,7 @@ class SearchForm(Form):
         super().__init__(*args, **kwargs)
 
         for par_class in ParClass.objects.filter(class_field=cls):
-            if par_class.parametr.parametr_type.id == 27 and ParProd.objects.filter(par=par_class.parametr).exists():
+            if par_class.parametr.parametr_type.id == INT_PARAMS and ParProd.objects.filter(par=par_class.parametr).exists():
                 self.fields[f'{par_class.parametr.name}'] = RangeField(
                     label=f'{par_class.parametr.name}',
                     required=False,

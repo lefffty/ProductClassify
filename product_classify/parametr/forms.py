@@ -33,10 +33,10 @@ class ParametrForm(ModelForm):
 
     class Meta:
         model = Parametr
-        fields = [
+        fields = (
             'parametr_type', 'name',
             'short_name', 'par_ei',
-        ]
+        )
         labels = {
             'parametr_type': 'Тип параметра',
             'name': 'Название параметра',
