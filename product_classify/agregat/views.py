@@ -55,15 +55,12 @@ class AgregatDetailView(
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        agregat_parametrs = Agregat.objects.filter(agr=self.get_object())
+        agregat_parametrs = Agregat.objects.filter(
+            agr=self.get_object()
+        ).order_by('num')
         context['agr_parametrs'] = agregat_parametrs
         context['agregat'] = self.get_object()
         return context
-
-
-fastener_classes = ClassStruct.objects.filter(
-    main_class__exact=FASTENER_ID
-)
 
 
 class AgregatParametrCreateView(
@@ -133,27 +130,6 @@ class AgregatParametrDeleteView(
         return super().form_valid(form)
 
 
-class AgregatNumUpdateView(
-    CommonContextMixin,
-    UpdateView,
-):
-    template_name = 'agregat/change_agr_num.html'
-    context_object_name = 'instance'
-
-    def get_object(self):
-        agregat_id = self.kwargs.get('agregat_id')
-        agregat = Parametr.objects.get(pk=agregat_id)
-        print('получили объект агрегата!')
-        return agregat
-
-    def get_form(self):
-        agregat_id = self.kwargs.get('agregat_id')
-        agregat = Parametr.objects.get(pk=agregat_id)
-        print('агрегат передан форме!')
-        print(agregat)
-        return ChangeAgregatNumForm(self.request.POST, agr=agregat)
-
-
 def change_agregat_num(
     request: HttpRequest,
     agregat_id: int,
@@ -161,16 +137,16 @@ def change_agregat_num(
     """
     Изменение номера параметра в агрегат
     """
+    fastener_classes = ClassStruct.objects.filter(
+        main_class__exact=FASTENER_ID
+    )
     agregat = Parametr.objects.get(pk=agregat_id)
-    if request.method == 'POST':
-        form = ChangeAgregatNumForm(request.POST, agr=agregat)
-        if form.is_valid():
-            return redirect(
-                'agregat:agregat_detail',
-                agregat_id,
-            )
-    else:
-        form = ChangeAgregatNumForm(agr=agregat)
+    form = ChangeAgregatNumForm(request.POST or None, agr=agregat)
+    if form.is_valid():
+        return redirect(
+            'agregat:agregat_detail',
+            agregat_id,
+        )
     context = {
         'instance': agregat,
         'form': form,

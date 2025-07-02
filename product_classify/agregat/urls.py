@@ -28,7 +28,7 @@ urlpatterns = [
     ),
     path(
         'agregat/<int:agregat_id>/change_num/',
-        views.AgregatNumUpdateView.as_view(),
+        views.change_agregat_num,
         name='change_agregat_num',
     ),
 ]
