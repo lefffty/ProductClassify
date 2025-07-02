@@ -33,6 +33,7 @@ class AgregatForm(ModelForm):
 class ChangeAgregatNumForm(Form):
     def __init__(self, *args, **kwargs):
         agr = kwargs.pop('agr', None)
+        print(agr)
         super().__init__(*args, **kwargs)
         self.fields['agr_param_1'] = ModelChoiceField(
             queryset=Agregat.objects.filter(agr=agr),
@@ -42,3 +43,16 @@ class ChangeAgregatNumForm(Form):
             queryset=Agregat.objects.filter(agr=agr),
             label='Параметр 2',
         )
+        print(self.fields)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        print(cleaned_data)
+        agr_param_1 = cleaned_data['agr_param_1']
+        agr_param_2 = cleaned_data['agr_param_2']
+        temp_num = agr_param_1.num
+        agr_param_1.num = agr_param_2.num
+        agr_param_2.num = temp_num
+        agr_param_1.save()
+        agr_param_2.save()
+        return super().clean()

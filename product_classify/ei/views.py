@@ -28,64 +28,49 @@ class CommonContextMixin(ContextMixin):
         return context
 
 
-class EiListView(ListView, CommonContextMixin):
+class EiListView(CommonContextMixin, ListView):
     model = Ei
     template_name = 'ei/list.html'
     ordering = 'id'
     context_object_name = 'eis'
 
 
-class EiDetailView(DetailView, CommonContextMixin):
+class EiDetailView(CommonContextMixin, DetailView):
     model = Ei
     context_object_name = 'ei'
     template_name = 'ei/detail.html'
     pk_url_kwarg = 'ei_id'
 
 
-class EiCreateMixin:
-    form_class = EiForm
+class EiCreateUpdateDeleteMixin:
     template_name = 'ei/ei.html'
     model = Ei
-    success_url = reverse_lazy('ei:ei_list')
-
-
-class EiDeleteMixin:
-    template_name = 'ei/ei.html'
-    model = Ei
-    pk_url_kwarg = 'ei_id'
     success_url = reverse_lazy('ei:ei_list')
 
 
 class EiCreateView(
-    EiCreateMixin,
-    CreateView,
+    EiCreateUpdateDeleteMixin,
     CommonContextMixin,
+    CreateView,
 ):
     form_class = EiForm
-    template_name = 'ei/ei.html'
-    model = Ei
     pk_url_kwarg = 'ei_id'
-    success_url = reverse_lazy('ei:ei_list')
 
 
 class EiDeleteView(
-    EiDeleteMixin,
-    DeleteView,
+    EiCreateUpdateDeleteMixin,
     CommonContextMixin,
+    DeleteView,
 ):
-    template_name = 'ei/ei.html'
-    model = Ei
     pk_url_kwarg = 'ei_id'
-    success_url = reverse_lazy('ei:ei_list')
 
 
 class EiUpdateView(
-    UpdateView,
+    EiCreateUpdateDeleteMixin,
     CommonContextMixin,
+    UpdateView,
 ):
     form_class = EiForm
-    template_name = 'ei/ei.html'
-    model = Ei
     pk_url_kwarg = 'ei_id'
 
     def get_success_url(self):

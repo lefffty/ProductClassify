@@ -133,6 +133,27 @@ class AgregatParametrDeleteView(
         return super().form_valid(form)
 
 
+class AgregatNumUpdateView(
+    CommonContextMixin,
+    UpdateView,
+):
+    template_name = 'agregat/change_agr_num.html'
+    context_object_name = 'instance'
+
+    def get_object(self):
+        agregat_id = self.kwargs.get('agregat_id')
+        agregat = Parametr.objects.get(pk=agregat_id)
+        print('получили объект агрегата!')
+        return agregat
+
+    def get_form(self):
+        agregat_id = self.kwargs.get('agregat_id')
+        agregat = Parametr.objects.get(pk=agregat_id)
+        print('агрегат передан форме!')
+        print(agregat)
+        return ChangeAgregatNumForm(self.request.POST, agr=agregat)
+
+
 def change_agregat_num(
     request: HttpRequest,
     agregat_id: int,
@@ -144,16 +165,10 @@ def change_agregat_num(
     if request.method == 'POST':
         form = ChangeAgregatNumForm(request.POST, agr=agregat)
         if form.is_valid():
-            agr_param_1 = form.cleaned_data['agr_param_1']
-            agr_param_2 = form.cleaned_data['agr_param_2']
-            agr_param_1.num = agr_param_2.num
-            agr_param_2.num = agr_param_1.num
-            agr_param_1.save()
-            agr_param_2.save()
-        return redirect(
-            'agregat:agregat_detail',
-            agregat_id,
-        )
+            return redirect(
+                'agregat:agregat_detail',
+                agregat_id,
+            )
     else:
         form = ChangeAgregatNumForm(agr=agregat)
     context = {

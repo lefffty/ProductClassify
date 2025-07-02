@@ -42,7 +42,7 @@ urlpatterns = [
     ),
     path(
         '<int:class_id>/params/add/',
-        views.add_param_class,
+        views.ClassParamCreateView.as_view(),
         name='add_param_class',
     ),
     path(
