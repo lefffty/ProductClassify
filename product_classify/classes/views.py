@@ -43,15 +43,15 @@ class CommonContextMixin(ContextMixin):
 
 
 class MainPageTemplateView(
-    TemplateView,
     CommonContextMixin,
+    TemplateView,
 ):
     template_name = 'classes/index.html'
 
 
 class CategoryClassesListView(
-    ListView,
     CommonContextMixin,
+    ListView,
 ):
     template_name = 'classes/category.html'
     model = ClassStruct
@@ -73,8 +73,8 @@ class CategoryClassesListView(
 
 
 class ProdClassCreateView(
-    CreateView,
     CommonContextMixin,
+    CreateView,
 ):
     form_class = ProdClassForm
     success_url = reverse_lazy('classes:index')
@@ -82,8 +82,8 @@ class ProdClassCreateView(
 
 
 class EnumClassCreateView(
-    CreateView,
     CommonContextMixin,
+    CreateView,
 ):
     form_class = EnumClassForm
     success_url = reverse_lazy('classes:index')
@@ -91,8 +91,8 @@ class EnumClassCreateView(
 
 
 class ClassUpdateView(
-    UpdateView,
     CommonContextMixin,
+    UpdateView,
 ):
     def get_object(self):
         class_id = self.kwargs.get('class_id')
@@ -158,8 +158,8 @@ def delete_class(
 
 
 class ClassParamsListView(
-    ListView,
     CommonContextMixin,
+    ListView,
 ):
     template_name = 'classes/params.html'
     context_object_name = 'params'
@@ -182,8 +182,8 @@ class ClassParamsListView(
 
 
 class ClassParamCreateView(
-    CreateView,
     CommonContextMixin,
+    CreateView,
 ):
     template_name = 'classes/param_class.html'
     form_class = ParClassForm
@@ -332,8 +332,8 @@ def change_parclass_num(
 
 
 class ChangeNumView(
-    UpdateView,
     CommonContextMixin,
+    UpdateView,
 ):
     queryset = ParClass.objects.all()
     form_class = ChangeParclassNumForm

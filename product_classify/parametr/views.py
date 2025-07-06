@@ -28,8 +28,8 @@ class CommonContextMixin(ContextMixin):
 
 
 class ParametrListView(
-    ListView,
     CommonContextMixin,
+    ListView,
 ):
     template_name = 'parametr/list.html'
     context_object_name = 'parameters'
@@ -43,8 +43,8 @@ class ParametrListView(
 
 
 class ParametrDetailView(
-    DetailView,
     CommonContextMixin,
+    DetailView,
 ):
     model = Parametr
     template_name = 'parametr/detail.html'

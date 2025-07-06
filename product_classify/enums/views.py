@@ -29,8 +29,8 @@ class CommonContextMixin(ContextMixin):
 
 
 class EnumsListView(
-    ListView,
     CommonContextMixin,
+    ListView,
 ):
     template_name = 'enums/list.html'
     context_object_name = 'enums'
@@ -44,8 +44,8 @@ class EnumsListView(
 
 
 class EnumsDetailView(
-    DetailView,
     CommonContextMixin,
+    DetailView,
 ):
     model = Enums
     template_name = 'enums/detail.html'
@@ -60,8 +60,8 @@ class EnumsDetailView(
 
 
 class EnumsCreateView(
-    CreateView,
     CommonContextMixin,
+    CreateView,
 ):
     model = Enums
     form_class = EnumsForm
@@ -70,8 +70,8 @@ class EnumsCreateView(
 
 
 class EnumsDeleteView(
-    DeleteView,
     CommonContextMixin,
+    DeleteView,
 ):
     model = Enums
     template_name = 'enums/enum.html'
@@ -90,8 +90,8 @@ class EnumsDeleteView(
 
 
 class EnumsUpdateView(
-    UpdateView,
     CommonContextMixin,
+    UpdateView,
 ):
     model = Enums
     form_class = EnumsForm

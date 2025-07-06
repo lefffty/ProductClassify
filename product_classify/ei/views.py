@@ -49,8 +49,8 @@ class EiCreateUpdateDeleteMixin:
 
 
 class EiCreateView(
-    EiCreateUpdateDeleteMixin,
     CommonContextMixin,
+    EiCreateUpdateDeleteMixin,
     CreateView,
 ):
     form_class = EiForm

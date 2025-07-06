@@ -159,8 +159,8 @@ def class_products(
 
 
 class ProductDetailView(
-    DetailView,
     CommonContextMixin,
+    DetailView,
 ):
     model = Prod
     template_name = 'products/detail.html'
@@ -175,8 +175,8 @@ class ProductDetailView(
 
 
 class ProductCreateView(
-    CreateView,
     CommonContextMixin,
+    CreateView,
 ):
     template_name = 'products/product.html'
     model = Prod
@@ -185,8 +185,8 @@ class ProductCreateView(
 
 
 class ProductUpdateView(
-    UpdateView,
     CommonContextMixin,
+    UpdateView,
 ):
     template_name = 'products/product.html'
     pk_url_kwarg = 'prod_id'
@@ -205,8 +205,8 @@ class ProductUpdateView(
 
 
 class ProductDeleteView(
-    DeleteView,
     CommonContextMixin,
+    DeleteView,
 ):
     template_name = 'products/product.html'
     model = Prod
@@ -255,8 +255,8 @@ class ProductParamSingleObject(
 
 class ProductParamUpdateView(
     ProductParamSuccessURL,
-    ProductParamSingleObject,
     CommonContextMixin,
+    ProductParamSingleObject,
     UpdateView,
 ):
     form_class = ParProdForm
