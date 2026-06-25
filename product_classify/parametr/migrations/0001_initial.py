@@ -9,23 +9,53 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('classes', '0002_alter_classstruct_options'),
-        ('ei', '0001_initial'),
+        ("classes", "0002_alter_classstruct_options"),
+        ("ei", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Parametr',
+            name="Parametr",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=64, verbose_name='Название параметра')),
-                ('short_name', models.CharField(max_length=16, verbose_name='Сокращенное название параметра')),
-                ('par_ei', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ei.ei', verbose_name='Единица измерения параметра')),
-                ('parametr_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='classes.classstruct', verbose_name='Тип параметра')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(max_length=64, verbose_name="Название параметра"),
+                ),
+                (
+                    "short_name",
+                    models.CharField(
+                        max_length=16, verbose_name="Сокращенное название параметра"
+                    ),
+                ),
+                (
+                    "par_ei",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="ei.ei",
+                        verbose_name="Единица измерения параметра",
+                    ),
+                ),
+                (
+                    "parametr_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="classes.classstruct",
+                        verbose_name="Тип параметра",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Параметр',
-                'verbose_name_plural': 'Параметры',
+                "verbose_name": "Параметр",
+                "verbose_name_plural": "Параметры",
             },
         ),
     ]

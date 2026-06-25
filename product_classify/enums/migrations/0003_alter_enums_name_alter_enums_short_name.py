@@ -6,18 +6,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('enums', '0002_rename_image_value_enums_image'),
+        ("enums", "0002_rename_image_value_enums_image"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='enums',
-            name='name',
-            field=models.CharField(max_length=128, null=True, verbose_name='Название перечисления'),
+            model_name="enums",
+            name="name",
+            field=models.CharField(
+                max_length=128, null=True, verbose_name="Название перечисления"
+            ),
         ),
         migrations.AlterField(
-            model_name='enums',
-            name='short_name',
-            field=models.CharField(max_length=32, null=True, verbose_name='Сокращенное название перечисления'),
+            model_name="enums",
+            name="short_name",
+            field=models.CharField(
+                max_length=32,
+                null=True,
+                verbose_name="Сокращенное название перечисления",
+            ),
         ),
     ]

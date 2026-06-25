@@ -6,18 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('classes', '0004_alter_classstruct_short_name'),
+        ("classes", "0004_alter_classstruct_short_name"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='parclass',
-            name='max_value',
-            field=models.FloatField(blank=True, null=True, verbose_name='Максимальное значение параметра'),
+            model_name="parclass",
+            name="max_value",
+            field=models.FloatField(
+                blank=True, null=True, verbose_name="Максимальное значение параметра"
+            ),
         ),
         migrations.AlterField(
-            model_name='parclass',
-            name='min_value',
-            field=models.FloatField(blank=True, null=True, verbose_name='Минимальное значение параметра'),
+            model_name="parclass",
+            name="min_value",
+            field=models.FloatField(
+                blank=True, null=True, verbose_name="Минимальное значение параметра"
+            ),
         ),
     ]

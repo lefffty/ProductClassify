@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('products', '0004_rename_class_id_prod_class_field'),
+        ("products", "0004_rename_class_id_prod_class_field"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='prod',
-            name='short_name',
-            field=models.CharField(max_length=16, null=True, verbose_name='Сокращенное название изделия'),
+            model_name="prod",
+            name="short_name",
+            field=models.CharField(
+                max_length=16, null=True, verbose_name="Сокращенное название изделия"
+            ),
         ),
     ]

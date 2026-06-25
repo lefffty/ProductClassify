@@ -6,13 +6,13 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('enums', '0001_initial'),
+        ("enums", "0001_initial"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='enums',
-            old_name='image_value',
-            new_name='image',
+            model_name="enums",
+            old_name="image_value",
+            new_name="image",
         ),
     ]

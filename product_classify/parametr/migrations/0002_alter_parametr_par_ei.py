@@ -7,14 +7,19 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ei', '0001_initial'),
-        ('parametr', '0001_initial'),
+        ("ei", "0001_initial"),
+        ("parametr", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='parametr',
-            name='par_ei',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='ei.ei', verbose_name='Единица измерения параметра'),
+            model_name="parametr",
+            name="par_ei",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="ei.ei",
+                verbose_name="Единица измерения параметра",
+            ),
         ),
     ]

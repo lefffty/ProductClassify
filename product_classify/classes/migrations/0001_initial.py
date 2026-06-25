@@ -9,18 +9,51 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('ei', '0001_initial'),
+        ("ei", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ClassStruct',
+            name="ClassStruct",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=128, verbose_name='Название класса')),
-                ('short_name', models.CharField(max_length=16, verbose_name='Сокращенное название класса')),
-                ('base_ei', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='ei.ei', verbose_name='Базовая единица измерения')),
-                ('main_class', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='classes.classstruct', verbose_name='Родительский класс')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(max_length=128, verbose_name="Название класса"),
+                ),
+                (
+                    "short_name",
+                    models.CharField(
+                        max_length=16, verbose_name="Сокращенное название класса"
+                    ),
+                ),
+                (
+                    "base_ei",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="ei.ei",
+                        verbose_name="Базовая единица измерения",
+                    ),
+                ),
+                (
+                    "main_class",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="classes.classstruct",
+                        verbose_name="Родительский класс",
+                    ),
+                ),
             ],
         ),
     ]

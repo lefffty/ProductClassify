@@ -9,22 +9,50 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('classes', '0002_alter_classstruct_options'),
+        ("classes", "0002_alter_classstruct_options"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Prod',
+            name="Prod",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=64, verbose_name='Название изделия')),
-                ('short_name', models.CharField(max_length=16, verbose_name='Сокращенное название изделия')),
-                ('image', models.ImageField(upload_to='product_images/', verbose_name='Изображение изделия')),
-                ('class_id', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='classes.classstruct', verbose_name='Родительский класс')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(max_length=64, verbose_name="Название изделия"),
+                ),
+                (
+                    "short_name",
+                    models.CharField(
+                        max_length=16, verbose_name="Сокращенное название изделия"
+                    ),
+                ),
+                (
+                    "image",
+                    models.ImageField(
+                        upload_to="product_images/", verbose_name="Изображение изделия"
+                    ),
+                ),
+                (
+                    "class_id",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="classes.classstruct",
+                        verbose_name="Родительский класс",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Изделие',
-                'verbose_name_plural': 'Изделия',
+                "verbose_name": "Изделие",
+                "verbose_name_plural": "Изделия",
             },
         ),
     ]

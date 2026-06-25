@@ -7,28 +7,63 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parametr', '0001_initial'),
-        ('classes', '0002_alter_classstruct_options'),
+        ("parametr", "0001_initial"),
+        ("classes", "0002_alter_classstruct_options"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ParClass',
+            name="ParClass",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('num', models.PositiveSmallIntegerField(verbose_name='Позиция в списке параметров класса')),
-                ('min_value', models.FloatField(verbose_name='Минимальное значение параметра')),
-                ('max_value', models.FloatField(verbose_name='Максимальное значение параметра')),
-                ('class_field', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='classes.classstruct', verbose_name='Класс')),
-                ('parametr', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='parametr.parametr', verbose_name='Параметр')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "num",
+                    models.PositiveSmallIntegerField(
+                        verbose_name="Позиция в списке параметров класса"
+                    ),
+                ),
+                (
+                    "min_value",
+                    models.FloatField(verbose_name="Минимальное значение параметра"),
+                ),
+                (
+                    "max_value",
+                    models.FloatField(verbose_name="Максимальное значение параметра"),
+                ),
+                (
+                    "class_field",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="classes.classstruct",
+                        verbose_name="Класс",
+                    ),
+                ),
+                (
+                    "parametr",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="parametr.parametr",
+                        verbose_name="Параметр",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Параметр класса',
-                'verbose_name_plural': 'Параметры класса',
+                "verbose_name": "Параметр класса",
+                "verbose_name_plural": "Параметры класса",
             },
         ),
         migrations.AddConstraint(
-            model_name='parclass',
-            constraint=models.UniqueConstraint(fields=('class_field', 'parametr'), name='parclass_pk'),
+            model_name="parclass",
+            constraint=models.UniqueConstraint(
+                fields=("class_field", "parametr"), name="parclass_pk"
+            ),
         ),
     ]

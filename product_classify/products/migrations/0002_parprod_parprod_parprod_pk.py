@@ -7,29 +7,75 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('enums', '0001_initial'),
-        ('parametr', '0001_initial'),
-        ('products', '0001_initial'),
+        ("enums", "0001_initial"),
+        ("parametr", "0001_initial"),
+        ("products", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ParProd',
+            name="ParProd",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('int_value', models.PositiveSmallIntegerField(blank=True, null=True, verbose_name='Целочисленное значение параметра')),
-                ('double_value', models.FloatField(blank=True, null=True, verbose_name='Вещественное значение параметра')),
-                ('enum_val', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.CASCADE, to='enums.enums', verbose_name='Значение перечисления параметра')),
-                ('par', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='parametr.parametr', verbose_name='Параметр')),
-                ('prod', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.prod', verbose_name='Изделие')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "int_value",
+                    models.PositiveSmallIntegerField(
+                        blank=True,
+                        null=True,
+                        verbose_name="Целочисленное значение параметра",
+                    ),
+                ),
+                (
+                    "double_value",
+                    models.FloatField(
+                        blank=True,
+                        null=True,
+                        verbose_name="Вещественное значение параметра",
+                    ),
+                ),
+                (
+                    "enum_val",
+                    models.ForeignKey(
+                        blank=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="enums.enums",
+                        verbose_name="Значение перечисления параметра",
+                    ),
+                ),
+                (
+                    "par",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="parametr.parametr",
+                        verbose_name="Параметр",
+                    ),
+                ),
+                (
+                    "prod",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="products.prod",
+                        verbose_name="Изделие",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Параметр изделия',
-                'verbose_name_plural': 'Параметры изделий',
+                "verbose_name": "Параметр изделия",
+                "verbose_name_plural": "Параметры изделий",
             },
         ),
         migrations.AddConstraint(
-            model_name='parprod',
-            constraint=models.UniqueConstraint(fields=('prod', 'par'), name='parprod_pk'),
+            model_name="parprod",
+            constraint=models.UniqueConstraint(
+                fields=("prod", "par"), name="parprod_pk"
+            ),
         ),
     ]

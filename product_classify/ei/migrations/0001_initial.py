@@ -8,23 +8,65 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Ei',
+            name="Ei",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=30, verbose_name='Название единицы измерения')),
-                ('short_name', models.CharField(max_length=8, verbose_name='Сокращенное название единицы измерения')),
-                ('code', models.CharField(blank=True, max_length=5, null=True, verbose_name='Код единицы измерения')),
-                ('convert_factor', models.FloatField(blank=True, null=True, verbose_name='Множитель единицы измерения')),
-                ('main_class', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='ei.ei', verbose_name='Родительский класс единицы измерения')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=30, verbose_name="Название единицы измерения"
+                    ),
+                ),
+                (
+                    "short_name",
+                    models.CharField(
+                        max_length=8,
+                        verbose_name="Сокращенное название единицы измерения",
+                    ),
+                ),
+                (
+                    "code",
+                    models.CharField(
+                        blank=True,
+                        max_length=5,
+                        null=True,
+                        verbose_name="Код единицы измерения",
+                    ),
+                ),
+                (
+                    "convert_factor",
+                    models.FloatField(
+                        blank=True,
+                        null=True,
+                        verbose_name="Множитель единицы измерения",
+                    ),
+                ),
+                (
+                    "main_class",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="ei.ei",
+                        verbose_name="Родительский класс единицы измерения",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Единица измерения',
-                'verbose_name_plural': 'Единицы измерения',
+                "verbose_name": "Единица измерения",
+                "verbose_name_plural": "Единицы измерения",
             },
         ),
     ]

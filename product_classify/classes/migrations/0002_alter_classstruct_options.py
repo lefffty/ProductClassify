@@ -6,12 +6,15 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('classes', '0001_initial'),
+        ("classes", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='classstruct',
-            options={'verbose_name': 'Классификатор', 'verbose_name_plural': 'Классификатор'},
+            name="classstruct",
+            options={
+                "verbose_name": "Классификатор",
+                "verbose_name_plural": "Классификатор",
+            },
         ),
     ]

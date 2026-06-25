@@ -7,14 +7,20 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('enums', '0001_initial'),
-        ('products', '0002_parprod_parprod_parprod_pk'),
+        ("enums", "0001_initial"),
+        ("products", "0002_parprod_parprod_parprod_pk"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='parprod',
-            name='enum_val',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='enums.enums', verbose_name='Значение перечисления параметра'),
+            model_name="parprod",
+            name="enum_val",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="enums.enums",
+                verbose_name="Значение перечисления параметра",
+            ),
         ),
     ]

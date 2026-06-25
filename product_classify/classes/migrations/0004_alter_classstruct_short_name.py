@@ -6,13 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('classes', '0003_parclass_parclass_parclass_pk'),
+        ("classes", "0003_parclass_parclass_parclass_pk"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='classstruct',
-            name='short_name',
-            field=models.CharField(blank=True, max_length=16, null=True, verbose_name='Сокращенное название класса'),
+            model_name="classstruct",
+            name="short_name",
+            field=models.CharField(
+                blank=True,
+                max_length=16,
+                null=True,
+                verbose_name="Сокращенное название класса",
+            ),
         ),
     ]

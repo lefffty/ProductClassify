@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parametr', '0002_alter_parametr_par_ei'),
+        ("parametr", "0002_alter_parametr_par_ei"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='parametr',
-            name='short_name',
-            field=models.CharField(max_length=16, null=True, verbose_name='Сокращенное название параметра'),
+            model_name="parametr",
+            name="short_name",
+            field=models.CharField(
+                max_length=16, null=True, verbose_name="Сокращенное название параметра"
+            ),
         ),
     ]
