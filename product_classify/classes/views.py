@@ -25,8 +25,6 @@ from .constants import (
     FASTENER_ID,
 )
 
-fastener_classes = ClassStruct.objects.filter(main_class__exact=FASTENER_ID)
-
 
 class CommonContextMixin(ContextMixin):
     def get_context_data(self, **kwargs):

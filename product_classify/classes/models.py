@@ -124,13 +124,13 @@ class ParClass(models.Model):
     class_field = models.ForeignKey(
         ClassStruct,
         verbose_name="Класс",
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         related_name="class_params",
     )
     parametr = models.ForeignKey(
         "parametr.Parametr",
         verbose_name="Параметр",
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
     )
     num = models.PositiveSmallIntegerField(
         verbose_name="Позиция в списке параметров класса",

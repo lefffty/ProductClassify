@@ -9,13 +9,13 @@ class Agregat(models.Model):
     agr = models.ForeignKey(
         Parametr,
         verbose_name="Агрегат",
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         related_name="agregat_parametrs",
     )
     par = models.ForeignKey(
         Parametr,
         verbose_name="Параметр",
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
     )
     num = models.PositiveSmallIntegerField(
         verbose_name="Номер позиции в агрегате",

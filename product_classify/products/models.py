@@ -33,7 +33,7 @@ class Prod(models.Model):
         verbose_name="Родительский класс",
         null=False,
         blank=False,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         related_name="class_products",
     )
     image = models.ImageField(
