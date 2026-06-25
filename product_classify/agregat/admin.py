@@ -8,17 +8,20 @@ from .models import (
 @admin.register(Agregat)
 class AgregatAdmin(admin.ModelAdmin):
     list_display = (
-        'id',
-        'agr',
-        'par',
-        'num',
+        "id",
+        "agr",
+        "par",
+        "num",
     )
     fieldsets = (
-        (None, {
-            'fields': (
-                'agr',
-                'par',
-                'num',
-            )
-        }),
+        (
+            None,
+            {
+                "fields": (
+                    "agr",
+                    "par",
+                    "num",
+                )
+            },
+        ),
     )

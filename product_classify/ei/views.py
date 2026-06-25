@@ -8,11 +8,12 @@ from django.views.generic import (
     CreateView,
 )
 
-from .models import Ei
-from .forms import EiForm
-from classes.models import (
+from product_classify.classes.models import (
     ClassStruct,
 )
+
+from .models import Ei
+from .forms import EiForm
 from .constants import (
     FASTENER_ID,
 )
@@ -21,31 +22,29 @@ from .constants import (
 class CommonContextMixin(ContextMixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        fastener_classes = ClassStruct.objects.filter(
-            main_class__exact=FASTENER_ID
-        )
-        context['fastener_classes'] = fastener_classes
+        fastener_classes = ClassStruct.objects.filter(main_class__exact=FASTENER_ID)
+        context["fastener_classes"] = fastener_classes
         return context
 
 
 class EiListView(CommonContextMixin, ListView):
     model = Ei
-    template_name = 'ei/list.html'
-    ordering = 'id'
-    context_object_name = 'eis'
+    template_name = "ei/list.html"
+    ordering = "id"
+    context_object_name = "eis"
 
 
 class EiDetailView(CommonContextMixin, DetailView):
     model = Ei
-    context_object_name = 'ei'
-    template_name = 'ei/detail.html'
-    pk_url_kwarg = 'ei_id'
+    context_object_name = "ei"
+    template_name = "ei/detail.html"
+    pk_url_kwarg = "ei_id"
 
 
 class EiCreateUpdateDeleteMixin:
-    template_name = 'ei/ei.html'
+    template_name = "ei/ei.html"
     model = Ei
-    success_url = reverse_lazy('ei:ei_list')
+    success_url = reverse_lazy("ei:ei_list")
 
 
 class EiCreateView(
@@ -54,7 +53,7 @@ class EiCreateView(
     CreateView,
 ):
     form_class = EiForm
-    pk_url_kwarg = 'ei_id'
+    pk_url_kwarg = "ei_id"
 
 
 class EiDeleteView(
@@ -62,7 +61,7 @@ class EiDeleteView(
     CommonContextMixin,
     DeleteView,
 ):
-    pk_url_kwarg = 'ei_id'
+    pk_url_kwarg = "ei_id"
 
 
 class EiUpdateView(
@@ -71,10 +70,13 @@ class EiUpdateView(
     UpdateView,
 ):
     form_class = EiForm
-    pk_url_kwarg = 'ei_id'
+    pk_url_kwarg = "ei_id"
 
     def get_success_url(self):
         pk = self.get_object().pk
-        return reverse_lazy('ei:ei_detail', kwargs={
-            'ei_id': pk,
-        })
+        return reverse_lazy(
+            "ei:ei_detail",
+            kwargs={
+                "ei_id": pk,
+            },
+        )

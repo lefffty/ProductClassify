@@ -1,14 +1,13 @@
 from django.db import models
 
-from classes.models import (
-    ClassStruct
-)
-from parametr.models import (
+from product_classify.classes.models import ClassStruct
+from product_classify.parametr.models import (
     Parametr,
 )
-from enums.models import (
+from product_classify.enums.models import (
     Enums,
 )
+
 from .constants import (
     ENUM_CLASSES_IDS,
     PROD_NAME_MAX_LENGTH,
@@ -18,96 +17,110 @@ from .constants import (
 
 class Prod(models.Model):
     name = models.CharField(
-        verbose_name='Название изделия',
+        verbose_name="Название изделия",
         null=False,
         blank=False,
         max_length=PROD_NAME_MAX_LENGTH,
     )
     short_name = models.CharField(
-        verbose_name='Сокращенное название изделия',
+        verbose_name="Сокращенное название изделия",
         null=True,
         blank=False,
         max_length=PROD_SHORT_NAME_MAX_LENGTH,
     )
     class_field = models.ForeignKey(
         ClassStruct,
-        verbose_name='Родительский класс',
+        verbose_name="Родительский класс",
         null=False,
         blank=False,
         on_delete=models.DO_NOTHING,
-        related_name='class_products',
+        related_name="class_products",
     )
     image = models.ImageField(
-        verbose_name='Изображение изделия',
+        verbose_name="Изображение изделия",
         blank=False,
         null=False,
-        upload_to='product_images/',
+        upload_to="product_images/",
     )
 
     class Meta:
-        verbose_name = 'Изделие'
-        verbose_name_plural = 'Изделия'
+        verbose_name = "Изделие"
+        verbose_name_plural = "Изделия"
 
     def __str__(self):
         if self.name is None:
-            return 'sdfsdf'
+            return "sdfsdf"
         return self.name
 
 
 class ParProd(models.Model):
     prod = models.ForeignKey(
         Prod,
-        verbose_name='Изделие',
+        verbose_name="Изделие",
         on_delete=models.CASCADE,
-        related_name='product_params',
+        related_name="product_params",
     )
     par = models.ForeignKey(
         Parametr,
-        verbose_name='Параметр',
+        verbose_name="Параметр",
         on_delete=models.CASCADE,
     )
     int_value = models.PositiveSmallIntegerField(
         blank=True,
         null=True,
-        verbose_name='Целочисленное значение параметра',
+        verbose_name="Целочисленное значение параметра",
     )
     double_value = models.FloatField(
         blank=True,
         null=True,
-        verbose_name='Вещественное значение параметра',
+        verbose_name="Вещественное значение параметра",
     )
     enum_val = models.ForeignKey(
         Enums,
-        verbose_name='Значение перечисления параметра',
+        verbose_name="Значение перечисления параметра",
         on_delete=models.CASCADE,
         blank=True,
         null=True,
     )
 
     class Meta:
-        verbose_name = 'Параметр изделия'
-        verbose_name_plural = 'Параметры изделий'
+        verbose_name = "Параметр изделия"
+        verbose_name_plural = "Параметры изделий"
         constraints = [
             models.UniqueConstraint(
-                fields=['prod', 'par'],
-                name='%(class)s_pk',
+                fields=["prod", "par"],
+                name="%(class)s_pk",
             )
         ]
 
     def __str__(self):
         if self.enum_val:
             if self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[0]:
-                return self.prod.name + ' - ' + self.enum_val.name
+                return self.prod.name + " - " + self.enum_val.name
             elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[1]:
-                return self.prod.name + ' - ' + self.enum_val.short_name
+                return self.prod.name + " - " + self.enum_val.short_name
             elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[2]:
-                return self.prod.name + ' - ' + self.enum_val.short_name + ' - ' + str(self.enum_val.double_value)
+                return (
+                    self.prod.name
+                    + " - "
+                    + self.enum_val.short_name
+                    + " - "
+                    + str(self.enum_val.double_value)
+                )
             elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[3]:
-                return self.prod.name + ' - ' + self.enum_val.short_name + ' - ' + str(self.enum_val.int_value)
+                return (
+                    self.prod.name
+                    + " - "
+                    + self.enum_val.short_name
+                    + " - "
+                    + str(self.enum_val.int_value)
+                )
         if self.int_value:
-            return self.prod.name + ' - ' + self.par.name + ' - ' + str(self.int_value)
+            return self.prod.name + " - " + self.par.name + " - " + str(self.int_value)
         if self.double_value:
-            return self.prod.name + ' - ' + self.par.name + ' - ' + str(self.double_value)
+            return (
+                self.prod.name + " - " + self.par.name + " - " + str(self.double_value)
+            )
 
     def get_value(self):
         if self.int_value:

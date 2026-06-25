@@ -6,44 +6,45 @@ from django.forms import (
 
 from .models import Ei
 from .validators import validate_positive
-from .constants import (
-    EI_FORM_NAME_MAX_LENGTH,
-    EI_FORM_SHORT_NAME_MAX_LENGTH
-)
+from .constants import EI_FORM_NAME_MAX_LENGTH, EI_FORM_SHORT_NAME_MAX_LENGTH
 
 
 class EiForm(ModelForm):
     convert_factor = FloatField(
-        label='Множитель для перевода',
-        validators=[validate_positive,]
+        label="Множитель для перевода",
+        validators=[
+            validate_positive,
+        ],
     )
     name = CharField(
         max_length=EI_FORM_NAME_MAX_LENGTH,
         required=True,
-        label='Название единицы измерения',
+        label="Название единицы измерения",
     )
     short_name = CharField(
         max_length=EI_FORM_SHORT_NAME_MAX_LENGTH,
         required=True,
-        label='Сокращенное название единицы измерения',
+        label="Сокращенное название единицы измерения",
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['main_class'].queryset = Ei.objects.all()
+        self.fields["main_class"].queryset = Ei.objects.all()
 
     class Meta:
         model = Ei
         fields = [
-            'name', 'short_name',
-            'code', 'convert_factor',
-            'main_class',
+            "name",
+            "short_name",
+            "code",
+            "convert_factor",
+            "main_class",
         ]
         labels = {
-            'name': 'Название единицы измерения',
-            'short_name': 'Сокращенное название единицы измерения',
-            'code': 'Код единицы измерения',
-            'convert_factor': '''Множитель для перевода в другую
-            единицу измерения''',
-            'main_class': 'Родитель единицы измерения',
+            "name": "Название единицы измерения",
+            "short_name": "Сокращенное название единицы измерения",
+            "code": "Код единицы измерения",
+            "convert_factor": """Множитель для перевода в другую
+            единицу измерения""",
+            "main_class": "Родитель единицы измерения",
         }

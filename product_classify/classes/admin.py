@@ -10,43 +10,49 @@ from .inlines import ParClassTabularInline
 @admin.register(ClassStruct)
 class ClassStructAdmin(admin.ModelAdmin):
     list_display = (
-        'id',
-        'name',
-        'short_name',
-        'base_ei',
-        'main_class',
+        "id",
+        "name",
+        "short_name",
+        "base_ei",
+        "main_class",
     )
     inlines = (ParClassTabularInline,)
     fieldsets = (
-        (None, {
-            'fields': (
-                'name',
-                'short_name',
-                'base_ei',
-                'main_class',
-            )
-        }),
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "short_name",
+                    "base_ei",
+                    "main_class",
+                )
+            },
+        ),
     )
 
 
 @admin.register(ParClass)
 class ParClassAdmin(admin.ModelAdmin):
     list_display = (
-        'id',
-        'class_field',
-        'parametr',
-        'num',
-        'min_value',
-        'max_value',
+        "id",
+        "class_field",
+        "parametr",
+        "num",
+        "min_value",
+        "max_value",
     )
     fieldsets = (
-        (None, {
-            'fields': (
-                'class_field',
-                'parametr',
-                'num',
-                'min_value',
-                'max_value',
-            )
-        }),
+        (
+            None,
+            {
+                "fields": (
+                    "class_field",
+                    "parametr",
+                    "num",
+                    "min_value",
+                    "max_value",
+                )
+            },
+        ),
     )

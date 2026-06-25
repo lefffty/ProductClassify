@@ -8,9 +8,10 @@ from django.views.generic import (
     UpdateView,
 )
 
+from product_classify.classes.models import ClassStruct
+
 from .models import Parametr
 from .forms import ParametrForm
-from classes.models import ClassStruct
 from .constants import (
     FASTENER_ID,
     AGREGAT_TYPE_ID,
@@ -20,10 +21,8 @@ from .constants import (
 class CommonContextMixin(ContextMixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        main_classes = ClassStruct.objects.filter(
-           main_class__exact=FASTENER_ID
-        )
-        context['main_classes'] = main_classes
+        main_classes = ClassStruct.objects.filter(main_class__exact=FASTENER_ID)
+        context["main_classes"] = main_classes
         return context
 
 
@@ -31,14 +30,12 @@ class ParametrListView(
     CommonContextMixin,
     ListView,
 ):
-    template_name = 'parametr/list.html'
-    context_object_name = 'parameters'
-    ordering = 'id'
+    template_name = "parametr/list.html"
+    context_object_name = "parameters"
+    ordering = "id"
 
     def get_queryset(self):
-        parameters = Parametr.objects.exclude(
-            parametr_type__exact=AGREGAT_TYPE_ID
-        )
+        parameters = Parametr.objects.exclude(parametr_type__exact=AGREGAT_TYPE_ID)
         return parameters
 
 
@@ -47,14 +44,14 @@ class ParametrDetailView(
     DetailView,
 ):
     model = Parametr
-    template_name = 'parametr/detail.html'
-    pk_url_kwarg = 'parametr_id'
-    context_object_name = 'parameter'
+    template_name = "parametr/detail.html"
+    pk_url_kwarg = "parametr_id"
+    context_object_name = "parameter"
 
 
 class ParametrCreateUpdateDeleteMixin:
     model = Parametr
-    template_name = 'parametr/parametr.html'
+    template_name = "parametr/parametr.html"
 
 
 class ParametrCreateView(
@@ -63,7 +60,7 @@ class ParametrCreateView(
     CreateView,
 ):
     form_class = ParametrForm
-    success_url = reverse_lazy('parametr:parametr_list')
+    success_url = reverse_lazy("parametr:parametr_list")
 
 
 class ParametrUpdateView(
@@ -72,13 +69,16 @@ class ParametrUpdateView(
     UpdateView,
 ):
     form_class = ParametrForm
-    pk_url_kwarg = 'parametr_id'
+    pk_url_kwarg = "parametr_id"
 
     def get_success_url(self):
         pk = self.get_object().pk
-        return reverse_lazy('parametr:parametr_detail', kwargs={
-            'parametr_id': pk,
-        })
+        return reverse_lazy(
+            "parametr:parametr_detail",
+            kwargs={
+                "parametr_id": pk,
+            },
+        )
 
 
 class ParametrDeleteView(
@@ -86,6 +86,6 @@ class ParametrDeleteView(
     CommonContextMixin,
     DeleteView,
 ):
-    success_url = reverse_lazy('parametr:parametr_list')
-    pk_url_kwarg = 'parametr_id'
-    context_object_name = 'instance'
+    success_url = reverse_lazy("parametr:parametr_list")
+    pk_url_kwarg = "parametr_id"
+    context_object_name = "instance"

@@ -1,56 +1,61 @@
 from django.db import models
 
+from product_classify.classes.models import ClassStruct
+from product_classify.ei.models import Ei
+
 from .constants import (
     PARAMETR_NAME_MAX_LENGTH,
     PARAMETR_SHORT_NAME_MAX_LENGTH,
-    AGREGAT_TYPE_ID
-)
-from classes.models import (
-    ClassStruct
-)
-from ei.models import (
-    Ei
+    AGREGAT_TYPE_ID,
 )
 
 
 class Parameters(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().exclude(
-            parametr_type__exact=AGREGAT_TYPE_ID,
+        return (
+            super()
+            .get_queryset()
+            .exclude(
+                parametr_type__exact=AGREGAT_TYPE_ID,
+            )
         )
 
 
 class Agregats(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(
-            parametr_type__exact=AGREGAT_TYPE_ID,
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                parametr_type__exact=AGREGAT_TYPE_ID,
+            )
         )
 
 
 class Parametr(models.Model):
     name = models.CharField(
-        verbose_name='Название параметра',
+        verbose_name="Название параметра",
         max_length=PARAMETR_NAME_MAX_LENGTH,
         null=False,
         blank=False,
     )
     short_name = models.CharField(
-        verbose_name='Сокращенное название параметра',
+        verbose_name="Сокращенное название параметра",
         max_length=PARAMETR_SHORT_NAME_MAX_LENGTH,
         null=True,
         blank=False,
     )
     parametr_type = models.ForeignKey(
         ClassStruct,
-        verbose_name='Тип параметра',
+        verbose_name="Тип параметра",
         on_delete=models.CASCADE,
         null=False,
         blank=False,
-        related_name='type_parameters'
+        related_name="type_parameters",
     )
     par_ei = models.ForeignKey(
         Ei,
-        verbose_name='Единица измерения параметра',
+        verbose_name="Единица измерения параметра",
         on_delete=models.CASCADE,
         null=True,
         blank=False,
@@ -62,11 +67,11 @@ class Parametr(models.Model):
     agregats = Agregats()
 
     class Meta:
-        verbose_name = 'Параметр'
-        verbose_name_plural = 'Параметры'
+        verbose_name = "Параметр"
+        verbose_name_plural = "Параметры"
 
     def __str__(self):
         if self.par_ei is not None:
-            return self.name + ', ' + self.par_ei.short_name
+            return self.name + ", " + self.par_ei.short_name
         else:
             return self.name

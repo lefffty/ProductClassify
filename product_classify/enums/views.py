@@ -10,21 +10,19 @@ from django.views.generic import (
     CreateView,
 )
 
+from product_classify.classes.models import ClassStruct
+
 from .models import Enums
 from .utils import get_enum_value
 from .forms import EnumsForm, ChangeNumForm
 from .constants import FASTENER_ID
-from classes.models import ClassStruct
-from products.models import ParProd
 
 
 class CommonContextMixin(ContextMixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        fastener_classes = ClassStruct.objects.filter(
-            main_class__exact=FASTENER_ID
-        )
-        context['fastener_classes'] = fastener_classes
+        fastener_classes = ClassStruct.objects.filter(main_class__exact=FASTENER_ID)
+        context["fastener_classes"] = fastener_classes
         return context
 
 
@@ -32,14 +30,12 @@ class EnumsListView(
     CommonContextMixin,
     ListView,
 ):
-    template_name = 'enums/list.html'
-    context_object_name = 'enums'
+    template_name = "enums/list.html"
+    context_object_name = "enums"
 
     def get_queryset(self):
-        class_id = self.kwargs.get('class_id')
-        enums = Enums.objects.filter(
-            enum__main_class__id=class_id
-        ).order_by('id')
+        class_id = self.kwargs.get("class_id")
+        enums = Enums.objects.filter(enum__main_class__id=class_id).order_by("id")
         return enums
 
 
@@ -48,14 +44,14 @@ class EnumsDetailView(
     DetailView,
 ):
     model = Enums
-    template_name = 'enums/detail.html'
-    context_object_name = 'enum'
-    pk_url_kwarg = 'enum_id'
+    template_name = "enums/detail.html"
+    context_object_name = "enum"
+    pk_url_kwarg = "enum_id"
 
     def get_context_data(self, **kwargs):
         enum_value = get_enum_value(self.get_object())
         context = super().get_context_data(**kwargs)
-        context['enum_value'] = enum_value
+        context["enum_value"] = enum_value
         return context
 
 
@@ -65,8 +61,8 @@ class EnumsCreateView(
 ):
     model = Enums
     form_class = EnumsForm
-    template_name = 'enums/enum.html'
-    success_url = reverse_lazy('classes:index')
+    template_name = "enums/enum.html"
+    success_url = reverse_lazy("classes:index")
 
 
 class EnumsDeleteView(
@@ -74,18 +70,18 @@ class EnumsDeleteView(
     DeleteView,
 ):
     model = Enums
-    template_name = 'enums/enum.html'
-    pk_url_kwarg = 'enum_id'
-    context_object_name = 'instance'
+    template_name = "enums/enum.html"
+    pk_url_kwarg = "enum_id"
+    context_object_name = "instance"
 
     def get_success_url(self):
-        class_id = self.kwargs.get('class_id')
+        class_id = self.kwargs.get("class_id")
         enum_pk = ClassStruct.objects.get(pk=class_id).main_class.pk
         return reverse_lazy(
-            'enums:enums_list',
+            "enums:enums_list",
             kwargs={
-                'class_id': enum_pk,
-            }
+                "class_id": enum_pk,
+            },
         )
 
 
@@ -95,19 +91,19 @@ class EnumsUpdateView(
 ):
     model = Enums
     form_class = EnumsForm
-    template_name = 'enums/enum.html'
-    pk_url_kwarg = 'enum_id'
-    context_object_name = 'instance'
+    template_name = "enums/enum.html"
+    pk_url_kwarg = "enum_id"
+    context_object_name = "instance"
 
     def get_success_url(self):
-        class_id = self.kwargs.get('class_id')
+        class_id = self.kwargs.get("class_id")
         pk = self.get_object().pk
         return reverse_lazy(
-            'enums:enums_detail',
+            "enums:enums_detail",
             kwargs={
-                'class_id': class_id,
-                'enum_id': pk,
-            }
+                "class_id": class_id,
+                "enum_id": pk,
+            },
         )
 
 
@@ -117,21 +113,19 @@ def change_num(
     """
     Изменение номера перечисления
     """
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=FASTENER_ID
-    )
+    fastener_classes = ClassStruct.objects.filter(main_class__exact=FASTENER_ID)
     form = ChangeNumForm(request.POST or None)
     if form.is_valid():
         form.clean()
         return redirect(
-            'classes:index',
+            "classes:index",
         )
     context = {
-        'form': form,
-        'fastener_classes': fastener_classes,
+        "form": form,
+        "fastener_classes": fastener_classes,
     }
     return render(
         request,
-        'enums/change_num.html',
+        "enums/change_num.html",
         context,
     )

@@ -2,33 +2,32 @@ from django.urls import path
 
 from . import views
 
-
-app_name = 'ei'
+app_name = "ei"
 
 urlpatterns = [
     path(
-        'ei/',
+        "ei/",
         views.EiListView.as_view(),
-        name='ei_list',
+        name="ei_list",
     ),
     path(
-        'ei/add/',
+        "ei/add/",
         views.EiCreateView.as_view(),
-        name='add_ei',
+        name="add_ei",
     ),
     path(
-        'ei/<int:ei_id>/',
+        "ei/<int:ei_id>/",
         views.EiDetailView.as_view(),
-        name='ei_detail',
+        name="ei_detail",
     ),
     path(
-        'ei/<int:ei_id>/edit/',
+        "ei/<int:ei_id>/edit/",
         views.EiUpdateView.as_view(),
-        name='edit_ei',
+        name="edit_ei",
     ),
     path(
-        'ei/<int:ei_id>/delete/',
+        "ei/<int:ei_id>/delete/",
         views.EiDeleteView.as_view(),
-        name='delete_ei',
+        name="delete_ei",
     ),
 ]
