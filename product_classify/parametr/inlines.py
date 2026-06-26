@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from product_classify.agregat.models import Agregat
+from agregat.models import Agregat
 
 from .constants import AGR_INLINE_EXTRA
 

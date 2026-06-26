@@ -1,35 +1,13 @@
 from django.db import models
 
-from product_classify.classes.models import ClassStruct
-from product_classify.ei.models import Ei
+from classes.models import ClassStruct
+from ei.models import Ei
 
 from .constants import (
     PARAMETR_NAME_MAX_LENGTH,
     PARAMETR_SHORT_NAME_MAX_LENGTH,
     AGREGAT_TYPE_ID,
 )
-
-
-class Parameters(models.Manager):
-    def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .exclude(
-                parametr_type__exact=AGREGAT_TYPE_ID,
-            )
-        )
-
-
-class Agregats(models.Manager):
-    def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .filter(
-                parametr_type__exact=AGREGAT_TYPE_ID,
-            )
-        )
 
 
 class Parametr(models.Model):
@@ -61,11 +39,6 @@ class Parametr(models.Model):
         blank=False,
     )
 
-    objects = models.Manager()
-
-    parameters = Parameters()
-    agregats = Agregats()
-
     class Meta:
         verbose_name = "Параметр"
         verbose_name_plural = "Параметры"
@@ -75,3 +48,15 @@ class Parametr(models.Model):
             return self.name + ", " + self.par_ei.short_name
         else:
             return self.name
+
+    @classmethod
+    def parameters(cls):
+        return cls.objects.exclude(
+            parametr_type__exact=AGREGAT_TYPE_ID
+        )
+
+    @classmethod
+    def agregats(cls):
+        return cls.objects.filter(
+            parametr_type__exact=AGREGAT_TYPE_ID
+        )

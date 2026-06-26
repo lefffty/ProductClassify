@@ -8,7 +8,7 @@ from django.views.generic import (
     UpdateView,
 )
 
-from product_classify.classes.models import ClassStruct
+from classes.models import ClassStruct
 
 from .models import Parametr
 from .forms import ParametrForm

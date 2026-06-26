@@ -8,7 +8,7 @@ from django.views.generic import (
     CreateView,
 )
 
-from product_classify.classes.models import (
+from classes.models import (
     ClassStruct,
 )
 

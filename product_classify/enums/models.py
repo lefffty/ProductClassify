@@ -1,6 +1,6 @@
 from django.db import models
 
-from product_classify.classes.models import (
+from classes.models import (
     ClassStruct,
 )
 
@@ -12,26 +12,6 @@ from .constants import (
     INT_ENUMS_ID,
     DOUBLE_ENUMS_ID,
 )
-
-
-class ImageEnums(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset().filter(enum__main_class__class_id=IMAGE_ENUMS_ID)
-
-
-class StringEnums(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset().filter(enum__main_class__class_id=STRING_ENUMS_ID)
-
-
-class IntEnums(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset().filter(enum__main_class__class_id=INT_ENUMS_ID)
-
-
-class DoubleEnums(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset().filter(enum__main_class__class_id=DOUBLE_ENUMS_ID)
 
 
 class Enums(models.Model):
@@ -74,6 +54,22 @@ class Enums(models.Model):
     class Meta:
         verbose_name = "Значение перечисления"
         verbose_name_plural = "Значения перечисления"
+
+    @classmethod
+    def image_nums(cls):
+        return cls.objects.filter(enum__main_class__class_id=IMAGE_ENUMS_ID)
+
+    @classmethod
+    def string_nums(cls):
+        return cls.objects.filter(enum__main_class__class_id=STRING_ENUMS_ID)
+
+    @classmethod
+    def int_nums(cls):
+        return cls.objects.filter(enum__main_class__class_id=INT_ENUMS_ID)
+
+    @classmethod
+    def double_nums(cls):
+        return cls.objects.filter(enum__main_class__class_id=DOUBLE_ENUMS_ID)
 
     def __str__(self):
         if self.enum.main_class.id == 15 or self.enum.main_class.id == 16:

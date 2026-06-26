@@ -17,7 +17,7 @@ from django.contrib.auth.views import RedirectURLMixin
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.base import ContextMixin
 
-from product_classify.classes.models import (
+from classes.models import (
     ClassStruct,
     ParClass,
 )

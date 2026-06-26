@@ -9,8 +9,8 @@ from django.views.generic import (
     CreateView,
 )
 
-from product_classify.parametr.models import Parametr
-from product_classify.classes.models import ClassStruct
+from parametr.models import Parametr
+from classes.models import ClassStruct
 
 from .models import Agregat
 from .forms import AgregatForm, ChangeAgregatNumForm

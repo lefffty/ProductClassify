@@ -8,6 +8,9 @@ from django.forms import (
 from django.core.exceptions import ValidationError
 from django.db import connection
 
+from ei.models import Ei
+from parametr.models import Parametr
+
 from .models import (
     ClassStruct,
     ParClass,
@@ -17,21 +20,19 @@ from .constants import (
     PROD_CLASS_FORM_MAX_LENGTH,
     ENUM_CLASS_FORM_NAME_MAX_LENGTH,
 )
-from product_classify.ei.models import Ei
-from product_classify.parametr.models import Parametr
 
 
 class ProdClassForm(ModelForm):
     base_ei = ModelChoiceField(
         label="Единица измерения",
-        queryset=Ei.objects.all(),
         empty_label="Выберите единицу измерения",
         required=False,
+        queryset=Ei.objects.none(),
     )
     main_class = ModelChoiceField(
         label="Родительский класс",
-        queryset=ClassStruct.products.all(),
         empty_label="Выберите родительский класс",
+        queryset=ClassStruct.objects.none(),
     )
     name = CharField(
         max_length=PROD_CLASS_FORM_MAX_LENGTH,
@@ -51,7 +52,8 @@ class ProdClassForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["main_class"].queryset = ClassStruct.products.all()
+        self.fields["main_class"].queryset = ClassStruct.terminal_product_classes()
+        self.fields["base_ei"].queryset = Ei.objects.all()
 
     def clean(self):
         with connection.cursor() as cursor:
@@ -72,7 +74,7 @@ class ProdClassForm(ModelForm):
 class EnumClassForm(ModelForm):
     main_class = ModelChoiceField(
         label="Родительский класс",
-        queryset=ClassStruct.all_enum_classes.all(),
+        queryset=ClassStruct.objects.none(),
         empty_label="Выберите родительский класс",
     )
     name = CharField(
@@ -92,7 +94,7 @@ class EnumClassForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["main_class"].queryset = ClassStruct.all_enum_classes.all()
+        self.fields["main_class"].queryset = ClassStruct.all_enum_classes()
 
     def clean(self):
         with connection.cursor() as cursor:
@@ -113,10 +115,11 @@ class EnumClassForm(ModelForm):
 class ParClassForm(ModelForm):
     class_field = ModelChoiceField(
         label="Класс изделия",
-        queryset=ClassStruct.products.all().order_by("id"),
+        queryset=ClassStruct.objects.none(),
     )
     parametr = ModelChoiceField(
-        queryset=Parametr.parameters.all().order_by("id"), label="Параметр"
+        label="Параметр",
+        queryset=Parametr.objects.none(),
     )
     min_value = FloatField(
         label="Минимальное значение параметра класса",
@@ -151,7 +154,8 @@ class ParClassForm(ModelForm):
     def __init__(self, *args, **kwargs):
         class_field = kwargs.pop("class_field", None)
         super().__init__(*args, **kwargs)
-        self.fields["parametr"].queryset = Parametr.parameters.all().order_by("id")
+        self.fields["parametr"].queryset = Parametr.parameters().order_by("id")
+        self.fields["class_field"].queryset = ClassStruct.products()
         self.fields["class_field"].initial = class_field
 
     def clean(self):

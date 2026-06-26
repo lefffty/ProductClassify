@@ -1,4 +1,5 @@
 from django.db import models, connection
+from django.db.models import QuerySet
 
 from .constants import (
     CLASS_STRUCT_SHORT_NAME_MAX_LENGTH,
@@ -10,69 +11,7 @@ from .constants import (
     NUM_ENUM_ID,
     PRODUCT_ID,
 )
-from product_classify.ei.models import Ei
-
-
-class TerminalProdClassesManager(models.Manager):
-    def get_queryset(self):
-        terminal_classes_ids = None
-        with connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM get_terminal_classes({FASTENER_ID});")
-            terminal_classes = cursor.fetchall()
-            terminal_classes_ids = [element[0] for element in terminal_classes]
-        return super().get_queryset().filter(id__in=terminal_classes_ids)
-
-
-class TerminalEnumClasses(models.Manager):
-    def get_queryset(self):
-        terminal_enum_classes_ids = None
-        with connection.cursor() as cursor:
-            cursor.execute(
-                f"SELECT * FROM get_terminal_classes({ENUM_PARENT_NODE_ID});"
-            )
-            terminal_enum_classes = cursor.fetchall()
-            terminal_enum_classes_ids = [
-                element[0] for element in terminal_enum_classes
-            ]
-        return super().get_queryset().filter(id__in=terminal_enum_classes_ids)
-
-
-class ParametrTypeClasses(models.Manager):
-    def get_queryset(self):
-        string_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[0])
-        image_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[1])
-        num_enums = ClassStruct.objects.filter(main_class__exact=NUM_ENUM_ID)
-        num_params = ClassStruct.objects.filter(main_class__exact=NUM_PARAM_ID)
-        result_queryset = string_enum | image_enum | num_params | num_enums
-        return result_queryset
-
-
-class AllEnumClasses(models.Manager):
-    def get_queryset(self):
-        classes_ids = None
-        with connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM find_gr_gr({ENUM_PARENT_NODE_ID});")
-            classes_ids = cursor.fetchall()
-            classes_ids = [element[0] for element in classes_ids]
-        return super().get_queryset().filter(id__in=classes_ids)
-
-
-class EnumClasses(models.Manager):
-    def get_queryset(self):
-        string_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[0])
-        image_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[1])
-        num_enums = ClassStruct.objects.filter(main_class__exact=NUM_ENUM_ID)
-        return string_enum | image_enum | num_enums
-
-
-class ProdClasses(models.Manager):
-    def get_queryset(self):
-        prod_classes_ids = None
-        with connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM find_gr_gr({PRODUCT_ID});")
-            data = cursor.fetchall()
-            prod_classes_ids = [element[0] for element in data]
-        return super().get_queryset().filter(id__in=prod_classes_ids)
+from ei.models import Ei
 
 
 class ClassStruct(models.Model):
@@ -103,21 +42,76 @@ class ClassStruct(models.Model):
         on_delete=models.CASCADE,
     )
 
-    objects = models.Manager()
-
-    terminal_product_classes = TerminalProdClassesManager()
-    terminal_enum_classes = TerminalEnumClasses()
-    parametr_types = ParametrTypeClasses()
-    products = ProdClasses()
-    enum_classes = EnumClasses()
-    all_enum_classes = AllEnumClasses()
-
     class Meta:
         verbose_name = "Классификатор"
         verbose_name_plural = "Классификатор"
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def products(cls) -> QuerySet:
+        """Returns QuerySet of products classes
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM find_gr_gr({PRODUCT_ID});")
+            data = cursor.fetchall()
+            prod_classes_ids = [element[0] for element in data]
+        return cls.objects.filter(id__in=prod_classes_ids)
+
+    @classmethod
+    def terminal_product_classes(cls) -> QuerySet:
+        """Returns QuerySet of terminal products classes
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM get_terminal_classes({FASTENER_ID});")
+            terminal_classes = cursor.fetchall()
+            terminal_classes_ids = [element[0] for element in terminal_classes]
+        return cls.objects.filter(id__in=terminal_classes_ids)
+
+    @classmethod
+    def terminal_enum_classes(cls) -> QuerySet:
+        """Returns QuerySet of terminal enum classes
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"SELECT * FROM get_terminal_classes({ENUM_PARENT_NODE_ID});"
+            )
+            terminal_enum_classes = cursor.fetchall()
+            terminal_enum_classes_ids = [
+                element[0] for element in terminal_enum_classes
+            ]
+        return cls.objects.filter(id__in=terminal_enum_classes_ids)
+
+    @classmethod
+    def parametr_types(cls) -> QuerySet:
+        """Returns QuerySet of parametr types
+        """
+        string_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[0])
+        image_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[1])
+        num_enums = ClassStruct.objects.filter(main_class__exact=NUM_ENUM_ID)
+        num_params = ClassStruct.objects.filter(main_class__exact=NUM_PARAM_ID)
+        result_queryset = string_enum | image_enum | num_params | num_enums
+        return result_queryset
+
+    @classmethod
+    def enum_classes(cls) -> QuerySet:
+        """Returns QuerySet of enum classes
+        """
+        string_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[0])
+        image_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[1])
+        num_enums = ClassStruct.objects.filter(main_class__exact=NUM_ENUM_ID)
+        return string_enum | image_enum | num_enums
+
+    @classmethod
+    def all_enum_classes(cls) -> QuerySet:
+        """Returns QuerySet of all enum classes
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM find_gr_gr({ENUM_PARENT_NODE_ID});")
+            classes_ids = cursor.fetchall()
+            classes_ids = [element[0] for element in classes_ids]
+        return cls.objects.filter(id__in=classes_ids)
 
 
 class ParClass(models.Model):

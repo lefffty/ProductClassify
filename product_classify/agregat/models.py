@@ -1,6 +1,6 @@
 from django.db import models
 
-from product_classify.parametr.models import (
+from parametr.models import (
     Parametr,
 )
 

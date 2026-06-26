@@ -6,8 +6,8 @@ from django.forms import (
 )
 from django.core.exceptions import ValidationError
 
-from product_classify.enums.models import Enums
-from product_classify.classes.models import ClassStruct, ParClass
+from enums.models import Enums
+from classes.models import ClassStruct, ParClass
 
 from .models import Parametr, ParProd, Prod
 from .constants import (
@@ -19,7 +19,7 @@ from .constants import (
 class ProdForm(ModelForm):
     class_field = ModelChoiceField(
         label="Родительский класс",
-        queryset=ClassStruct.products.all().order_by("name"),
+        queryset=ClassStruct.objects.none(),
     )
 
     class Meta:
@@ -37,22 +37,20 @@ class ProdForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["class_field"].queryset = ClassStruct.products.all().order_by(
-            "name"
-        )
+        self.fields["class_field"].queryset = ClassStruct.products().order_by('name')
 
 
 class ParProdForm(ModelForm):
     prod = ModelChoiceField(
-        queryset=Prod.objects.all(),
+        queryset=Prod.objects.none(),
         label="Изделие",
     )
     par = ModelChoiceField(
-        queryset=Parametr.parameters.all(),
+        queryset=Parametr.objects.none(),
         label="Параметр",
     )
     enum_val = ModelChoiceField(
-        queryset=Enums.objects.all(),
+        queryset=Enums.objects.none(),
         label="Значение перечисления",
         required=False,
     )
@@ -77,7 +75,7 @@ class ParProdForm(ModelForm):
     def __init__(self, *args, **kwargs):
         prod_id = kwargs.pop("prod_id", None)
         super().__init__(*args, **kwargs)
-        self.fields["par"].queryset = Parametr.parameters.all()
+        self.fields["par"].queryset = Parametr.parameters()
         self.fields["enum_val"].queryset = Enums.objects.all()
         if prod_id:
             self.fields["prod"].initial = Prod.objects.get(prod_id=prod_id)

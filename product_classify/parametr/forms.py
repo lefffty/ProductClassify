@@ -1,9 +1,9 @@
 from django.forms import ModelForm, ModelChoiceField, CharField
 from django.core.exceptions import ValidationError
 
-from product_classify.classes.models import ClassStruct
-from product_classify.ei.models import Ei
-from product_classify.parametr.models import Parametr
+from classes.models import ClassStruct
+from ei.models import Ei
+from parametr.models import Parametr
 
 from .constants import (
     IMAGE_ENUMS_ID,
@@ -15,11 +15,11 @@ from .constants import (
 class ParametrForm(ModelForm):
     parametr_type = ModelChoiceField(
         label="Тип параметра",
-        queryset=ClassStruct.parametr_types.all(),
+        queryset=ClassStruct.objects.none(),
     )
     par_ei = ModelChoiceField(
         label="Единица измерения параметра",
-        queryset=Ei.objects.all(),
+        queryset=Ei.objects.none(),
         required=False,
     )
     name = CharField(
@@ -45,7 +45,7 @@ class ParametrForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["parametr_type"].queryset = ClassStruct.parametr_types.all()
+        self.fields["parametr_type"].queryset = ClassStruct.parametr_types()
         self.fields["par_ei"].queryset = Ei.objects.all()
 
     def clean(self):

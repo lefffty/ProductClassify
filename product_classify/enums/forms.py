@@ -6,7 +6,7 @@ from django.forms import (
 )
 from django.core.exceptions import ValidationError
 
-from product_classify.classes.models import ClassStruct
+from classes.models import ClassStruct
 
 from .models import Enums
 from .constants import (
@@ -22,7 +22,7 @@ from .constants import (
 class EnumsForm(ModelForm):
     enum = ModelChoiceField(
         label="Перечисление",
-        queryset=ClassStruct.terminal_enum_classes.all(),
+        queryset=ClassStruct.objects.none(),
         empty_label="Выберите перечисление",
         required=True,
     )
@@ -63,7 +63,7 @@ class EnumsForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["enum"].queryset = ClassStruct.terminal_enum_classes.all()
+        self.fields["enum"].queryset = ClassStruct.terminal_enum_classes()
 
     def clean(self):
         cleaned_data = super().clean()

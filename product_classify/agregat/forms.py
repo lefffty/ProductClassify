@@ -1,22 +1,23 @@
+from django.db.models import Model
 from django.forms import (
     ModelForm,
     ModelChoiceField,
     Form,
 )
 
-from product_classify.parametr.models import Parametr
+from parametr.models import Parametr
 
 from .models import Agregat
 
 
 class AgregatForm(ModelForm):
     agr = ModelChoiceField(
-        queryset=Parametr.agregats.all(),
         label="Агрегат",
+        queryset=Parametr.objects.none(),
     )
     par = ModelChoiceField(
-        queryset=Parametr.parameters.all(),
         label="Параметр",
+        queryset=Parametr.objects.none(),
     )
 
     class Meta:
@@ -26,8 +27,8 @@ class AgregatForm(ModelForm):
     def __init__(self, *args, **kwargs):
         agr = kwargs.pop("agr", None)
         super().__init__(*args, **kwargs)
-        self.fields["agr"].queryset = Parametr.agregats.all()
-        self.fields["par"].queryset = Parametr.parameters.all()
+        self.fields["agr"].queryset = Parametr.agregats()
+        self.fields["par"].queryset = Parametr.parameters()
         self.fields["agr"].initial = agr
 
 

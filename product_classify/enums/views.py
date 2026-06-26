@@ -10,7 +10,7 @@ from django.views.generic import (
     CreateView,
 )
 
-from product_classify.classes.models import ClassStruct
+from classes.models import ClassStruct
 
 from .models import Enums
 from .utils import get_enum_value

@@ -1,10 +1,10 @@
 from django.db import models
 
-from product_classify.classes.models import ClassStruct
-from product_classify.parametr.models import (
+from classes.models import ClassStruct
+from parametr.models import (
     Parametr,
 )
-from product_classify.enums.models import (
+from enums.models import (
     Enums,
 )
 
