@@ -1,0 +1,15 @@
+[project]
+name = "productclassify"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "black>=26.5.1",
+    "django==4.2",
+    "django-bootstrap5>=26.2",
+    "django-filter>=25.1",
+    "dotenv>=0.9.9",
+    "pillow>=12.2.0",
+    "psycopg2>=2.9.12",
+]

@@ -1,0 +1,503 @@
+[
+  {
+    "model": "ei.ei",
+    "pk": 1,
+    "fields": {
+      "name": "Метр",
+      "short_name": "м",
+      "code": "007",
+      "convert_factor": 1.0,
+      "main_class": null
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 2,
+    "fields": {
+      "name": "Миллиметр",
+      "short_name": "мм",
+      "code": "003",
+      "convert_factor": 1.0,
+      "main_class": 1
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 3,
+    "fields": {
+      "name": "Квадратный метр",
+      "short_name": "м^2",
+      "code": "055",
+      "convert_factor": 1.0,
+      "main_class": null
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 4,
+    "fields": {
+      "name": "Килограмм",
+      "short_name": "кг",
+      "code": "166",
+      "convert_factor": 1.0,
+      "main_class": null
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 5,
+    "fields": {
+      "name": "Тонна",
+      "short_name": "т",
+      "code": "168",
+      "convert_factor": 1000.0,
+      "main_class": 3
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 6,
+    "fields": {
+      "name": "Километр",
+      "short_name": "км",
+      "code": "1337",
+      "convert_factor": 1000.0,
+      "main_class": 1
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 9,
+    "fields": {
+      "name": "Граммы",
+      "short_name": "г",
+      "code": "123",
+      "convert_factor": 1000.0,
+      "main_class": 4
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 14,
+    "fields": {
+      "name": "Кубический метр",
+      "short_name": "м³",
+      "code": "m3",
+      "convert_factor": 1.0,
+      "main_class": null
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 15,
+    "fields": {
+      "name": "Сантиметр",
+      "short_name": "см",
+      "code": "cm",
+      "convert_factor": 0.01,
+      "main_class": 1
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 16,
+    "fields": {
+      "name": "Дециметр",
+      "short_name": "дм",
+      "code": "dm",
+      "convert_factor": 0.1,
+      "main_class": 1
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 17,
+    "fields": {
+      "name": "Микрометр",
+      "short_name": "мкм",
+      "code": "µm",
+      "convert_factor": 1e-06,
+      "main_class": 1
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 18,
+    "fields": {
+      "name": "Дюйм",
+      "short_name": "in",
+      "code": "in",
+      "convert_factor": 0.0254,
+      "main_class": 1
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 19,
+    "fields": {
+      "name": "Фут",
+      "short_name": "ft",
+      "code": "ft",
+      "convert_factor": 0.3048,
+      "main_class": 1
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 20,
+    "fields": {
+      "name": "Ярд",
+      "short_name": "yd",
+      "code": "yd",
+      "convert_factor": 0.9144,
+      "main_class": 1
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 21,
+    "fields": {
+      "name": "Квадратный миллиметр",
+      "short_name": "мм²",
+      "code": "mm2",
+      "convert_factor": 1e-06,
+      "main_class": 3
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 22,
+    "fields": {
+      "name": "Квадратный сантиметр",
+      "short_name": "см²",
+      "code": "cm2",
+      "convert_factor": 0.0001,
+      "main_class": 3
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 23,
+    "fields": {
+      "name": "Квадратный километр",
+      "short_name": "км²",
+      "code": "km2",
+      "convert_factor": 1000000.0,
+      "main_class": 3
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 24,
+    "fields": {
+      "name": "Гектар",
+      "short_name": "га",
+      "code": "ha",
+      "convert_factor": 10000.0,
+      "main_class": 3
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 25,
+    "fields": {
+      "name": "Ар (сотка)",
+      "short_name": "ар",
+      "code": "a",
+      "convert_factor": 100.0,
+      "main_class": 3
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 26,
+    "fields": {
+      "name": "Квадратный фут",
+      "short_name": "ft²",
+      "code": "ft2",
+      "convert_factor": 0.092903,
+      "main_class": 3
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 27,
+    "fields": {
+      "name": "Квадратный дюйм",
+      "short_name": "in²",
+      "code": "in2",
+      "convert_factor": 0.00064516,
+      "main_class": 3
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 28,
+    "fields": {
+      "name": "Миллиграмм",
+      "short_name": "мг",
+      "code": "mg",
+      "convert_factor": 1e-06,
+      "main_class": 4
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 29,
+    "fields": {
+      "name": "Центнер",
+      "short_name": "ц",
+      "code": "q",
+      "convert_factor": 100.0,
+      "main_class": 4
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 30,
+    "fields": {
+      "name": "Фунт",
+      "short_name": "lb",
+      "code": "lb",
+      "convert_factor": 0.453592,
+      "main_class": 4
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 31,
+    "fields": {
+      "name": "Унция",
+      "short_name": "oz",
+      "code": "oz",
+      "convert_factor": 0.0283495,
+      "main_class": 4
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 32,
+    "fields": {
+      "name": "Литр",
+      "short_name": "л",
+      "code": "l",
+      "convert_factor": 0.001,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 33,
+    "fields": {
+      "name": "Миллилитр",
+      "short_name": "мл",
+      "code": "ml",
+      "convert_factor": 1e-06,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 34,
+    "fields": {
+      "name": "Кубический сантиметр",
+      "short_name": "см³",
+      "code": "cm3",
+      "convert_factor": 1e-06,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 35,
+    "fields": {
+      "name": "Кубический миллиметр",
+      "short_name": "мм³",
+      "code": "mm3",
+      "convert_factor": 1e-09,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 36,
+    "fields": {
+      "name": "Галлон (US)",
+      "short_name": "gal",
+      "code": "gal",
+      "convert_factor": 0.00378541,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "ei.ei",
+    "pk": 37,
+    "fields": {
+      "name": "Кварта (US)",
+      "short_name": "qt",
+      "code": "qt",
+      "convert_factor": 0.000946353,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 1,
+    "fields": {
+      "name": "Изделия",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 2,
+    "fields": {
+      "name": "Крепеж",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 1
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 3,
+    "fields": {
+      "name": "Болты",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 2
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 4,
+    "fields": {
+      "name": "Кронштейн",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 2
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 5,
+    "fields": {
+      "name": "Гайки",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 2
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 13,
+    "fields": {
+      "name": "КлассПо",
+      "short_name": "КлПО",
+      "base_ei": null,
+      "main_class": null
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 14,
+    "fields": {
+      "name": "Перечисление",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 15,
+    "fields": {
+      "name": "Перечисление строк",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 16,
+    "fields": {
+      "name": "Перечисление изображений",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 17,
+    "fields": {
+      "name": "Численное перечисление",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 18,
+    "fields": {
+      "name": "Вещественное перечисление",
+      "short_name": "ВещПр",
+      "base_ei": null,
+      "main_class": 17
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 19,
+    "fields": {
+      "name": "Целочисленное перечисление",
+      "short_name": "ЦелПр",
+      "base_ei": null,
+      "main_class": 17
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 26,
+    "fields": {
+      "name": "Численные параметры",
+      "short_name": "ЧислПарам",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 27,
+    "fields": {
+      "name": "Вещественные параметры",
+      "short_name": "ВещПарам",
+      "base_ei": null,
+      "main_class": 26
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 28,
+    "fields": {
+      "name": "Целочисленные параметры",
+      "short_name": "ЦелПарам",
+      "base_ei": null,
+      "main_class": 26
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 30,
+    "fields": {
+      "name": "Агрегат",
+      "short_name": "Агрт",
+      "base_ei": null,
+      "main_class": 13
+    }
+  }
+]
