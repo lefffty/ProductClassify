@@ -37,7 +37,7 @@ class ProdForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["class_field"].queryset = ClassStruct.products().order_by('name')
+        self.fields["class_field"].queryset = ClassStruct.products().order_by("name")
 
 
 class ParProdForm(ModelForm):

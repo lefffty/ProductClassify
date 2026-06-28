@@ -93,14 +93,14 @@ DATABASES = {
         "HOST": os.getenv("HOST_NAME"),
         "PORT": os.getenv("PORT"),
     },
-    'test_db': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('TEST_DATABASE_NAME'),
-        'USER': os.getenv('USER'),
-        'PASSWORD': os.getenv('PASSWORD'),
-        'HOST': os.getenv('HOST', 'localhost'),
-        'PORT': os.getenv('PORT', '5432'),
-    }
+    "test_db": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("TEST_DATABASE_NAME"),
+        "USER": os.getenv("USER"),
+        "PASSWORD": os.getenv("PASSWORD"),
+        "HOST": os.getenv("HOST", "localhost"),
+        "PORT": os.getenv("PORT", "5432"),
+    },
 }
 
 # Password validation

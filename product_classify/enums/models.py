@@ -56,22 +56,23 @@ class Enums(models.Model):
     class Meta:
         verbose_name = "Значение перечисления"
         verbose_name_plural = "Значения перечисления"
+        unique_together = ("enum", "num")
 
     @classmethod
     def image_nums(cls):
-        return cls.objects.filter(enum__main_class__class_id=IMAGE_ENUMS_ID)
+        return cls.objects.filter(enum__main_class__id=IMAGE_ENUMS_ID)
 
     @classmethod
     def string_nums(cls):
-        return cls.objects.filter(enum__main_class__class_id=STRING_ENUMS_ID)
+        return cls.objects.filter(enum__main_class__id=STRING_ENUMS_ID)
 
     @classmethod
     def int_nums(cls):
-        return cls.objects.filter(enum__main_class__class_id=INT_ENUMS_ID)
+        return cls.objects.filter(enum__main_class__id=INT_ENUMS_ID)
 
     @classmethod
     def double_nums(cls):
-        return cls.objects.filter(enum__main_class__class_id=DOUBLE_ENUMS_ID)
+        return cls.objects.filter(enum__main_class__id=DOUBLE_ENUMS_ID)
 
     def __str__(self):
         # если данное значение перечисления является перечислением строк или изображений
