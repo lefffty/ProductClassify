@@ -197,3 +197,6 @@ cython_debug/
 
 product_classify/media/enum_images
 product_classify/media/product_images
+product_classify/scripts
+
+.python-version
