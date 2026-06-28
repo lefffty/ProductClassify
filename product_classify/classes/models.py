@@ -17,28 +17,26 @@ from ei.models import Ei
 class ClassStruct(models.Model):
     name = models.CharField(
         verbose_name="Название класса",
-        blank=False,
         null=False,
+        blank=False,
         max_length=CLASS_STRUCT_NAME_MAX_LENGTH,
     )
     short_name = models.CharField(
         verbose_name="Сокращенное название класса",
+        null=False,
         blank=True,
-        null=True,
         max_length=CLASS_STRUCT_SHORT_NAME_MAX_LENGTH,
     )
     base_ei = models.ForeignKey(
         Ei,
         verbose_name="Базовая единица измерения",
         null=True,
-        blank=True,
         on_delete=models.CASCADE,
     )
     main_class = models.ForeignKey(
         "self",
         verbose_name="Родительский класс",
         null=True,
-        blank=False,
         on_delete=models.CASCADE,
     )
 
@@ -51,8 +49,7 @@ class ClassStruct(models.Model):
 
     @classmethod
     def products(cls) -> QuerySet:
-        """Returns QuerySet of products classes
-        """
+        """Returns QuerySet of products classes"""
         with connection.cursor() as cursor:
             cursor.execute(f"SELECT * FROM find_gr_gr({PRODUCT_ID});")
             data = cursor.fetchall()
@@ -61,8 +58,7 @@ class ClassStruct(models.Model):
 
     @classmethod
     def terminal_product_classes(cls) -> QuerySet:
-        """Returns QuerySet of terminal products classes
-        """
+        """Returns QuerySet of terminal products classes"""
         with connection.cursor() as cursor:
             cursor.execute(f"SELECT * FROM get_terminal_classes({FASTENER_ID});")
             terminal_classes = cursor.fetchall()
@@ -71,8 +67,7 @@ class ClassStruct(models.Model):
 
     @classmethod
     def terminal_enum_classes(cls) -> QuerySet:
-        """Returns QuerySet of terminal enum classes
-        """
+        """Returns QuerySet of terminal enum classes"""
         with connection.cursor() as cursor:
             cursor.execute(
                 f"SELECT * FROM get_terminal_classes({ENUM_PARENT_NODE_ID});"
@@ -85,8 +80,7 @@ class ClassStruct(models.Model):
 
     @classmethod
     def parametr_types(cls) -> QuerySet:
-        """Returns QuerySet of parametr types
-        """
+        """Returns QuerySet of parametr types"""
         string_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[0])
         image_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[1])
         num_enums = ClassStruct.objects.filter(main_class__exact=NUM_ENUM_ID)
@@ -96,8 +90,7 @@ class ClassStruct(models.Model):
 
     @classmethod
     def enum_classes(cls) -> QuerySet:
-        """Returns QuerySet of enum classes
-        """
+        """Returns QuerySet of enum classes"""
         string_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[0])
         image_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[1])
         num_enums = ClassStruct.objects.filter(main_class__exact=NUM_ENUM_ID)
@@ -105,8 +98,7 @@ class ClassStruct(models.Model):
 
     @classmethod
     def all_enum_classes(cls) -> QuerySet:
-        """Returns QuerySet of all enum classes
-        """
+        """Returns QuerySet of all enum classes"""
         with connection.cursor() as cursor:
             cursor.execute(f"SELECT * FROM find_gr_gr({ENUM_PARENT_NODE_ID});")
             classes_ids = cursor.fetchall()
@@ -133,12 +125,12 @@ class ParClass(models.Model):
     )
     min_value = models.FloatField(
         verbose_name="Минимальное значение параметра",
-        null=True,
+        null=False,
         blank=True,
     )
     max_value = models.FloatField(
         verbose_name="Максимальное значение параметра",
-        null=True,
+        null=False,
         blank=True,
     )
 

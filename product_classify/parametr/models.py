@@ -20,15 +20,14 @@ class Parametr(models.Model):
     short_name = models.CharField(
         verbose_name="Сокращенное название параметра",
         max_length=PARAMETR_SHORT_NAME_MAX_LENGTH,
-        null=True,
-        blank=False,
+        null=False,
+        blank=True,
     )
     parametr_type = models.ForeignKey(
         ClassStruct,
         verbose_name="Тип параметра",
         on_delete=models.CASCADE,
         null=False,
-        blank=False,
         related_name="type_parameters",
     )
     par_ei = models.ForeignKey(
@@ -36,7 +35,6 @@ class Parametr(models.Model):
         verbose_name="Единица измерения параметра",
         on_delete=models.CASCADE,
         null=True,
-        blank=False,
     )
 
     class Meta:
@@ -51,12 +49,8 @@ class Parametr(models.Model):
 
     @classmethod
     def parameters(cls):
-        return cls.objects.exclude(
-            parametr_type__exact=AGREGAT_TYPE_ID
-        )
+        return cls.objects.exclude(parametr_type__exact=AGREGAT_TYPE_ID)
 
     @classmethod
     def agregats(cls):
-        return cls.objects.filter(
-            parametr_type__exact=AGREGAT_TYPE_ID
-        )
+        return cls.objects.filter(parametr_type__exact=AGREGAT_TYPE_ID)

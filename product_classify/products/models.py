@@ -24,15 +24,14 @@ class Prod(models.Model):
     )
     short_name = models.CharField(
         verbose_name="Сокращенное название изделия",
-        null=True,
-        blank=False,
+        null=False,
+        blank=True,
         max_length=PROD_SHORT_NAME_MAX_LENGTH,
     )
     class_field = models.ForeignKey(
         ClassStruct,
         verbose_name="Родительский класс",
         null=False,
-        blank=False,
         on_delete=models.CASCADE,
         related_name="class_products",
     )
@@ -48,8 +47,6 @@ class Prod(models.Model):
         verbose_name_plural = "Изделия"
 
     def __str__(self):
-        if self.name is None:
-            return "sdfsdf"
         return self.name
 
 
@@ -66,21 +63,20 @@ class ParProd(models.Model):
         on_delete=models.CASCADE,
     )
     int_value = models.PositiveSmallIntegerField(
-        blank=True,
         null=True,
+        blank=False,
         verbose_name="Целочисленное значение параметра",
     )
     double_value = models.FloatField(
-        blank=True,
         null=True,
+        blank=False,
         verbose_name="Вещественное значение параметра",
     )
     enum_val = models.ForeignKey(
         Enums,
         verbose_name="Значение перечисления параметра",
-        on_delete=models.CASCADE,
-        blank=True,
         null=True,
+        on_delete=models.CASCADE,
     )
 
     class Meta:

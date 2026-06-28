@@ -49,6 +49,8 @@ class Enums(models.Model):
     image = models.ImageField(
         verbose_name="Изображение перечисления",
         upload_to="enum_images/",
+        null=True,
+        blank=False,
     )
 
     class Meta:
@@ -72,9 +74,12 @@ class Enums(models.Model):
         return cls.objects.filter(enum__main_class__class_id=DOUBLE_ENUMS_ID)
 
     def __str__(self):
+        # если данное значение перечисления является перечислением строк или изображений
         if self.enum.main_class.id == 15 or self.enum.main_class.id == 16:
             return self.short_name
+        # если данное значение перечисления является перечислением вещественных чисел
         elif self.enum.main_class.id == 18:
             return self.short_name + " - " + str(self.double_value)
+        # если данное значение перечисления является перечислением целых чисел
         else:
             return self.short_name + " - " + str(self.int_value)

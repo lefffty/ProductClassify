@@ -19,20 +19,20 @@ class Ei(models.Model):
     code = models.CharField(
         verbose_name="Код единицы измерения",
         max_length=EI_CODE_MAX_LENGTH,
-        null=True,
+        null=False,
         blank=True,
     )
     convert_factor = models.FloatField(
         verbose_name="Множитель единицы измерения",
         null=True,
-        blank=True,
+        blank=False,
     )
     main_class = models.ForeignKey(
         "self",
         verbose_name="Родительский класс единицы измерения",
         on_delete=models.DO_NOTHING,
         null=True,
-        blank=True,
+        related_name="child_eis",
     )
 
     class Meta:
@@ -40,9 +40,4 @@ class Ei(models.Model):
         verbose_name_plural = "Единицы измерения"
 
     def __str__(self):
-        if self.short_name is not None:
-            return self.short_name
-        elif self.name is not None:
-            return self.name
-        else:
-            return "Хуета Лев зачем то говно какое-то добавил"
+        return self.short_name
