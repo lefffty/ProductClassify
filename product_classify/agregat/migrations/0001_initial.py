@@ -9,25 +9,55 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('parametr', '0001_initial'),
+        ("parametr", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Agregat',
+            name="Agregat",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('num', models.PositiveSmallIntegerField(verbose_name='Номер позиции в агрегате')),
-                ('agr', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='agregat_parametrs', to='parametr.parametr', verbose_name='Агрегат')),
-                ('par', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='parametr.parametr', verbose_name='Параметр')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "num",
+                    models.PositiveSmallIntegerField(
+                        verbose_name="Номер позиции в агрегате"
+                    ),
+                ),
+                (
+                    "agr",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="agregat_parametrs",
+                        to="parametr.parametr",
+                        verbose_name="Агрегат",
+                    ),
+                ),
+                (
+                    "par",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="parametr.parametr",
+                        verbose_name="Параметр",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Агрегат',
-                'verbose_name_plural': 'Агрегаты',
+                "verbose_name": "Агрегат",
+                "verbose_name_plural": "Агрегаты",
             },
         ),
         migrations.AddConstraint(
-            model_name='agregat',
-            constraint=models.UniqueConstraint(fields=('agr', 'par'), name='agregat_pk'),
+            model_name="agregat",
+            constraint=models.UniqueConstraint(
+                fields=("agr", "par"), name="agregat_pk"
+            ),
         ),
     ]

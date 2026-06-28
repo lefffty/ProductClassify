@@ -232,5 +232,5 @@ class Migration(migrations.Migration):
                 $$;
             """,
             reverse_sql="DROP FUNCTION to_add_parametr_to_class(integer, integer, double precision, double precision);",
-        )
+        ),
     ]
