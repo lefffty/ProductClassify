@@ -1,7 +1,14 @@
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.db.models import QuerySet
+from django.db import IntegrityError
 
-from ..models import ClassStruct
+from parametr.models import Parametr
+from products.constants import INT_PARAMS
+from ei.models import Ei
+
+from ..models import ClassStruct, ParClass
+from ..constants import PRODUCT_ID
 
 
 class ClassStructModelTest(TestCase):
@@ -130,3 +137,164 @@ class ClassStructModelTest(TestCase):
         msg2 = self.get_expected_model_error_message(all_enum_classes.model)
         self.assertIsInstance(all_enum_classes, QuerySet, msg1)
         self.assertEqual(all_enum_classes.model, ClassStruct, msg2)
+
+
+class ParClassModelTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        base_ei = Ei.objects.first()
+        par_ei = Ei.objects.first()
+        parametr_type = ClassStruct.objects.get(pk=INT_PARAMS)
+        main_class = ClassStruct.objects.get(pk=PRODUCT_ID)
+        cls.class_field = ClassStruct.objects.create(
+            name="Products_class",
+            short_name="Pc",
+            base_ei=base_ei,
+            main_class=main_class,
+        )
+        cls.parametr = Parametr.objects.create(
+            name="Parametr",
+            short_name="p",
+            parametr_type=parametr_type,
+            par_ei=par_ei,
+        )
+
+    def test_raises_validation_error_if_num_is_equal_to_zero(self):
+        num = 0
+        parclass = ParClass(
+            class_field=self.class_field,
+            parametr=self.parametr,
+            min_value=1,
+            max_value=100,
+            num=num,
+        )
+        with self.assertRaises(ValidationError):
+            parclass.full_clean()
+
+    def test_raises_integrity_error_if_num_is_equal_to_zero(self):
+        num = 0
+        parclass = ParClass(
+            class_field=self.class_field,
+            parametr=self.parametr,
+            min_value=1,
+            max_value=100,
+            num=num,
+        )
+        with self.assertRaises(IntegrityError):
+            parclass.save()
+
+    def test_valid_num_value_pass(self):
+        num = 1
+        parclass = ParClass(
+            class_field=self.class_field,
+            parametr=self.parametr,
+            num=num,
+            min_value=1,
+            max_value=100,
+        )
+        parclass.full_clean()
+        parclass.save()
+        self.assertIsNotNone(parclass.pk)
+
+    def test_clean_raises_error_if_max_less_than_min(self):
+        num = 1
+        parclass = ParClass(
+            class_field=self.class_field,
+            parametr=self.parametr,
+            num=num,
+            min_value=100,
+            max_value=1,
+        )
+        with self.assertRaises(ValidationError) as ve:
+            parclass.full_clean()
+        self.assertIn("min_value", ve.exception.error_dict)
+        self.assertIn("max_value", ve.exception.error_dict)
+
+    def test_check_constraint_raises_integrity_error_if_max_less_than_min(self):
+        num = 1
+        parclass = ParClass(
+            class_field=self.class_field,
+            parametr=self.parametr,
+            num=num,
+            min_value=100,
+            max_value=1,
+        )
+        with self.assertRaises(IntegrityError):
+            parclass.save()
+
+    def test_valid_values_pass(self):
+        num = 1
+        parclass = ParClass(
+            class_field=self.class_field,
+            parametr=self.parametr,
+            num=num,
+            min_value=1,
+            max_value=100,
+        )
+        parclass.full_clean()
+        parclass.save()
+        self.assertIsNotNone(parclass.pk)
+
+    def test_create_with_minimal_requirements(self):
+        num = ParClass.objects.filter(class_field=self.class_field).count() + 1
+        obj = ParClass.objects.create(
+            class_field=self.class_field,
+            parametr=self.parametr,
+            num=num,
+            min_value=1,
+            max_value=100,
+        )
+        self.assertIsNotNone(obj.pk)
+
+    def test_unique_constraints(self):
+        num = 1
+        ParClass.objects.create(
+            class_field=self.class_field,
+            parametr=self.parametr,
+            num=num,
+            min_value=1,
+            max_value=100,
+        )
+        with self.assertRaises(IntegrityError):
+            num += 1
+            ParClass.objects.create(
+                class_field=self.class_field,
+                parametr=self.parametr,
+                num=num,
+                min_value=1,
+                max_value=100,
+            )
+
+    def test_string_representation(self):
+        num = ParClass.objects.filter(class_field=self.class_field).count() + 1
+        obj = ParClass.objects.create(
+            class_field=self.class_field,
+            parametr=self.parametr,
+            num=num,
+            min_value=1,
+            max_value=100,
+        )
+        expected_representation = "Products_class - Parametr"
+        self.assertEqual(str(obj), expected_representation)
+
+    def test_class_field_relationship(self):
+        num = ParClass.objects.filter(class_field=self.class_field).count() + 1
+        obj = ParClass.objects.create(
+            class_field=self.class_field,
+            parametr=self.parametr,
+            num=num,
+            min_value=1,
+            max_value=100,
+        )
+        self.assertIn(obj, self.class_field.class_params.all())
+
+    def test_parametr_relationship(self):
+        num = ParClass.objects.filter(class_field=self.class_field).count() + 1
+        obj = ParClass.objects.create(
+            class_field=self.class_field,
+            parametr=self.parametr,
+            num=num,
+            min_value=1,
+            max_value=100,
+        )
+        self.assertIn(obj, self.parametr.parclass_set.all())
