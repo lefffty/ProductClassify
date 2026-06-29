@@ -42,7 +42,7 @@ class Parametr(models.Model):
         verbose_name_plural = "Параметры"
 
     def __str__(self):
-        if self.par_ei is not None:
+        if self.par_ei:
             return self.name + ", " + self.par_ei.short_name
         else:
             return self.name

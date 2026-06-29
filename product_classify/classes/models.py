@@ -1,5 +1,9 @@
+from django.core.validators import MinValueValidator
 from django.db import models, connection
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q, F
+from django.forms import ValidationError
+
+from ei.models import Ei
 
 from .constants import (
     CLASS_STRUCT_SHORT_NAME_MAX_LENGTH,
@@ -11,7 +15,6 @@ from .constants import (
     NUM_ENUM_ID,
     PRODUCT_ID,
 )
-from ei.models import Ei
 
 
 class ClassStruct(models.Model):
@@ -122,6 +125,7 @@ class ParClass(models.Model):
         verbose_name="Позиция в списке параметров класса",
         null=False,
         blank=False,
+        validators=[MinValueValidator(1)],
     )
     min_value = models.FloatField(
         verbose_name="Минимальное значение параметра",
@@ -139,9 +143,27 @@ class ParClass(models.Model):
         verbose_name_plural = "Параметры класса"
         constraints = [
             models.UniqueConstraint(
-                fields=["class_field", "parametr"], name="%(class)s_pk"
-            )
+                fields=["class_field", "parametr"],
+                name="%(class)s_pk",
+            ),
+            models.CheckConstraint(
+                check=Q(num__gt=0),
+                name="%(class)s_num_gt_zero",
+            ),
+            models.CheckConstraint(
+                check=Q(max_value__gte=F("min_value")),
+                name="%(class)s_max_gte_min",
+            ),
         ]
+
+    def clean(self):
+        if self.min_value > self.max_value:
+            raise ValidationError(
+                {
+                    "min_value": "Minimum value should be less than maximum value",
+                    "max_value": "Maximum value should be greater than minimum value",
+                }
+            )
 
     def __str__(self):
         return f"{self.class_field.name} - {self.parametr.name}"

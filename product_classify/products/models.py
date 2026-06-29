@@ -1,12 +1,10 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from classes.models import ClassStruct
-from parametr.models import (
-    Parametr,
-)
-from enums.models import (
-    Enums,
-)
+from parametr.models import Parametr
+from products.constants import INT_PARAMS, DOUBLE_PARAMS, ENUM_CLASSES_IDS
+from enums.models import Enums
 
 from .constants import (
     ENUM_CLASSES_IDS,
@@ -89,12 +87,39 @@ class ParProd(models.Model):
             )
         ]
 
+    def clean(self):
+        # параметр является перечислением строк
+        if self.par.parametr_type.pk == ENUM_CLASSES_IDS[0] and self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[0] or not self.enum_val:
+            raise ValidationError(
+                message=""
+            )
+        # параметр является перечислением изображений
+        elif self.par.parametr_type.pk == ENUM_CLASSES_IDS[1] and self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[1] or not self.enum_val:
+            raise ValidationError
+        # параметр является целочисленным перечислением
+        elif self.par.parametr_type.pk == ENUM_CLASSES_IDS[2] and self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[2] or not self.enum_val:
+            raise ValidationError
+        # параметр является вещественным перечислением
+        elif self.par.parametr_type.pk == ENUM_CLASSES_IDS[3] and self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[3] or not self.enum_val:
+            raise ValidationError
+        # параметр является целочисленным
+        elif self.par.parametr_type.pk == INT_PARAMS and not self.int_value:
+            raise ValidationError
+        # параметр является вещественным
+        elif self.par.parametr_type.pk == DOUBLE_PARAMS and not self.double_value:
+            raise ValidationError
+
+
     def __str__(self):
+        # параметр является перечислением
         if self.enum_val:
+            # перечисление строк
             if self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[0]:
                 return self.prod.name + " - " + self.enum_val.name
+            # перечисление изображений
             elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[1]:
                 return self.prod.name + " - " + self.enum_val.short_name
+            # вещественное перечисление
             elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[2]:
                 return (
                     self.prod.name
@@ -103,7 +128,8 @@ class ParProd(models.Model):
                     + " - "
                     + str(self.enum_val.double_value)
                 )
-            elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[3]:
+            # целочисленное перечисление
+            else:
                 return (
                     self.prod.name
                     + " - "
@@ -111,24 +137,33 @@ class ParProd(models.Model):
                     + " - "
                     + str(self.enum_val.int_value)
                 )
-        if self.int_value:
+        # параметр является целочисленным
+        elif self.int_value:
             return self.prod.name + " - " + self.par.name + " - " + str(self.int_value)
-        if self.double_value:
+        # параметр является вещественным
+        else:
             return (
                 self.prod.name + " - " + self.par.name + " - " + str(self.double_value)
             )
 
     def get_value(self):
+        # параметр является целочисленным
         if self.int_value:
             return self.int_value
+        # параметр является вещественным
         elif self.double_value:
             return self.double_value
-        elif self.enum_val:
+        # параметр является перечислением
+        else:
+            # перечисление строк
             if self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[0]:
                 return self.enum_val.name
+            # перечисление изображений
             elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[1]:
                 return self.enum_val.image.instance
+            # вещественное перечисление
             elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[2]:
                 return self.enum_val.double_value
-            elif self.enum_val.enum.main_class.id == ENUM_CLASSES_IDS[3]:
+            # целочисленное перечисление
+            else:
                 return self.enum_val.int_value
