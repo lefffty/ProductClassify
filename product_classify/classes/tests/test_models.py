@@ -4,7 +4,7 @@ from django.db.models import QuerySet
 from django.db import IntegrityError
 
 from parametr.models import Parametr
-from products.constants import INT_PARAMS
+from products.constants import INT_PARAMS, ENUM_CLASSES_IDS
 from ei.models import Ei
 
 from ..models import ClassStruct, ParClass
@@ -144,6 +144,7 @@ class ParClassModelTest(TestCase):
     def setUpTestData(cls):
         base_ei = Ei.objects.first()
         par_ei = Ei.objects.first()
+        enum_parametr_type = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[2])
         parametr_type = ClassStruct.objects.get(pk=INT_PARAMS)
         main_class = ClassStruct.objects.get(pk=PRODUCT_ID)
         cls.class_field = ClassStruct.objects.create(
@@ -158,14 +159,24 @@ class ParClassModelTest(TestCase):
             parametr_type=parametr_type,
             par_ei=par_ei,
         )
+        cls.enum_parametr = Parametr.objects.create(
+            name="Enum Parametr",
+            short_name="enum_par",
+            parametr_type=enum_parametr_type,
+            par_ei=par_ei,
+        )
+
+        cls.MIN_VALUE_PLACEHOLDER = 1
+        cls.MAX_VALUE_PLACEHOLDER = 100
+        cls.NUM_PLACEHOLDER = 1
 
     def test_raises_validation_error_if_num_is_equal_to_zero(self):
         num = 0
         parclass = ParClass(
             class_field=self.class_field,
             parametr=self.parametr,
-            min_value=1,
-            max_value=100,
+            min_value=self.MIN_VALUE_PLACEHOLDER,
+            max_value=self.MAX_VALUE_PLACEHOLDER,
             num=num,
         )
         with self.assertRaises(ValidationError):
@@ -176,34 +187,52 @@ class ParClassModelTest(TestCase):
         parclass = ParClass(
             class_field=self.class_field,
             parametr=self.parametr,
-            min_value=1,
-            max_value=100,
+            min_value=self.MIN_VALUE_PLACEHOLDER,
+            max_value=self.MAX_VALUE_PLACEHOLDER,
             num=num,
         )
         with self.assertRaises(IntegrityError):
             parclass.save()
 
     def test_valid_num_value_pass(self):
-        num = 1
+        num = self.NUM_PLACEHOLDER
         parclass = ParClass(
             class_field=self.class_field,
             parametr=self.parametr,
             num=num,
-            min_value=1,
-            max_value=100,
+            min_value=self.MIN_VALUE_PLACEHOLDER,
+            max_value=self.MAX_VALUE_PLACEHOLDER,
         )
         parclass.full_clean()
         parclass.save()
         self.assertIsNotNone(parclass.pk)
 
+    def test_clean_raises_validation_error_if_int_value_or_double_value_were_set_for_enum_parametr(self):
+        num = self.NUM_PLACEHOLDER
+        parclass = ParClass(
+            class_field=self.class_field,
+            parametr=self.enum_parametr,
+            num=num,
+            min_value=self.MIN_VALUE_PLACEHOLDER,
+            max_value=None,
+        )
+        with self.assertRaises(ValidationError) as ve:
+            parclass.full_clean()
+        expected_error_msg = (
+            "Для параметра 'Enum Parametr' типа 'Перечисление' или 'Агрегат' не допускается указывать "
+            "минимальное и максимальное значения. "
+            "Оставьте поля min_value и max_value пустыми."
+        )
+        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+
     def test_clean_raises_error_if_max_less_than_min(self):
-        num = 1
+        num = self.NUM_PLACEHOLDER
         parclass = ParClass(
             class_field=self.class_field,
             parametr=self.parametr,
             num=num,
-            min_value=100,
-            max_value=1,
+            min_value=self.MAX_VALUE_PLACEHOLDER,
+            max_value=self.MIN_VALUE_PLACEHOLDER,
         )
         with self.assertRaises(ValidationError) as ve:
             parclass.full_clean()
@@ -211,25 +240,25 @@ class ParClassModelTest(TestCase):
         self.assertIn("max_value", ve.exception.error_dict)
 
     def test_check_constraint_raises_integrity_error_if_max_less_than_min(self):
-        num = 1
+        num = self.NUM_PLACEHOLDER
         parclass = ParClass(
             class_field=self.class_field,
             parametr=self.parametr,
             num=num,
-            min_value=100,
-            max_value=1,
+            min_value=self.MAX_VALUE_PLACEHOLDER,
+            max_value=self.MIN_VALUE_PLACEHOLDER,
         )
         with self.assertRaises(IntegrityError):
             parclass.save()
 
     def test_valid_values_pass(self):
-        num = 1
+        num = self.NUM_PLACEHOLDER
         parclass = ParClass(
             class_field=self.class_field,
             parametr=self.parametr,
             num=num,
-            min_value=1,
-            max_value=100,
+            min_value=self.MIN_VALUE_PLACEHOLDER,
+            max_value=self.MAX_VALUE_PLACEHOLDER,
         )
         parclass.full_clean()
         parclass.save()
@@ -241,19 +270,19 @@ class ParClassModelTest(TestCase):
             class_field=self.class_field,
             parametr=self.parametr,
             num=num,
-            min_value=1,
-            max_value=100,
+            min_value=self.MIN_VALUE_PLACEHOLDER,
+            max_value=self.MAX_VALUE_PLACEHOLDER,
         )
         self.assertIsNotNone(obj.pk)
 
     def test_unique_constraints(self):
-        num = 1
+        num = self.NUM_PLACEHOLDER
         ParClass.objects.create(
             class_field=self.class_field,
             parametr=self.parametr,
             num=num,
-            min_value=1,
-            max_value=100,
+            min_value=self.MIN_VALUE_PLACEHOLDER,
+            max_value=self.MAX_VALUE_PLACEHOLDER,
         )
         with self.assertRaises(IntegrityError):
             num += 1
@@ -261,8 +290,8 @@ class ParClassModelTest(TestCase):
                 class_field=self.class_field,
                 parametr=self.parametr,
                 num=num,
-                min_value=1,
-                max_value=100,
+                min_value=self.MIN_VALUE_PLACEHOLDER,
+                max_value=self.MAX_VALUE_PLACEHOLDER,
             )
 
     def test_string_representation(self):
@@ -271,8 +300,8 @@ class ParClassModelTest(TestCase):
             class_field=self.class_field,
             parametr=self.parametr,
             num=num,
-            min_value=1,
-            max_value=100,
+            min_value=self.MIN_VALUE_PLACEHOLDER,
+            max_value=self.MAX_VALUE_PLACEHOLDER,
         )
         expected_representation = "Products_class - Parametr"
         self.assertEqual(str(obj), expected_representation)
@@ -283,8 +312,8 @@ class ParClassModelTest(TestCase):
             class_field=self.class_field,
             parametr=self.parametr,
             num=num,
-            min_value=1,
-            max_value=100,
+            min_value=self.MIN_VALUE_PLACEHOLDER,
+            max_value=self.MAX_VALUE_PLACEHOLDER,
         )
         self.assertIn(obj, self.class_field.class_params.all())
 
@@ -294,7 +323,7 @@ class ParClassModelTest(TestCase):
             class_field=self.class_field,
             parametr=self.parametr,
             num=num,
-            min_value=1,
-            max_value=100,
+            min_value=self.MIN_VALUE_PLACEHOLDER,
+            max_value=self.MAX_VALUE_PLACEHOLDER,
         )
         self.assertIn(obj, self.parametr.parclass_set.all())

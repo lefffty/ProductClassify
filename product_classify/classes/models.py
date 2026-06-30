@@ -4,6 +4,7 @@ from django.db.models import QuerySet, Q, F
 from django.forms import ValidationError
 
 from ei.models import Ei
+from agregat.constants import AGREGAT_TYPE_ID
 
 from .constants import (
     CLASS_STRUCT_SHORT_NAME_MAX_LENGTH,
@@ -158,6 +159,15 @@ class ParClass(models.Model):
         ]
 
     def clean(self):
+        enum_param_type_ids = list([*ENUM_CLASSES_IDS, AGREGAT_TYPE_ID])
+        print("Enum param type ids:", enum_param_type_ids)
+        if self.parametr.parametr_type.id in enum_param_type_ids and (self.min_value or self.max_value):
+            raise ValidationError(
+                f"Для параметра '{self.parametr.name}' типа 'Перечисление' или 'Агрегат' не допускается указывать "
+                f"минимальное и максимальное значения."
+                f" Оставьте поля min_value и max_value пустыми."
+            )
+
         if self.min_value > self.max_value:
             raise ValidationError(
                 {
