@@ -8,6 +8,7 @@ from ei.models import Ei
 from .constants import (
     CLASS_STRUCT_SHORT_NAME_MAX_LENGTH,
     CLASS_STRUCT_NAME_MAX_LENGTH,
+    PARCLASS_NUM_MIN_VALUE,
     ENUM_PARENT_NODE_ID,
     ENUM_CLASSES_IDS,
     NUM_PARAM_ID,
@@ -125,7 +126,7 @@ class ParClass(models.Model):
         verbose_name="Позиция в списке параметров класса",
         null=False,
         blank=False,
-        validators=[MinValueValidator(1)],
+        validators=[MinValueValidator(PARCLASS_NUM_MIN_VALUE)],
     )
     min_value = models.FloatField(
         verbose_name="Минимальное значение параметра",
