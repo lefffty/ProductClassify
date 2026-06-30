@@ -207,7 +207,9 @@ class ParClassModelTest(TestCase):
         parclass.save()
         self.assertIsNotNone(parclass.pk)
 
-    def test_clean_raises_validation_error_if_int_value_or_double_value_were_set_for_enum_parametr(self):
+    def test_clean_raises_validation_error_if_int_value_or_double_value_were_set_for_enum_parametr(
+        self,
+    ):
         num = self.NUM_PLACEHOLDER
         parclass = ParClass(
             class_field=self.class_field,

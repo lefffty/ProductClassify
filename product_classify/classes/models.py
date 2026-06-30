@@ -131,12 +131,12 @@ class ParClass(models.Model):
     )
     min_value = models.FloatField(
         verbose_name="Минимальное значение параметра",
-        null=False,
+        null=True,
         blank=True,
     )
     max_value = models.FloatField(
         verbose_name="Максимальное значение параметра",
-        null=False,
+        null=True,
         blank=True,
     )
 
@@ -161,7 +161,9 @@ class ParClass(models.Model):
     def clean(self):
         enum_param_type_ids = list([*ENUM_CLASSES_IDS, AGREGAT_TYPE_ID])
         print("Enum param type ids:", enum_param_type_ids)
-        if self.parametr.parametr_type.id in enum_param_type_ids and (self.min_value or self.max_value):
+        if self.parametr.parametr_type.id in enum_param_type_ids and (
+            self.min_value or self.max_value
+        ):
             raise ValidationError(
                 f"Для параметра '{self.parametr.name}' типа 'Перечисление' или 'Агрегат' не допускается указывать "
                 f"минимальное и максимальное значения."
