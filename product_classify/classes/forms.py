@@ -5,6 +5,7 @@ from django.forms import (
     CharField,
     Form,
 )
+from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.db import connection
 
@@ -15,7 +16,6 @@ from .models import (
     ClassStruct,
     ParClass,
 )
-from .validators import positive_validate
 from .constants import (
     PROD_CLASS_FORM_MAX_LENGTH,
     ENUM_CLASS_FORM_NAME_MAX_LENGTH,
@@ -124,14 +124,14 @@ class ParClassForm(ModelForm):
     min_value = FloatField(
         label="Минимальное значение параметра класса",
         validators=[
-            positive_validate,
+            MinValueValidator(0.0),
         ],
         required=False,
     )
     max_value = FloatField(
         label="Максимальное значение параметра класса",
         validators=[
-            positive_validate,
+            MinValueValidator(0.0),
         ],
         required=False,
     )
