@@ -12,7 +12,7 @@ from classes.models import ClassStruct, ParClass
 from .models import Parametr, ParProd, Prod
 from .constants import (
     INT_PARAMS,
-    FLOAT_PARAMS,
+    DOUBLE_PARAMS,
 )
 
 
@@ -90,8 +90,10 @@ class ParProdForm(ModelForm):
         class_params_ids = ParClass.objects.filter(
             class_field=cls_id,
         ).values_list("parametr", flat=True)
+
         if par.id not in class_params_ids:
             raise ValidationError("У класса изделия нет таких параметров!")
+
         par_class = ParClass.objects.get(
             class_field=cls_id,
             parametr=par,

@@ -1,10 +1,10 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from classes.models import ClassStruct
+from classes.models import ClassStruct, ParClass
 from parametr.models import Parametr
-from products.constants import INT_PARAMS, DOUBLE_PARAMS, ENUM_CLASSES_IDS
 from enums.models import Enums
+from products.constants import INT_PARAMS, DOUBLE_PARAMS
 
 from .constants import (
     ENUM_CLASSES_IDS,
@@ -62,18 +62,19 @@ class ParProd(models.Model):
     )
     int_value = models.PositiveSmallIntegerField(
         null=True,
-        blank=False,
+        blank=True,
         verbose_name="Целочисленное значение параметра",
     )
     double_value = models.FloatField(
         null=True,
-        blank=False,
+        blank=True,
         verbose_name="Вещественное значение параметра",
     )
     enum_val = models.ForeignKey(
         Enums,
         verbose_name="Значение перечисления параметра",
         null=True,
+        blank=True,
         on_delete=models.CASCADE,
     )
 
@@ -88,27 +89,56 @@ class ParProd(models.Model):
         ]
 
     def clean(self):
-        # параметр является перечислением строк
-        if self.par.parametr_type.pk == ENUM_CLASSES_IDS[0] and self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[0] or not self.enum_val:
+        cls_id = self.prod.class_field.id
+        class_params_ids = ParClass.objects.filter(class_field=cls_id).values_list(
+            "parametr", flat=True
+        )
+
+        if self.par.id not in class_params_ids:
             raise ValidationError(
-                message=""
+                "Параметр '{}' не принадлежит классу изделия '{}'.".format(
+                    self.par.name, self.prod.class_field.name
+                )
+            )
+
+        # параметр является перечислением строк
+        if self.par.parametr_type.pk == ENUM_CLASSES_IDS[0] and (
+            self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[0] or not self.enum_val
+        ):
+            raise ValidationError(
+                "Для параметра типа 'Строковое перечисление' необходимо выбрать значение из списка строковых перечислений."
             )
         # параметр является перечислением изображений
-        elif self.par.parametr_type.pk == ENUM_CLASSES_IDS[1] and self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[1] or not self.enum_val:
-            raise ValidationError
+        elif self.par.parametr_type.pk == ENUM_CLASSES_IDS[1] and (
+            self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[1] or not self.enum_val
+        ):
+            raise ValidationError(
+                "Для параметра типа 'Перечисление изображений' необходимо выбрать значение из списка перечислений изображений."
+            )
         # параметр является целочисленным перечислением
-        elif self.par.parametr_type.pk == ENUM_CLASSES_IDS[2] and self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[2] or not self.enum_val:
-            raise ValidationError
+        elif self.par.parametr_type.pk == ENUM_CLASSES_IDS[2] and (
+            self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[2] or not self.enum_val
+        ):
+            raise ValidationError(
+                "Для параметра типа 'Целочисленное перечисление' необходимо выбрать значение из списка целочисленных перечислений."
+            )
         # параметр является вещественным перечислением
-        elif self.par.parametr_type.pk == ENUM_CLASSES_IDS[3] and self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[3] or not self.enum_val:
-            raise ValidationError
+        elif self.par.parametr_type.pk == ENUM_CLASSES_IDS[3] and (
+            self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[3] or not self.enum_val
+        ):
+            raise ValidationError(
+                "Для параметра типа 'Вещественное перечисление' необходимо выбрать значение из списка вещественных перечислений."
+            )
         # параметр является целочисленным
         elif self.par.parametr_type.pk == INT_PARAMS and not self.int_value:
-            raise ValidationError
+            raise ValidationError(
+                "Для параметра типа 'Целое число' необходимо указать целочисленное значение."
+            )
         # параметр является вещественным
         elif self.par.parametr_type.pk == DOUBLE_PARAMS and not self.double_value:
-            raise ValidationError
-
+            raise ValidationError(
+                "Для параметра типа 'Вещественное число' необходимо указать вещественное значение."
+            )
 
     def __str__(self):
         # параметр является перечислением
