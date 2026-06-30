@@ -1,5 +1,4 @@
 from django.urls import reverse_lazy
-from django.views.generic.base import ContextMixin
 from django.views.generic import (
     ListView,
     DeleteView,
