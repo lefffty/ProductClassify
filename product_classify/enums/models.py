@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from classes.models import (
@@ -30,11 +31,13 @@ class Enums(models.Model):
         verbose_name="Название перечисления",
         max_length=ENUMS_NAME_MAX_LENGTH,
         null=True,
+        blank=True,
     )
     short_name = models.CharField(
         verbose_name="Сокращенное название перечисления",
         max_length=ENUMS_SHORT_NAME_MAX_LENGTH,
         null=True,
+        blank=True,
     )
     double_value = models.FloatField(
         verbose_name="Вещественное значение перечисления",
@@ -50,7 +53,7 @@ class Enums(models.Model):
         verbose_name="Изображение перечисления",
         upload_to="enum_images/",
         null=True,
-        blank=False,
+        blank=True,
     )
 
     class Meta:
@@ -73,6 +76,38 @@ class Enums(models.Model):
     @classmethod
     def double_nums(cls):
         return cls.objects.filter(enum__main_class__id=DOUBLE_ENUMS_ID)
+
+    def clean(self):
+        if self.enum.main_class.pk == IMAGE_ENUMS_ID and any(
+            [self.double_value, self.int_value]
+        ):
+            raise ValidationError(
+                "Для перечисления типа 'Изображение' поля double_value и int_value должны быть пустыми (null)."
+            )
+        elif self.enum.main_class.pk == STRING_ENUMS_ID and any(
+            [self.double_value, self.int_value]
+        ):
+            raise ValidationError(
+                "Для перечисления типа 'Строка' поля double_value и int_value должны быть пустыми (null)."
+            )
+        elif self.enum.main_class.pk == INT_ENUMS_ID and any(
+            [self.name, self.short_name, self.double_value, self.image]
+        ):
+            raise ValidationError(
+                "Для перечисления типа 'Целое число' поля name, short_name, double_value и image должны быть пустыми (null). "
+                "Заполните только поле int_value."
+            )
+        elif self.enum.main_class.pk == DOUBLE_ENUMS_ID and any(
+            [self.name, self.short_name, self.int_value, self.image]
+        ):
+            raise ValidationError(
+                "Для перечисления типа 'Вещественное число' поля name, short_name, int_value и image должны быть пустыми (null). "
+                "Заполните только поле double_value."
+            )
+        else:
+            raise ValidationError(
+                "Родительский класс должен быть классом-перечислением."
+            )
 
     def __str__(self):
         # если данное значение перечисления является перечислением строк или изображений

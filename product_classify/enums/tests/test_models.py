@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -9,6 +10,7 @@ from ..constants import (
     IMAGE_ENUMS_ID,
     DOUBLE_ENUMS_ID,
     STRING_ENUMS_ID,
+    FASTENER_ID,
 )
 
 
@@ -49,6 +51,7 @@ class EnumsModelTest(TestCase):
             base_ei=None,
             main_class=cls.image_enum,
         )
+        cls.invalid_enum_class = ClassStruct.objects.get(pk=FASTENER_ID)
 
     def test_create_with_minimal_requirements(self):
         num = 1
@@ -192,6 +195,7 @@ class EnumsModelTest(TestCase):
             short_name="ВещЗнач",
             double_value=1.0,
             int_value=None,
+            image=None,
         )
         double_enums = Enums.double_nums()
         self.assertEqual(double_enums.count(), 1)
@@ -200,3 +204,84 @@ class EnumsModelTest(TestCase):
         Enums.objects.create(enum=self.int_enum_class, num=1)
         with self.assertRaises(IntegrityError):
             Enums.objects.create(enum=self.int_enum_class, num=1)
+
+    def test_raises_validation_error_if_enum_class_is_image_enum(self):
+        enum = Enums(
+            enum=self.image_enum_class,
+            num=1,
+            name="Image_enum_value",
+            short_name="Image_enum_value",
+            double_value=None,
+            int_value=1,
+            image=self.image,
+        )
+        with self.assertRaises(ValidationError) as ve:
+            enum.full_clean()
+        expected_error_msg = "Для перечисления типа 'Изображение' поля double_value и int_value должны быть пустыми (null)."
+        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+
+    def test_raises_validation_error_if_enum_class_is_string_enum(self):
+        enum = Enums(
+            enum=self.string_enum_class,
+            num=1,
+            name="String_enum_value",
+            short_name="String_enum_value",
+            double_value=None,
+            int_value=1,
+            image=None,
+        )
+        with self.assertRaises(ValidationError) as ve:
+            enum.full_clean()
+        expected_error_msg = "Для перечисления типа 'Строка' поля double_value и int_value должны быть пустыми (null)."
+        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+
+    def test_raises_validation_error_if_enum_class_is_int_enum(self):
+        enum = Enums(
+            enum=self.int_enum_class,
+            num=1,
+            name="Int_enum_value",
+            short_name="Int_enum_value",
+            double_value=None,
+            int_value=1,
+            image=None,
+        )
+        with self.assertRaises(ValidationError) as ve:
+            enum.full_clean()
+        expected_error_msg = (
+            "Для перечисления типа 'Целое число' поля name, short_name, double_value и image должны быть пустыми (null). "
+            "Заполните только поле int_value."
+        )
+        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+
+    def test_raises_validation_error_if_enum_class_is_double_enum(self):
+        enum = Enums(
+            enum=self.double_enum_class,
+            num=1,
+            name="Double_enum_value",
+            short_name="Double_enum_value",
+            double_value=1,
+            int_value=None,
+            image=None,
+        )
+        with self.assertRaises(ValidationError) as ve:
+            enum.full_clean()
+        expected_error_msg = (
+            "Для перечисления типа 'Вещественное число' поля name, short_name, int_value и image должны быть пустыми (null). "
+            "Заполните только поле double_value."
+        )
+        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+
+    def test_raises_validation_error_if_enum_class_is_not_enum(self):
+        enum = Enums(
+            enum=self.invalid_enum_class,
+            num=1,
+            name="Int_enum_value",
+            short_name="Int_enum_value",
+            double_value=None,
+            int_value=1,
+            image=None,
+        )
+        with self.assertRaises(ValidationError) as ve:
+            enum.full_clean()
+        expected_error_msg = "Родительский класс должен быть классом-перечислением."
+        self.assertEqual(ve.exception.messages[0], expected_error_msg)
