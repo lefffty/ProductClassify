@@ -3,9 +3,9 @@ from django.forms import (
     FloatField,
     CharField,
 )
+from django.core.validators import MinValueValidator
 
 from .models import Ei
-from .validators import validate_positive
 from .constants import EI_FORM_NAME_MAX_LENGTH, EI_FORM_SHORT_NAME_MAX_LENGTH
 
 
@@ -13,7 +13,7 @@ class EiForm(ModelForm):
     convert_factor = FloatField(
         label="Множитель для перевода",
         validators=[
-            validate_positive,
+            MinValueValidator(0.0)
         ],
     )
     name = CharField(
