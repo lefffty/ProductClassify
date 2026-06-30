@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
 from django.urls import reverse_lazy
-from django.views.generic.base import ContextMixin
 from django.views.generic import (
     ListView,
     DetailView,
@@ -10,20 +9,13 @@ from django.views.generic import (
     CreateView,
 )
 
+from core.mixins import CommonContextMixin
 from classes.models import ClassStruct
 
 from .models import Enums
 from .utils import get_enum_value
 from .forms import EnumsForm, ChangeNumForm
 from .constants import FASTENER_ID
-
-
-class CommonContextMixin(ContextMixin):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        fastener_classes = ClassStruct.objects.filter(main_class__exact=FASTENER_ID)
-        context["fastener_classes"] = fastener_classes
-        return context
 
 
 class EnumsListView(

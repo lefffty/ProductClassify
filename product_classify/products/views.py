@@ -15,12 +15,12 @@ from django.views.generic import (
 )
 from django.contrib.auth.views import RedirectURLMixin
 from django.views.generic.detail import SingleObjectMixin
-from django.views.generic.base import ContextMixin
 
 from classes.models import (
     ClassStruct,
     ParClass,
 )
+from core.mixins import CommonContextMixin
 
 from .forms import (
     ProdForm,
@@ -33,13 +33,6 @@ from .models import (
 )
 from .constants import FASTENER_ID
 
-
-class CommonContextMixin(ContextMixin):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        fastener_classes = ClassStruct.objects.filter(main_class__exact=FASTENER_ID)
-        context["fastener_classes"] = fastener_classes
-        return context
 
 
 def class_products(

@@ -8,22 +8,13 @@ from django.views.generic import (
     UpdateView,
 )
 
-from classes.models import ClassStruct
+from core.mixins import CommonContextMixin
 
 from .models import Parametr
 from .forms import ParametrForm
 from .constants import (
-    FASTENER_ID,
     AGREGAT_TYPE_ID,
 )
-
-
-class CommonContextMixin(ContextMixin):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        main_classes = ClassStruct.objects.filter(main_class__exact=FASTENER_ID)
-        context["main_classes"] = main_classes
-        return context
 
 
 class ParametrListView(

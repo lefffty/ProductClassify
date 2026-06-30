@@ -2,13 +2,14 @@ from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
 from django.urls import reverse_lazy
 from django.db import connection
-from django.views.generic.base import ContextMixin
 from django.views.generic import (
     ListView,
     UpdateView,
     CreateView,
     TemplateView,
 )
+
+from core.mixins import CommonContextMixin
 
 from .models import (
     ClassStruct,
@@ -22,16 +23,7 @@ from .forms import (
 )
 from .constants import (
     ENUM_CLASSES_IDS,
-    FASTENER_ID,
 )
-
-
-class CommonContextMixin(ContextMixin):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        fastener_classes = ClassStruct.objects.filter(main_class__exact=FASTENER_ID)
-        context["fastener_classes"] = fastener_classes
-        return context
 
 
 class MainPageTemplateView(
