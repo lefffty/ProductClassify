@@ -56,7 +56,9 @@ class ClassStruct(models.Model):
     def products(cls) -> QuerySet:
         """Returns QuerySet of products classes"""
         with connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM find_gr_gr({PRODUCT_ID});")
+            cursor.execute(
+                "SELECT * FROM find_gr_gr(%s);",
+                [PRODUCT_ID])
             data = cursor.fetchall()
             prod_classes_ids = [element[0] for element in data]
         return cls.objects.filter(id__in=prod_classes_ids)
@@ -65,7 +67,10 @@ class ClassStruct(models.Model):
     def terminal_product_classes(cls) -> QuerySet:
         """Returns QuerySet of terminal products classes"""
         with connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM get_terminal_classes({FASTENER_ID});")
+            cursor.execute(
+                "SELECT * FROM get_terminal_classes(%s);",
+                [FASTENER_ID]
+            )
             terminal_classes = cursor.fetchall()
             terminal_classes_ids = [element[0] for element in terminal_classes]
         return cls.objects.filter(id__in=terminal_classes_ids)
@@ -75,7 +80,8 @@ class ClassStruct(models.Model):
         """Returns QuerySet of terminal enum classes"""
         with connection.cursor() as cursor:
             cursor.execute(
-                f"SELECT * FROM get_terminal_classes({ENUM_PARENT_NODE_ID});"
+                "SELECT * FROM get_terminal_classes(%s);",
+                [ENUM_PARENT_NODE_ID]
             )
             terminal_enum_classes = cursor.fetchall()
             terminal_enum_classes_ids = [
@@ -105,7 +111,10 @@ class ClassStruct(models.Model):
     def all_enum_classes(cls) -> QuerySet:
         """Returns QuerySet of all enum classes"""
         with connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM find_gr_gr({ENUM_PARENT_NODE_ID});")
+            cursor.execute(
+                "SELECT * FROM find_gr_gr(%s);",
+                [ENUM_PARENT_NODE_ID]
+            )
             classes_ids = cursor.fetchall()
             classes_ids = [element[0] for element in classes_ids]
         return cls.objects.filter(id__in=classes_ids)
