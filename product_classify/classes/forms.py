@@ -9,8 +9,6 @@ from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.db import connection
 
-from typing import Any
-
 from ei.models import Ei
 from parametr.models import Parametr
 
@@ -19,11 +17,13 @@ from .models import (
     ParClass,
 )
 from .constants import (
+    ENUM_CLASSES_IDS,
     PROD_CLASS_FORM_MAX_LENGTH,
     ENUM_CLASS_FORM_NAME_MAX_LENGTH,
     PARCLASS_FORM_MAX_VALUE_LOWER_BOUND,
     PARCLASS_FORM_MIN_VALUE_LOWER_BOUND,
     PROD_CLASS_FORM_SHORT_NAME_MAX_LENGTH,
+    ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH,
 )
 
 
@@ -72,12 +72,10 @@ class ProdClassForm(ModelForm):
         self.fields["main_class"].queryset = ClassStruct.terminal_product_classes()
         self.fields["base_ei"].queryset = Ei.objects.all()
 
-    def _check_class_struct_cycles(
-        self, cursor: object, class_id: int, main_class_id: int
-    ) -> Any:
+    def _check_class_struct_cycles(self, cursor: object, cls_id: int, main_cls_id: int):
         cursor.execute(
             "SELECT * FROM check_class_struct_cycles(%s, %s);",
-            [class_id, main_class_id],
+            [cls_id, main_cls_id],
         )
         is_cycle = cursor.fetchone()[0]
         return is_cycle
@@ -106,11 +104,21 @@ class EnumClassForm(ModelForm):
         label="Родительский класс",
         queryset=ClassStruct.objects.none(),
         empty_label="Выберите родительский класс",
+        required=True,
+        error_messages={
+            "required": "Поле для родительского класса необходимо заполнить"
+        },
     )
     name = CharField(
         max_length=ENUM_CLASS_FORM_NAME_MAX_LENGTH,
         required=True,
         label="Название класса",
+        error_messages={"required": "Поле для названия класса необходимо заполнить"},
+    )
+    short_name = CharField(
+        max_length=ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH,
+        required=False,
+        label="Сокращенное название класса",
     )
 
     class Meta:
@@ -126,20 +134,31 @@ class EnumClassForm(ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["main_class"].queryset = ClassStruct.all_enum_classes()
 
+    def _check_class_struct_cycles(self, cursor: object, cls_id: int, main_cls_id: int):
+        cursor.execute(
+            "SELECT * FROM check_class_struct_cycles(%s, %s);",
+            [cls_id, main_cls_id],
+        )
+        is_cycle = cursor.fetchone()[0]
+        return is_cycle
+
     def clean(self):
-        with connection.cursor() as cursor:
-            self.instance.save()
-            class_id = self.instance.pk
-            main_class_id = self.cleaned_data["main_class"].id
-            cursor.execute(f"""SELECT * FROM check_class_struct_cycles(
-                    {class_id},
-                    {main_class_id}
-                );""")
-            is_cycle = cursor.fetchone()[0]
-            if is_cycle:
-                raise ValidationError("""При изменении класса в классификаторе
-                    образовывается цикл!""")
-        return super().clean()
+        if "main_class" not in self.cleaned_data:
+            return super().clean()
+
+        if self.instance.pk:
+            with connection.cursor() as cursor:
+                self.instance.save()
+                cls_id = self.instance.pk
+                main_cls_id = self.cleaned_data["main_class"].id
+                is_cycle = self._check_class_struct_cycles(cursor, cls_id, main_cls_id)
+                if is_cycle:
+                    raise ValidationError(
+                        "При изменении класса в классификаторе образовывается цикл!"
+                    )
+                return super().clean()
+        else:
+            return super().clean()
 
 
 class ParClassForm(ModelForm):
@@ -204,7 +223,7 @@ class ParClassForm(ModelForm):
                 максимального и минимального значений!""")
 
         with connection.cursor() as cursor:
-            if param.parametr_type.id in [15, 16, 18, 19]:
+            if param.parametr_type.id in ENUM_CLASSES_IDS:
                 cursor.execute(
                     """SELECT * FROM to_add_parametr_to_class(
                         %s, %s, %s, %s

@@ -1,7 +1,7 @@
 from django.db import models
 
-from .constants import EI_NAME_MAX_LENGTH, EI_SHORT_NAME_MAX_LENGTH, EI_CODE_MAX_LENGTH
 
+from .constants import EI_NAME_MAX_LENGTH, EI_SHORT_NAME_MAX_LENGTH, EI_CODE_MAX_LENGTH
 
 class Ei(models.Model):
     name = models.CharField(

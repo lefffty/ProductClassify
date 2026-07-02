@@ -3,9 +3,10 @@ from django.db.models import QuerySet
 
 from unittest.mock import patch
 
+from enums.constants import STRING_ENUMS_ID
 from ei.models import Ei
 from classes.models import ClassStruct
-from classes.forms import ProdClassForm
+from classes.forms import ProdClassForm, EnumClassForm
 
 
 class ProdClassFormTest(TestCase):
@@ -85,19 +86,21 @@ class ProdClassFormTest(TestCase):
                 self.assertTrue(form.is_valid())
                 mock_check_class_struct_cycles.assert_called_once()
                 call_args = mock_check_class_struct_cycles.call_args[0]
-                first_arg_error = "cls_id должен быть равен id редактируемого объекта"
-                second_arg_error = (
+                expected_first_arg_error = (
+                    "cls_id должен быть равен id редактируемого объекта"
+                )
+                expected_second_arg_error = (
                     "main_cls_id должен быть равен id выбранного родителя"
                 )
                 self.assertEqual(
                     call_args[1],
                     self.root.pk,
-                    first_arg_error,
+                    expected_first_arg_error,
                 )
                 self.assertEqual(
                     call_args[2],
                     self.other.pk,
-                    second_arg_error,
+                    expected_second_arg_error,
                 )
 
     def test_name_field_is_required(self):
@@ -290,3 +293,300 @@ class ProdClassFormTest(TestCase):
             }
             form = ProdClassForm(data=form_data)
             self.assertTrue(form.is_valid())
+
+
+class EnumClassFormTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.base_ei = Ei.objects.first()
+
+        cls.root = ClassStruct.objects.create(
+            name="Test Name",
+            short_name="Test Name",
+            base_ei=cls.base_ei,
+            main_class=None,
+        )
+        cls.child = ClassStruct.objects.create(
+            name="Test Name",
+            short_name="Test Name",
+            base_ei=cls.base_ei,
+            main_class=cls.root,
+        )
+        cls.other = ClassStruct.objects.create(
+            name="Test Name",
+            short_name="Test Name",
+            base_ei=cls.base_ei,
+            main_class=None,
+        )
+
+        cls.NEW_INSTANCE_NAME = "New test name"
+        cls.NEW_INSTANCE_SHORT_NAME = "New test name"
+
+        cls.UPDATED_INSTANCE_NAME = "Updated test name"
+        cls.UPDATED_INSTANCE_SHORT_NAME = "Upd. test name"
+
+
+    def test_main_class_queryset_is_all_enum_classes(self):
+        """Проверяет, что поле main_class в форме использует queryset из ClassStruct.all_enum_classes()."""
+        form = EnumClassForm()
+        self.assertIsInstance(form.fields["main_class"].queryset, QuerySet)
+
+    def test_main_class_is_required(self):
+        """Проверяет, что поле main_class обязательно для заполнения и выводится кастомное сообщение об ошибке."""
+        form_data = {
+            "name": self.NEW_INSTANCE_NAME,
+            "short_name": self.NEW_INSTANCE_SHORT_NAME,
+            "main_class": None,
+        }
+        form = EnumClassForm(data=form_data)
+        expected_error_msg = "Поле для родительского класса необходимо заполнить"
+        self.assertFalse(form.is_valid())
+        self.assertIn("main_class", form.errors)
+        self.assertEqual(
+            form.errors["main_class"],
+            [expected_error_msg],
+        )
+
+    def test_name_is_required(self):
+        """Проверяет, что поле name обязательно для заполнения и выводится кастомное сообщение об ошибке."""
+        form_data = {
+            "name": "",
+            "short_name": self.NEW_INSTANCE_SHORT_NAME,
+            "main_class": self.other,
+        }
+        form = EnumClassForm(data=form_data)
+        expected_error_msg = "Поле для названия класса необходимо заполнить"
+        self.assertFalse(form.is_valid())
+        self.assertIn("name", form.errors)
+        self.assertEqual(
+            form.errors["name"],
+            [expected_error_msg],
+        )
+
+    def test_short_name_is_optional(self):
+        """Проверяет, что поле short_name может быть пустой строкой и форма остаётся валидной."""
+        with patch(
+            "classes.models.ClassStruct.all_enum_classes",
+            return_value=ClassStruct.objects.all(),
+        ):
+            form_data = {
+                "name": self.NEW_INSTANCE_NAME,
+                "short_name": "",
+                "main_class": self.other,
+            }
+            form = EnumClassForm(data=form_data)
+            self.assertTrue(form.is_valid(), form.errors)
+
+    def test_short_name_accepts_none(self):
+        """Проверяет, что поле short_name может быть None (пустое значение) и форма остаётся валидной."""
+        with patch(
+            "classes.models.ClassStruct.all_enum_classes",
+            return_value=ClassStruct.objects.all(),
+        ):
+            form_data = {
+                "name": self.NEW_INSTANCE_NAME,
+                "short_name": None,
+                "main_class": self.other,
+            }
+            form = EnumClassForm(data=form_data)
+            self.assertTrue(form.is_valid())
+
+    def test_check_class_struct_cycles_is_called_with_correct_params(self):
+        """Проверяет, что метод _check_class_struct_cycles вызывается с правильными параметрами (cls_id и main_cls_id)."""
+        with patch(
+            "classes.models.ClassStruct.all_enum_classes",
+            return_value=ClassStruct.objects.all(),
+        ):
+            with patch.object(
+                EnumClassForm,
+                "_check_class_struct_cycles",
+                return_value=False,
+            ) as mock_check_class_struct_cycles:
+                form_data = {
+                    "name": self.UPDATED_INSTANCE_NAME,
+                    "short_name": self.UPDATED_INSTANCE_SHORT_NAME,
+                    "main_class": self.other,
+                }
+                form = EnumClassForm(data=form_data, instance=self.root)
+                self.assertTrue(form.is_valid())
+                mock_check_class_struct_cycles.assert_called_once()
+                call_args = mock_check_class_struct_cycles.call_args[0]
+                expected_first_arg_error = (
+                    "cls_id должен быть равен id редактируемого объекта"
+                )
+                expected_second_arg_error = (
+                    "main_cls_id должен быть равен id выбранного родителя"
+                )
+                self.assertEqual(call_args[1], self.root.pk, expected_first_arg_error)
+                self.assertEqual(call_args[2], self.other.pk, expected_second_arg_error)
+
+    def test_clean_raises_error_when_cycle_detected_while_editing_existing_record(self):
+        """Проверяет, что при редактировании существующей записи и создании циклической ссылки форма невалидна и содержит ошибку о цикле."""
+        with patch(
+            "classes.models.ClassStruct.all_enum_classes",
+            return_value=ClassStruct.objects.all(),
+        ):
+            form_data = {
+                "name": self.UPDATED_INSTANCE_NAME,
+                "short_name": self.UPDATED_INSTANCE_SHORT_NAME,
+                "main_class": self.child,
+            }
+            form = EnumClassForm(data=form_data, instance=self.root)
+            expected_error_msg = (
+                "При изменении класса в классификаторе образовывается цикл!"
+            )
+            self.assertFalse(form.is_valid())
+            self.assertIn("__all__", form.errors)
+            self.assertEqual(
+                form.errors["__all__"][0],
+                expected_error_msg,
+            )
+
+    def test_clean_does_not_raise_error_when_no_cycle_while_editing_existing_record(
+        self,
+    ):
+        """Проверяет, что при редактировании существующей записи без создания цикла форма валидна и объект сохраняется с новым родителем."""
+        with patch(
+            "classes.models.ClassStruct.all_enum_classes",
+            return_value=ClassStruct.objects.all(),
+        ):
+            form_data = {
+                "name": self.UPDATED_INSTANCE_NAME,
+                "short_name": self.UPDATED_INSTANCE_SHORT_NAME,
+                "main_class": self.other,
+            }
+            form = EnumClassForm(data=form_data, instance=self.root)
+            self.assertTrue(form.is_valid())
+
+    def test_clean_does_not_raise_error_when_no_cycle(self):
+        """Проверяет, что при создании нового объекта без циклической ссылки форма валидна и объект сохраняется."""
+        with patch(
+            "classes.models.ClassStruct.all_enum_classes",
+            return_value=ClassStruct.objects.all(),
+        ):
+            form_data = {
+                "name": self.NEW_INSTANCE_NAME,
+                "short_name": self.NEW_INSTANCE_SHORT_NAME,
+                "main_class": self.root,
+            }
+            form = EnumClassForm(data=form_data)
+            self.assertTrue(form.is_valid())
+
+    def test_edit_existing_record_updates_object(self):
+        """Проверяет, что при редактировании существующей записи форма обновляет поля объекта, а не создаёт новый."""
+        with patch(
+            "classes.models.ClassStruct.all_enum_classes",
+            return_value=ClassStruct.objects.all(),
+        ):
+            form_data = {
+                "name": self.UPDATED_INSTANCE_NAME,
+                "short_name": self.UPDATED_INSTANCE_SHORT_NAME,
+                "main_class": self.other,
+            }
+            form = EnumClassForm(data=form_data, instance=self.root)
+            self.assertTrue(form.is_valid())
+            obj = form.save()
+            self.assertEqual(form_data["name"], obj.name)
+            self.assertEqual(form_data["short_name"], obj.short_name)
+            self.assertEqual(form_data["main_class"], obj.main_class)
+
+    def test_cycle_when_main_class_is_self(self):
+        """Проверяет, что установка родительским классом самого себя приводит к ошибке цикла."""
+        with patch(
+            "classes.models.ClassStruct.all_enum_classes",
+            return_value=ClassStruct.objects.all(),
+        ):
+            form_data = {
+                "name": self.UPDATED_INSTANCE_NAME,
+                "short_name": self.UPDATED_INSTANCE_SHORT_NAME,
+                "main_class": self.root,
+            }
+            expected_error_msg = (
+                "При изменении класса в классификаторе образовывается цикл!"
+            )
+            form = EnumClassForm(data=form_data, instance=self.root)
+            self.assertFalse(form.is_valid())
+            self.assertIn("__all__", form.errors)
+            self.assertEqual(
+                form.errors["__all__"][0],
+                expected_error_msg,
+            )
+
+    def test_cycle_not_checked_for_new_object(self):
+        """Проверяет, что для новых объектов (без instance.pk) проверка циклов не выполняется."""
+        with patch(
+            "classes.models.ClassStruct.all_enum_classes",
+            return_value=ClassStruct.objects.all(),
+        ):
+            with patch.object(
+                EnumClassForm,
+                "_check_class_struct_cycles",
+            ) as mock_check_class_struct_cycles:
+                form_data = {
+                    "name": self.NEW_INSTANCE_NAME,
+                    "short_name": self.NEW_INSTANCE_SHORT_NAME,
+                    "main_class": self.other,
+                }
+                form = EnumClassForm(data=form_data)
+                self.assertTrue(form.is_valid())
+                obj = form.save()
+                mock_check_class_struct_cycles.assert_not_called()
+                self.assertIsNotNone(obj.pk)
+
+    def test_editing_without_changing_main_class_is_valid(self):
+        """Проверяет, что при редактировании существующей записи без изменения родительского класса форма валидна."""
+        with patch(
+            "classes.models.ClassStruct.all_enum_classes",
+            return_value=ClassStruct.objects.all(),
+        ):
+            form_data = {
+                "name": self.UPDATED_INSTANCE_NAME,
+                "short_name": self.UPDATED_INSTANCE_SHORT_NAME,
+                "main_class": self.root,
+            }
+            form = EnumClassForm(data=form_data, instance=self.child)
+            obj = form.save()
+            self.assertIsNotNone(obj.pk)
+            self.assertEqual(form_data["name"], obj.name)
+            self.assertEqual(form_data["short_name"], obj.short_name)
+            self.assertEqual(form_data["main_class"], obj.main_class)
+
+    def test_non_enum_main_class_is_invalid(self):
+        """Проверяет, что выбор родительского класса, не входящего в all_enum_classes, приводит к невалидности формы."""
+        invalid_enum_main_class = ClassStruct.objects.create(
+            name="invalid_enum_main_class",
+            short_name="invalid_enum",
+            main_class=None,
+            base_ei=None,
+        )
+        with patch(
+            "classes.models.ClassStruct.all_enum_classes",
+            return_value=ClassStruct.objects.filter(pk__in=[self.root.pk, self.child.pk, self.other.pk]),
+        ):
+            form_data = {
+                "name": self.NEW_INSTANCE_NAME,
+                "short_name": self.NEW_INSTANCE_SHORT_NAME,
+                "main_class": invalid_enum_main_class,
+            }
+            form = EnumClassForm(data=form_data)
+            self.assertFalse(form.is_valid())
+            self.assertIn("main_class", form.errors)
+
+    def test_create_new_object_saves_correctly(self):
+        """Проверяет, что при создании нового объекта с валидными данными форма сохраняет объект с корректными полями."""
+        with patch(
+            "classes.models.ClassStruct.all_enum_classes",
+            return_value=ClassStruct.objects.all(),
+        ):
+            form_data = {
+                "name": self.NEW_INSTANCE_NAME,
+                "short_name": self.NEW_INSTANCE_SHORT_NAME,
+                "main_class": self.root,
+            }
+            form = EnumClassForm(data=form_data)
+            self.assertTrue(form.is_valid())
+            obj = form.save()
+            self.assertIsNotNone(obj.pk)
+            self.assertEqual(form_data["name"], obj.name)
+            self.assertEqual(form_data["short_name"], obj.short_name)
+            self.assertEqual(form_data["main_class"], obj.main_class)
