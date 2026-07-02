@@ -6,15 +6,17 @@ from django.forms import (
 from django.core.validators import MinValueValidator
 
 from .models import Ei
-from .constants import EI_FORM_NAME_MAX_LENGTH, EI_FORM_SHORT_NAME_MAX_LENGTH
+from .constants import (
+    EI_FORM_NAME_MAX_LENGTH,
+    EI_CONVERT_FACTOR_MIN_VALUE,
+    EI_FORM_SHORT_NAME_MAX_LENGTH,
+)
 
 
 class EiForm(ModelForm):
     convert_factor = FloatField(
         label="Множитель для перевода",
-        validators=[
-            MinValueValidator(0.0)
-        ],
+        validators=[MinValueValidator(EI_CONVERT_FACTOR_MIN_VALUE)],
     )
     name = CharField(
         max_length=EI_FORM_NAME_MAX_LENGTH,

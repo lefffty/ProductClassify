@@ -34,7 +34,6 @@ from .models import (
 from .constants import FASTENER_ID
 
 
-
 def class_products(
     request: HttpRequest,
     main_class_id: int,
