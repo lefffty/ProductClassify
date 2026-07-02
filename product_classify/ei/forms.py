@@ -17,6 +17,7 @@ class EiForm(ModelForm):
     convert_factor = FloatField(
         label="Множитель для перевода",
         validators=[MinValueValidator(EI_CONVERT_FACTOR_MIN_VALUE)],
+        required=True,
     )
     name = CharField(
         max_length=EI_FORM_NAME_MAX_LENGTH,

@@ -3,7 +3,6 @@ from django.db.models import QuerySet
 
 from unittest.mock import patch
 
-from enums.constants import STRING_ENUMS_ID
 from ei.models import Ei
 from classes.models import ClassStruct
 from classes.forms import ProdClassForm, EnumClassForm
@@ -294,6 +293,25 @@ class ProdClassFormTest(TestCase):
             form = ProdClassForm(data=form_data)
             self.assertTrue(form.is_valid())
 
+    def test_form_displays_all_validation_errors(self):
+        form_data = {
+            "name": "",
+            "short_name": "",
+            "main_class": None,
+            "base_ei": None,
+        }
+        form = ProdClassForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+        expected_errors = {
+            "name": ["Поле для названия класса необходимо заполнить"],
+            "main_class": ["Поле для родительского класса необходимо заполнить"],
+        }
+
+        for key, value in expected_errors.items():
+            self.assertIn(key, form.errors)
+            self.assertEqual(form.errors[key], expected_errors[key])
+
 
 class EnumClassFormTest(TestCase):
     @classmethod
@@ -324,7 +342,6 @@ class EnumClassFormTest(TestCase):
 
         cls.UPDATED_INSTANCE_NAME = "Updated test name"
         cls.UPDATED_INSTANCE_SHORT_NAME = "Upd. test name"
-
 
     def test_main_class_queryset_is_all_enum_classes(self):
         """Проверяет, что поле main_class в форме использует queryset из ClassStruct.all_enum_classes()."""
@@ -561,7 +578,9 @@ class EnumClassFormTest(TestCase):
         )
         with patch(
             "classes.models.ClassStruct.all_enum_classes",
-            return_value=ClassStruct.objects.filter(pk__in=[self.root.pk, self.child.pk, self.other.pk]),
+            return_value=ClassStruct.objects.filter(
+                pk__in=[self.root.pk, self.child.pk, self.other.pk]
+            ),
         ):
             form_data = {
                 "name": self.NEW_INSTANCE_NAME,
@@ -590,3 +609,21 @@ class EnumClassFormTest(TestCase):
             self.assertEqual(form_data["name"], obj.name)
             self.assertEqual(form_data["short_name"], obj.short_name)
             self.assertEqual(form_data["main_class"], obj.main_class)
+
+    def test_form_displays_all_validation_errors(self):
+        form_data = {
+            "name": "",
+            "short_name": "",
+            "main_class": None,
+        }
+        form = EnumClassForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+        expected_errors = {
+            "name": ["Поле для названия класса необходимо заполнить"],
+            "main_class": ["Поле для родительского класса необходимо заполнить"],
+        }
+
+        for key, value in expected_errors.items():
+            self.assertIn(key, form.errors)
+            self.assertEqual(form.errors[key], expected_errors[key])
