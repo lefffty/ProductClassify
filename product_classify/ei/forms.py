@@ -22,7 +22,7 @@ class EiForm(ModelForm):
         required=True,
         error_messages={
             "required": "Поле множителя для перевода в другую единицу измерения необходимо заполнить",
-        }
+        },
     )
     name = CharField(
         max_length=EI_FORM_NAME_MAX_LENGTH,
@@ -30,7 +30,7 @@ class EiForm(ModelForm):
         label="Название единицы измерения",
         error_messages={
             "required": "Поле названия единицы измерения необходимо заполнить",
-        }
+        },
     )
     short_name = CharField(
         max_length=EI_FORM_SHORT_NAME_MAX_LENGTH,
@@ -38,13 +38,13 @@ class EiForm(ModelForm):
         label="Сокращенное название единицы измерения",
         error_messages={
             "required": "Поле сокращенного названия единицы измерения необходимо заполнить",
-        }
+        },
     )
     main_class = ModelChoiceField(
         queryset=Ei.objects.none(),
         required=False,
         label="Родительская единица измерения",
-        empty_label="Выберите родительскую единицу измерения"
+        empty_label="Выберите родительскую единицу измерения",
     )
     code = CharField(
         max_length=EI_CODE_MAX_LENGTH,

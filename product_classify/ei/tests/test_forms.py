@@ -12,8 +12,8 @@ class EiFormTest(TestCase):
         cls.NEW_INSTANCE_NAME = "Test name"
         cls.NEW_INSTANCE_SHORT_NAME = "Test"
         cls.NEW_INSTANCE_CODE = "00000"
-        cls.NEW_INSTANCE_CONVERT_FACTOR = .25
-        cls.NEW_INSTANCE_INVALID_CONVERT_FACTOR = -.25
+        cls.NEW_INSTANCE_CONVERT_FACTOR = 0.25
+        cls.NEW_INSTANCE_INVALID_CONVERT_FACTOR = -0.25
 
         cls.ei_to_update = Ei.objects.last()
 
@@ -47,7 +47,9 @@ class EiFormTest(TestCase):
             "main_class": self.NEW_INSTANCE_MAIN_CLASS,
             "convert_factor": self.NEW_INSTANCE_CONVERT_FACTOR,
         }
-        expected_error_msg = "Поле сокращенного названия единицы измерения необходимо заполнить"
+        expected_error_msg = (
+            "Поле сокращенного названия единицы измерения необходимо заполнить"
+        )
         form = EiForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("short_name", form.errors)
@@ -202,7 +204,7 @@ class EiFormTest(TestCase):
         form = EiForm(data=form_data)
         self.assertTrue(form.is_valid())
         obj = form.save()
-        self.assertEqual(obj.code, '')
+        self.assertEqual(obj.code, "")
 
     def test_update_without_changing_main_class(self):
         """Проверяет, что при редактировании без изменения main_class значение сохраняется."""

@@ -78,6 +78,21 @@ class Enums(models.Model):
         return cls.objects.filter(enum__main_class__id=DOUBLE_ENUMS_ID)
 
     def clean(self):
+        try:
+            enum = self.enum
+        except self.__class__.enum.RelatedObjectDoesNotExist:
+            return
+
+        if self.enum.main_class.pk not in (
+            STRING_ENUMS_ID,
+            INT_ENUMS_ID,
+            DOUBLE_ENUMS_ID,
+            IMAGE_ENUMS_ID,
+        ):
+            raise ValidationError(
+                "Родительский класс должен быть классом-перечислением."
+            )
+
         if self.enum.main_class.pk == IMAGE_ENUMS_ID and any(
             [self.double_value, self.int_value]
         ):
@@ -103,10 +118,6 @@ class Enums(models.Model):
             raise ValidationError(
                 "Для перечисления типа 'Вещественное число' поля name, short_name, int_value и image должны быть пустыми (null). "
                 "Заполните только поле double_value."
-            )
-        else:
-            raise ValidationError(
-                "Родительский класс должен быть классом-перечислением."
             )
 
     def __str__(self):

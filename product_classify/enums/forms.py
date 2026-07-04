@@ -1,9 +1,13 @@
 from django.forms import (
     ModelChoiceField,
     ModelForm,
-    Form,
     CharField,
+    ImageField,
+    FloatField,
+    IntegerField,
+    Form,
 )
+from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 
 from classes.models import ClassStruct
@@ -16,7 +20,19 @@ from .constants import (
     STRING_ENUMS_ID,
     ENUMS_FORM_NAME_MAX_LENGTH,
     ENUMS_FORM_SHORT_NAME_MAX_LENGTH,
+    ENUMS_FORM_INT_VALUE_LOWER_BOUND,
+    ENUMS_FORM_DOUBLE_VALUE_LOWER_BOUND,
 )
+
+
+def validate_positive_int(value):
+    if value <= ENUMS_FORM_INT_VALUE_LOWER_BOUND:
+        raise ValidationError("Значение должно быть положительным числом (> 0)")
+
+
+def validate_positive_double(value):
+    if value <= ENUMS_FORM_DOUBLE_VALUE_LOWER_BOUND:
+        raise ValidationError("Значение должно быть положительным числом (> 0)")
 
 
 class EnumsForm(ModelForm):
@@ -25,11 +41,13 @@ class EnumsForm(ModelForm):
         queryset=ClassStruct.objects.none(),
         empty_label="Выберите перечисление",
         required=True,
+        error_messages={"required": "Поле перечисления необходимо заполнить"},
     )
-    picture_value = CharField(
+    image = ImageField(
         help_text='Разрешенные форматы изображений: ["jpg", "png"]',
         label="Путь к изображению",
         required=False,
+        validators=[FileExtensionValidator(allowed_extensions=["jpg", "png"])],
     )
     name = CharField(
         max_length=ENUMS_FORM_NAME_MAX_LENGTH,
@@ -38,8 +56,18 @@ class EnumsForm(ModelForm):
     )
     short_name = CharField(
         max_length=ENUMS_FORM_SHORT_NAME_MAX_LENGTH,
-        required=True,
+        required=False,
         label="Сокращенное название перечисления",
+    )
+    double_value = FloatField(
+        required=False,
+        label="Вещественное значение перечисления",
+        validators=[validate_positive_double],
+    )
+    int_value = IntegerField(
+        required=False,
+        label="Целочисленное значение перечисления",
+        validators=[validate_positive_int],
     )
 
     class Meta:
@@ -50,15 +78,15 @@ class EnumsForm(ModelForm):
             "short_name",
             "double_value",
             "int_value",
-            "picture_value",
+            "image",
         )
         labels = {
             "enum": "Родитель перечисления",
             "name": "Название перечисления",
             "short_name": "Сокращенное название перечисления",
-            "double_value": "Вещественное значение параметра",
-            "int_value": "Целочисленное значение параметра",
-            "picture_value": "Путь к изображению",
+            "double_value": "Вещественное значение перечисления",
+            "int_value": "Целочисленное значение перечисления",
+            "image": "Путь к изображению",
         }
 
     def __init__(self, *args, **kwargs):
@@ -67,38 +95,63 @@ class EnumsForm(ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        picture_value = str(cleaned_data.get("picture_value"))
         enum = cleaned_data.get("enum")
+
+        if not enum:
+            return cleaned_data
+
+        image = cleaned_data.get("image")
+        int_value = cleaned_data.get("int_value")
+        double_value = cleaned_data.get("double_value")
+        name = cleaned_data.get("name")
+        short_name = cleaned_data.get("short_name")
+
         parent_id = enum.main_class.id
-        int_value = cleaned_data["int_value"]
-        double_value = cleaned_data["double_value"]
 
         if parent_id == STRING_ENUMS_ID:
-            if any([picture_value, int_value, double_value]):
-                raise ValidationError("""Значение перечисления строк не должно иметь
-                    пути к изображению, целочисленного и вещественного
-                    значений""")
+            if not short_name or not name:
+                raise ValidationError(
+                    "Для строкового перечисления поля 'Название' и 'Сокращенное название' обязательны для заполнения."
+                )
+            if any([image, int_value, double_value]):
+                raise ValidationError("""
+                    Значение перечисления строк не должно иметь пути к изображению, целочисленного и вещественного
+                    значений
+                """)
         elif parent_id == IMAGE_ENUMS_ID:
+            if not image:
+                raise ValidationError("""
+                    Для перечисления изображений необходимо загрузить изображение (поле 'Путь к изображению').
+                """)
             if any([int_value, double_value]):
                 raise ValidationError("""Значение перечисления изображений не должно
-                    иметь численных значений""")
-            if picture_value is None or not picture_value.endswith((".jpg", ".png")):
-                raise ValidationError("""Неверный формат изображения!
-                    Разрешенные форматы изображений: ["jpg", "png"]""")
-        elif parent_id == INT_ENUMS_ID:
-            if any([int_value, picture_value]):
+                        иметь численных значений""")
+        elif parent_id == DOUBLE_ENUMS_ID:
+            if not double_value:
+                raise ValidationError(
+                    "Для вещественного перечисления необходимо указать вещественное значение "
+                    "(поле 'Вещественное значение перечисления')."
+                )
+            if any([int_value, image, short_name, name]):
                 raise ValidationError("""Вещественное перечисление не должно иметь
                     целочисленного значения и путь к изображению""")
-        elif parent_id == DOUBLE_ENUMS_ID:
-            if any([double_value, picture_value]):
+        elif parent_id == INT_ENUMS_ID:
+            if not int_value:
+                raise ValidationError(
+                    "Для целочисленного перечисления необходимо указать целочисленное значение "
+                    "(поле 'Целочисленное значение перечисления')."
+                )
+            if any([double_value, image, short_name, name]):
                 raise ValidationError("""Целочисленное перечисление не должно иметь
                     вещественного значения и путь к изображению""")
-        cleaned_data["num"] = Enums.objects.filter(enum=enum).count() + 1
+
+        if not self.instance.pk:
+            cleaned_data["num"] = Enums.objects.filter(enum=enum).count() + 1
         return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        instance.num = self.cleaned_data["num"]
+        instance.num = self.cleaned_data.get("num", 1)
         if commit:
             instance.save()
         return instance
