@@ -1,5 +1,7 @@
 from django.test import TestCase
-from django.db.models import QuerySet
+from django.db.models import QuerySet, PositiveSmallIntegerField
+from django.db import transaction
+from django.db.backends.base.operations import BaseDatabaseOperations
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from typing import Literal, TypeAlias
@@ -9,7 +11,7 @@ from io import BytesIO
 from classes.models import ClassStruct
 
 from enums.models import Enums
-from enums.forms import EnumsForm
+from enums.forms import EnumsForm, ChangeNumForm
 from enums.constants import (
     STRING_ENUMS_ID,
     INT_ENUMS_ID,
@@ -912,7 +914,6 @@ class EnumsFormTest(TestCase):
 
     def test_image_enums_value_edit_replace_image(self):
         """Проверяет, что при редактировании можно заменить изображение на другое корректное."""
-        # Создаём с PNG
         form_data = {
             "enum": self.image_enum,
             "name": "",
@@ -930,7 +931,7 @@ class EnumsFormTest(TestCase):
         form = EnumsForm(data=form_data, files=form_files, instance=obj)
         self.assertTrue(form.is_valid())
         obj = form.save()
-        self.assertNotEqual(obj.image.name, old_image_name)  # имя изменилось
+        self.assertNotEqual(obj.image.name, old_image_name)
         self.assertTrue(obj.image.name.endswith(".jpg"))
 
     def test_int_enums_value_edit_updates_int_value(self):
@@ -1079,3 +1080,224 @@ class EnumsFormTest(TestCase):
         }
         form = EnumsForm(data=form_data, instance=obj)
         self.assertFalse(form.is_valid())
+
+
+class ChangeNumFormTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.int_enum_type = ClassStruct.objects.get(pk=INT_ENUMS_ID)
+        cls.double_enum_type = ClassStruct.objects.get(pk=DOUBLE_ENUMS_ID)
+
+        cls.int_enum = ClassStruct.objects.create(
+            name="Диаметр стержня",
+            short_name="d",
+            main_class=cls.int_enum_type,
+            base_ei=None,
+        )
+        cls.double_enum = ClassStruct.objects.create(
+            name="Высота головки",
+            short_name="k",
+            main_class=cls.double_enum_type,
+            base_ei=None,
+        )
+
+        cls.int_value_1 = Enums.objects.create(
+            enum=cls.int_enum,
+            num=1,
+            name="",
+            short_name="",
+            double_value=None,
+            image=None,
+            int_value=1,
+        )
+        cls.int_value_2 = Enums.objects.create(
+            enum=cls.int_enum,
+            name="",
+            num=2,
+            short_name="",
+            double_value=None,
+            image=None,
+            int_value=2,
+        )
+        cls.int_value_3 = Enums.objects.create(
+            enum=cls.int_enum,
+            name="",
+            num=3,
+            short_name="",
+            double_value=None,
+            image=None,
+            int_value=3,
+        )
+        cls.double_value_1 = Enums.objects.create(
+            enum=cls.double_enum,
+            num=1,
+            name="",
+            short_name="",
+            double_value=3.0,
+            image=None,
+            int_value=None,
+        )
+
+    def test_enum_1_field_is_required(self):
+        """Проверяет, что поле enum_1 обязательно для заполнения."""
+        form_data = {
+            "enum_1": None,
+            "enum_2": self.int_value_2,
+        }
+        form = ChangeNumForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    def test_enum_2_field_is_required(self):
+        """Проверяет, что поле enum_2 обязательно для заполнения."""
+        form_data = {
+            "enum_1": self.int_value_1,
+            "enum_2": None,
+        }
+        form = ChangeNumForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    def test_enum_1_queryset_is_all_enums_objects(self):
+        """Проверяет, что поле enum_1 использует queryset со всеми объектами Enums."""
+        form_data = {
+            "enum_1": self.int_value_1,
+            "enum_2": self.int_value_2,
+        }
+        form = ChangeNumForm(data=form_data)
+        expected_no_enums = 4
+        self.assertIsInstance(form.fields["enum_1"].queryset, QuerySet)
+        self.assertEqual(len(form.fields["enum_1"].queryset), expected_no_enums)
+
+    def test_enum_2_queryset_is_all_enums_objects(self):
+        """Проверяет, что поле enum_2 использует queryset со всеми объектами Enums."""
+        form_data = {
+            "enum_1": self.int_value_1,
+            "enum_2": self.int_value_2,
+        }
+        form = ChangeNumForm(data=form_data)
+        expected_no_enums = 4
+        self.assertIsInstance(form.fields["enum_2"].queryset, QuerySet)
+        self.assertEqual(len(form.fields["enum_2"].queryset), expected_no_enums)
+
+    def test_non_enum_object_for_enum_1_field_is_invalid(self):
+        """Проверяет, что выбор объекта, не являющегося экземпляром Enums, в поле enum_1 вызывает ошибку валидации."""
+        form_data = {
+            "enum_1": self.double_enum,
+            "enum_2": self.int_value_2,
+        }
+        form = ChangeNumForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    def test_non_enum_object_for_enum_2_field_is_invalid(self):
+        """Проверяет, что выбор объекта, не являющегося экземпляром Enums, в поле enum_2 вызывает ошибку валидации."""
+        form_data = {
+            "enum_1": self.int_value_1,
+            "enum_2": self.double_enum,
+        }
+        form = ChangeNumForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    def test_equal_enums_raises_validation_error(self):
+        """Проверяет, что выбор одинаковых перечислений в обоих полях вызывает ошибку валидации."""
+        form_data = {
+            "enum_1": self.int_value_1,
+            "enum_2": self.int_value_1,
+        }
+        form = ChangeNumForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    def test_error_message_for_equal_enums(self):
+        """Проверяет, что при выборе одинаковых перечислений выводится корректное сообщение об ошибке."""
+        form_data = {
+            "enum_1": self.int_value_1,
+            "enum_2": self.int_value_1,
+        }
+        form = ChangeNumForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("__all__", form.errors)
+        expected_msg = "Перечисления не могут быть одинаковыми"
+        self.assertEqual(form.errors["__all__"][0], expected_msg)
+
+    def test_enums_from_different_classes_raises_validation_error(self):
+        """Проверяет, что выбор перечислений из разных классов вызывает ошибку валидации."""
+        form_data = {
+            "enum_1": self.int_value_1,
+            "enum_2": self.double_value_1,
+        }
+        form = ChangeNumForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    def test_error_message_for_different_classes(self):
+        """Проверяет, что при выборе перечислений из разных классов выводится корректное сообщение об ошибке."""
+        form_data = {
+            "enum_1": self.int_value_1,
+            "enum_2": self.double_value_1,
+        }
+        form = ChangeNumForm(data=form_data)
+        expected_error_msg = (
+            "Перечисления должны быть из одного класса"
+        )
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors["__all__"][0], expected_error_msg)
+
+    def test_form_with_non_equal_enums_objects_from_same_class_is_valid(self):
+        """Проверяет, что форма валидна при выборе двух разных перечислений из одного класса."""
+        form_data = {
+            "enum_1": self.int_value_1,
+            "enum_2": self.int_value_2,
+        }
+        form = ChangeNumForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+    def test_clean_returns_cleaned_data_with_swapped_nums(self):
+        """Проверяет, что метод clean() меняет местами значения num в cleaned_data."""
+        form_data = {
+            "enum_1": self.int_value_1,
+            "enum_2": self.int_value_2,
+        }
+        form = ChangeNumForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+        self.assertIn("enum_1", form.cleaned_data)
+        self.assertIn("enum_2", form.cleaned_data)
+        self.assertEqual(form.cleaned_data["enum_1"].num, 2)
+        self.assertEqual(form.cleaned_data["enum_2"].num, 1)
+
+    def test_clean_swaps_num_between_enums(self):
+        """Проверяет, что метод clean() корректно обменивает num между двумя перечислениями."""
+        form_data = {
+            "enum_1": self.int_value_1,
+            "enum_2": self.int_value_2,
+        }
+        form = ChangeNumForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+        self.assertEqual(form.cleaned_data["enum_1"].num, 2)
+        self.assertEqual(form.cleaned_data["enum_2"].num, 1)
+
+    def test_enums_objects_from_form_is_saved_correctly(self):
+        """Проверяет, что при сохранении объектов из cleaned_data в БД значения num меняются местами корректно."""
+        form_data = {
+            "enum_1": self.int_value_1,
+            "enum_2": self.int_value_2,
+        }
+        form = ChangeNumForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+        updated_enum1 = form.cleaned_data["enum_1"]
+        updated_enum2 = form.cleaned_data["enum_2"]
+
+        with transaction.atomic():
+            field = PositiveSmallIntegerField()
+            temp_num = BaseDatabaseOperations.integer_field_ranges[field.get_internal_type()][1]
+            new_num = updated_enum1.num
+            updated_enum1.num = temp_num
+            updated_enum1.save(update_fields=["num"])
+            updated_enum2.save(update_fields=["num"])
+            updated_enum1.num = new_num
+            updated_enum1.save(update_fields=["num"])
+
+        self.int_value_1.refresh_from_db()
+        self.int_value_2.refresh_from_db()
+        self.assertEqual(self.int_value_1.num, 2)
+        self.assertEqual(self.int_value_2.num, 1)
+

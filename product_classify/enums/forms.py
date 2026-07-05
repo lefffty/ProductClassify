@@ -175,13 +175,23 @@ class ChangeNumForm(Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        enum_1 = cleaned_data.get("enum_1")
-        enum_2 = cleaned_data.get("enum_2")
+        enum_1 = cleaned_data.get("enum_1", None)
+        enum_2 = cleaned_data.get("enum_2", None)
+
+        if not enum_1:
+            raise ValidationError(
+                "Пожалуйста, выберите первое перечисление."
+            )
+
+        if not enum_2:
+            raise ValidationError(
+                "Пожалуйста, выберите второе перечисление."
+            )
 
         if enum_1 == enum_2:
             raise ValidationError("Перечисления не могут быть одинаковыми")
 
-        if enum_1.enum.class_id != enum_2.enum.class_id:
+        if enum_1.enum.pk != enum_2.enum.pk:
             raise ValidationError("Перечисления должны быть из одного класса")
 
         enum_1.num, enum_2.num = enum_2.num, enum_1.num
