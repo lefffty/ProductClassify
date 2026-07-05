@@ -8,7 +8,9 @@ from parametr.models import Parametr
 from .constants import (
     IMAGE_ENUMS_ID,
     STRING_ENUMS_ID,
+    AGREGAT_TYPE_ID,
     PARAMETR_FORM_NAME_MAX_LENGTH,
+    PARAMETR_SHORT_NAME_MAX_LENGTH,
 )
 
 
@@ -16,6 +18,7 @@ class ParametrForm(ModelForm):
     parametr_type = ModelChoiceField(
         label="Тип параметра",
         queryset=ClassStruct.objects.none(),
+        required=True,
     )
     par_ei = ModelChoiceField(
         label="Единица измерения параметра",
@@ -26,6 +29,11 @@ class ParametrForm(ModelForm):
         max_length=PARAMETR_FORM_NAME_MAX_LENGTH,
         required=True,
         label="Название параметра",
+    )
+    short_name = CharField(
+        max_length=PARAMETR_SHORT_NAME_MAX_LENGTH,
+        required=False,
+        label="Сокращенное название параметра",
     )
 
     class Meta:
@@ -53,13 +61,20 @@ class ParametrForm(ModelForm):
         parametr_tp = cleaned_data.get("parametr_type")
         par_ei = cleaned_data.get("par_ei")
 
-        str_enum = ClassStruct.objects.get(pk=IMAGE_ENUMS_ID)
-        img_enum = ClassStruct.objects.get(pk=STRING_ENUMS_ID)
+        str_enum = ClassStruct.objects.get(pk=STRING_ENUMS_ID)
+        img_enum = ClassStruct.objects.get(pk=IMAGE_ENUMS_ID)
+        agregat_type = ClassStruct.objects.get(pk=AGREGAT_TYPE_ID)
 
         if parametr_tp == str_enum and par_ei is not None:
-            raise ValidationError("""Параметр с типом Перечисление строк
-                не может иметь единиц измерения""")
+            raise ValidationError(
+                """Параметр типа 'Перечисление строк' не может иметь единиц измерения"""
+            )
         elif parametr_tp == img_enum and par_ei is not None:
-            raise ValidationError("""Параметр с типом Перечисление изображений
-                не может иметь единиц измерения""")
+            raise ValidationError(
+                """Параметр типа 'Перечисление изображений' не может иметь единиц измерения"""
+            )
+        elif parametr_tp == agregat_type and par_ei is not None:
+            raise ValidationError(
+                """Параметр типа 'Агрегат' не может иметь единиц измерения"""
+            )
         return cleaned_data

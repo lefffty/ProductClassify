@@ -12,6 +12,7 @@ from .constants import (
     PARCLASS_NUM_MIN_VALUE,
     ENUM_PARENT_NODE_ID,
     ENUM_CLASSES_IDS,
+    AGREGAT_TYPE_ID,
     NUM_PARAM_ID,
     FASTENER_ID,
     NUM_ENUM_ID,
@@ -90,7 +91,10 @@ class ClassStruct(models.Model):
         image_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[1])
         num_enums = ClassStruct.objects.filter(main_class__exact=NUM_ENUM_ID)
         num_params = ClassStruct.objects.filter(main_class__exact=NUM_PARAM_ID)
-        result_queryset = string_enum | image_enum | num_params | num_enums
+        agregat_type = ClassStruct.objects.filter(pk__in=[AGREGAT_TYPE_ID])
+        result_queryset = (
+            string_enum | image_enum | num_params | num_enums | agregat_type
+        )
         return result_queryset
 
     @classmethod
