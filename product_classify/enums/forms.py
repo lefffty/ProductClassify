@@ -179,14 +179,10 @@ class ChangeNumForm(Form):
         enum_2 = cleaned_data.get("enum_2", None)
 
         if not enum_1:
-            raise ValidationError(
-                "Пожалуйста, выберите первое перечисление."
-            )
+            raise ValidationError("Пожалуйста, выберите первое перечисление.")
 
         if not enum_2:
-            raise ValidationError(
-                "Пожалуйста, выберите второе перечисление."
-            )
+            raise ValidationError("Пожалуйста, выберите второе перечисление.")
 
         if enum_1 == enum_2:
             raise ValidationError("Перечисления не могут быть одинаковыми")

@@ -1233,9 +1233,7 @@ class ChangeNumFormTest(TestCase):
             "enum_2": self.double_value_1,
         }
         form = ChangeNumForm(data=form_data)
-        expected_error_msg = (
-            "Перечисления должны быть из одного класса"
-        )
+        expected_error_msg = "Перечисления должны быть из одного класса"
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors["__all__"][0], expected_error_msg)
 
@@ -1288,7 +1286,9 @@ class ChangeNumFormTest(TestCase):
 
         with transaction.atomic():
             field = PositiveSmallIntegerField()
-            temp_num = BaseDatabaseOperations.integer_field_ranges[field.get_internal_type()][1]
+            temp_num = BaseDatabaseOperations.integer_field_ranges[
+                field.get_internal_type()
+            ][1]
             new_num = updated_enum1.num
             updated_enum1.num = temp_num
             updated_enum1.save(update_fields=["num"])
@@ -1300,4 +1300,3 @@ class ChangeNumFormTest(TestCase):
         self.int_value_2.refresh_from_db()
         self.assertEqual(self.int_value_1.num, 2)
         self.assertEqual(self.int_value_2.num, 1)
-

@@ -1,9 +1,12 @@
 from django.forms import (
-    ModelForm,
     ModelChoiceField,
-    Form,
+    ImageField,
+    ModelForm,
+    CharField,
     Field,
+    Form,
 )
+from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 
 from enums.models import Enums
@@ -11,8 +14,9 @@ from classes.models import ClassStruct, ParClass
 
 from .models import Parametr, ParProd, Prod
 from .constants import (
+    PROD_SHORT_NAME_MAX_LENGTH,
+    PROD_NAME_MAX_LENGTH,
     INT_PARAMS,
-    DOUBLE_PARAMS,
 )
 
 
@@ -20,6 +24,26 @@ class ProdForm(ModelForm):
     class_field = ModelChoiceField(
         label="Родительский класс",
         queryset=ClassStruct.objects.none(),
+        required=True,
+        error_messages={
+            "required": "Поле для родительского класса изделия необходимо заполнить"
+        },
+    )
+    name = CharField(
+        label="Название изделия",
+        max_length=PROD_NAME_MAX_LENGTH,
+        required=True,
+        error_messages={"required": "Поле для названия класса необходимо заполнить"},
+    )
+    short_name = CharField(
+        label="Сокращенное название изделия",
+        max_length=PROD_SHORT_NAME_MAX_LENGTH,
+        required=False,
+    )
+    image = ImageField(
+        label="Изображение изделия",
+        required=False,
+        validators=[FileExtensionValidator(["jpg", "png"])],
     )
 
     class Meta:
@@ -28,11 +52,13 @@ class ProdForm(ModelForm):
             "name",
             "short_name",
             "class_field",
+            "image",
         )
         labels = {
             "name": "Название изделия",
             "short_name": "Сокращенное название изделия",
             "class_field": "Родительский класс",
+            "image": "Изображение изделия",
         }
 
     def __init__(self, *args, **kwargs):
