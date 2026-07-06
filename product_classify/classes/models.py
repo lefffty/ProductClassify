@@ -136,12 +136,12 @@ class ParClass(models.Model):
     min_value = models.FloatField(
         verbose_name="Минимальное значение параметра",
         null=True,
-        blank=True,
+        blank=False,
     )
     max_value = models.FloatField(
         verbose_name="Максимальное значение параметра",
         null=True,
-        blank=True,
+        blank=False,
     )
 
     class Meta:
@@ -163,8 +163,10 @@ class ParClass(models.Model):
         ]
 
     def clean(self):
+        if not self.parametr_id:
+            return
+
         enum_param_type_ids = list([*ENUM_CLASSES_IDS, AGREGAT_TYPE_ID])
-        print("Enum param type ids:", enum_param_type_ids)
         if self.parametr.parametr_type.id in enum_param_type_ids and (
             self.min_value or self.max_value
         ):
@@ -174,13 +176,14 @@ class ParClass(models.Model):
                 f" Оставьте поля min_value и max_value пустыми."
             )
 
-        if self.min_value > self.max_value:
-            raise ValidationError(
-                {
-                    "min_value": "Minimum value should be less than maximum value",
-                    "max_value": "Maximum value should be greater than minimum value",
-                }
-            )
+        if self.min_value and self.max_value:
+            if self.min_value > self.max_value:
+                raise ValidationError(
+                    {
+                        "min_value": "Minimum value should be less than maximum value",
+                        "max_value": "Maximum value should be greater than minimum value",
+                    }
+                )
 
     def __str__(self):
         return f"{self.class_field.name} - {self.parametr.name}"
