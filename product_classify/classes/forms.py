@@ -224,9 +224,9 @@ class ParClassForm(ModelForm):
             raise ValidationError(
                 "У параметра-перечисления не должно быть максимального и минимального значений!"
             )
-        elif param_tp in ClassStruct.objects.filter(main_class__exact=NUM_PARAM_ID).values_list("id", flat=True) and (
-            min_val and max_val and min_val > max_val
-        ):
+        elif param_tp in ClassStruct.objects.filter(
+            main_class__exact=NUM_PARAM_ID
+        ).values_list("id", flat=True) and (min_val and max_val and min_val > max_val):
             raise ValidationError(
                 "У численного параметра минимальное значение должно быть меньше максимального!"
             )
@@ -251,7 +251,7 @@ class ParClassForm(ModelForm):
         return instance
 
 
-class ChangeParclassNumForm(Form):
+class ChangeParClassNumForm(Form):
     def __init__(self, *args, **kwargs):
         class_id = kwargs.pop("class_id", None)
         super().__init__(*args, **kwargs)
@@ -266,8 +266,12 @@ class ChangeParclassNumForm(Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        class_field_1 = cleaned_data["class_field_1"]
-        class_field_2 = cleaned_data["class_field_2"]
+        class_field_1 = cleaned_data.get("class_field_1")
+        if not class_field_1:
+            raise ValidationError("Поле class_field_1 не может быть пустым")
+        class_field_2 = cleaned_data.get("class_field_2")
+        if not class_field_2:
+            raise ValidationError("Поле class_field_2 не может быть пустым")
         if class_field_1 == class_field_2:
             raise ValidationError("Классы изделия не могут быть одинаковыми!")
         return cleaned_data

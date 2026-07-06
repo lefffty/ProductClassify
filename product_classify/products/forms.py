@@ -159,7 +159,7 @@ class RangeField(Field):
             return None
         try:
             start, end = value.split("-")
-            return (start, end)
+            return start, end
         except ValueError:
             raise ValidationError("Некорректный формат диапазона")
 

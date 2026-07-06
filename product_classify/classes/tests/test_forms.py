@@ -1,5 +1,7 @@
 from django.test import TestCase
-from django.db.models import QuerySet
+from django.db.models import QuerySet, PositiveSmallIntegerField
+from django.db import transaction
+from django.db.backends.base.operations import BaseDatabaseOperations
 
 from unittest.mock import patch
 
@@ -11,7 +13,12 @@ from agregat.constants import AGREGAT_TYPE_ID
 
 from classes.constants import NUTS_ID
 from classes.models import ClassStruct, ParClass
-from classes.forms import ProdClassForm, EnumClassForm, ParClassForm
+from classes.forms import (
+    ProdClassForm,
+    EnumClassForm,
+    ParClassForm,
+    ChangeParClassNumForm,
+)
 
 
 class ProdClassFormTest(TestCase):
@@ -742,7 +749,10 @@ class ParClassFormTest(TestCase):
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("__all__", form.errors)
-        self.assertEqual(form.errors["__all__"][0], "Поле 'Класс изделия' обязательно для заполнения.")
+        self.assertEqual(
+            form.errors["__all__"][0],
+            "Поле 'Класс изделия' обязательно для заполнения.",
+        )
 
     def test_parametr_field_is_required(self):
         """Проверяет, что поле parametr обязательно для заполнения."""
@@ -755,7 +765,9 @@ class ParClassFormTest(TestCase):
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("__all__", form.errors)
-        self.assertEqual(form.errors["__all__"][0], "Поле 'Параметр' обязательно для заполнения.")
+        self.assertEqual(
+            form.errors["__all__"][0], "Поле 'Параметр' обязательно для заполнения."
+        )
 
     def test_min_value_is_optional(self):
         """Проверяет, что поле min_value может быть пустым (None) и форма проходит валидацию."""
@@ -814,7 +826,7 @@ class ParClassFormTest(TestCase):
         self.assertIn("__all__", form.errors)
         self.assertEqual(
             form.errors["__all__"][0],
-            "У параметра-перечисления не должно быть максимального и минимального значений!"
+            "У параметра-перечисления не должно быть максимального и минимального значений!",
         )
 
     def test_enum_parametr_having_max_value_raises_validation_error(self):
@@ -830,7 +842,7 @@ class ParClassFormTest(TestCase):
         self.assertIn("__all__", form.errors)
         self.assertEqual(
             form.errors["__all__"][0],
-            "У параметра-перечисления не должно быть максимального и минимального значений!"
+            "У параметра-перечисления не должно быть максимального и минимального значений!",
         )
 
     def test_invalid_min_value_raises_validation_error(self):
@@ -1123,7 +1135,7 @@ class ParClassFormTest(TestCase):
             parametr=self.num_parametr,
             min_value=self.min_value,
             max_value=self.max_value,
-            num=1
+            num=1,
         )
 
         form_data = {
@@ -1144,7 +1156,7 @@ class ParClassFormTest(TestCase):
             parametr=self.num_parametr,
             min_value=self.min_value,
             max_value=self.max_value,
-            num=1
+            num=1,
         )
 
         form_data = {
@@ -1171,5 +1183,165 @@ class ParClassFormTest(TestCase):
         self.assertIn("__all__", form.errors)
         self.assertEqual(
             form.errors["__all__"][0],
-            "У численного параметра минимальное значение должно быть меньше максимального!"
+            "У численного параметра минимальное значение должно быть меньше максимального!",
         )
+
+
+class ChangeParClassNumFormTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.par_ei = Ei.objects.first()
+        cls.int_parametr = ClassStruct.objects.get(pk=INT_PARAMS)
+        cls.int_enum_parametr = ClassStruct.objects.get(pk=INT_ENUMS_ID)
+        cls.agregat_parametr_type = ClassStruct.objects.get(pk=AGREGAT_TYPE_ID)
+        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+        cls.nuts_product_class = ClassStruct.objects.create(
+            name="nuts_product_class",
+            short_name="nuts_prod_class",
+            base_ei=None,
+            main_class=cls.nuts_class,
+        )
+        cls.other_nuts_product_class = ClassStruct.objects.create(
+            name="nuts_product_class",
+            short_name="nuts_prod_class",
+            base_ei=None,
+            main_class=cls.nuts_class,
+        )
+        cls.non_product_class = ClassStruct.objects.create(
+            name="non_product_class",
+            short_name="non_prod_class",
+            base_ei=None,
+            main_class=None,
+        )
+        cls.enum_parametr = Parametr.objects.create(
+            name="enum_parametr",
+            short_name="enum_parametr",
+            parametr_type=cls.int_enum_parametr,
+            par_ei=cls.par_ei,
+        )
+        cls.num_parametr = Parametr.objects.create(
+            name="num_parametr",
+            short_name="num_parametr",
+            parametr_type=cls.int_parametr,
+            par_ei=cls.par_ei,
+        )
+
+        cls.min_value = 10.00
+        cls.max_value = 12.00
+
+        cls.parclass_1 = ParClass.objects.create(
+            class_field=cls.nuts_product_class,
+            parametr=cls.num_parametr,
+            min_value=cls.min_value,
+            max_value=cls.max_value,
+            num=1,
+        )
+        cls.parclass_2 = ParClass.objects.create(
+            class_field=cls.nuts_product_class,
+            parametr=cls.enum_parametr,
+            min_value=None,
+            max_value=None,
+            num=2,
+        )
+        cls.parclass_3 = ParClass.objects.create(
+            class_field=cls.other_nuts_product_class,
+            parametr=cls.num_parametr,
+            min_value=cls.min_value,
+            max_value=cls.max_value,
+            num=1,
+        )
+
+    def test_class_field_1_is_required(self):
+        """Проверяет, что поле class_field_1 обязательно для заполнения."""
+        form_data = {
+            "class_field_1": None,
+            "class_field_2": self.parclass_2,
+        }
+        form = ChangeParClassNumForm(
+            data=form_data, class_id=self.nuts_product_class.pk
+        )
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            form.errors["__all__"][0], "Поле class_field_1 не может быть пустым"
+        )
+
+    def test_class_field_2_is_required(self):
+        """Проверяет, что поле class_field_2 обязательно для заполнения."""
+        form_data = {
+            "class_field_1": self.parclass_1,
+            "class_field_2": None,
+        }
+        form = ChangeParClassNumForm(
+            data=form_data, class_id=self.nuts_product_class.pk
+        )
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            form.errors["__all__"][0], "Поле class_field_2 не может быть пустым"
+        )
+
+    def test_clean_raises_validation_error_if_objects_are_equal(self):
+        """Проверяет, что при выборе двух одинаковых объектов ParClass выбрасывается ValidationError с соответствующим сообщением."""
+        form_data = {
+            "class_field_1": self.parclass_1,
+            "class_field_2": self.parclass_1,
+        }
+        form = ChangeParClassNumForm(
+            data=form_data, class_id=self.nuts_product_class.pk
+        )
+        self.assertFalse(form.is_valid())
+
+    def test_error_message_for_duplicate_objects(self):
+        """Проверяет, что при выборе одинаковых объектов сообщение об ошибке соответствует ожидаемому."""
+        form_data = {
+            "class_field_1": self.parclass_1,
+            "class_field_2": self.parclass_1,
+        }
+        form = ChangeParClassNumForm(
+            data=form_data, class_id=self.nuts_product_class.pk
+        )
+        self.assertFalse(form.is_valid(), form.errors)
+        expected_error_msg = "Классы изделия не могут быть одинаковыми!"
+        self.assertEqual(form.errors["__all__"][0], expected_error_msg)
+
+    def test_clean_does_not_raise_error_if_objects_are_different(self):
+        """Проверяет, что при выборе двух разных объектов ParClass форма проходит валидацию."""
+        form_data = {
+            "class_field_1": self.parclass_1,
+            "class_field_2": self.parclass_2,
+        }
+        form = ChangeParClassNumForm(
+            data=form_data, class_id=self.nuts_product_class.pk
+        )
+        self.assertTrue(form.is_valid())
+
+    def test_queryset_is_empty_if_class_id_is_none(self):
+        """Проверяет, что при передаче class_id=None queryset полей пуст."""
+        form = ChangeParClassNumForm()
+        self.assertEqual(len(form.fields["class_field_1"].queryset), 0)
+        self.assertEqual(len(form.fields["class_field_2"].queryset), 0)
+
+    def test_num_values_were_successfully_swapped(self):
+        """Проверяет, что после валидации формы значения num у двух выбранных объектов ParClass успешно меняются местами."""
+        form_data = {
+            "class_field_1": self.parclass_1,
+            "class_field_2": self.parclass_2,
+        }
+        form = ChangeParClassNumForm(
+            data=form_data, class_id=self.nuts_product_class.pk
+        )
+        self.assertTrue(form.is_valid())
+
+        updated_parclass_1 = form.cleaned_data["class_field_1"]
+        updated_parclass_2 = form.cleaned_data["class_field_2"]
+
+        updated_parclass_1.num, updated_parclass_2.num = (
+            updated_parclass_2.num,
+            updated_parclass_1.num,
+        )
+        updated_parclass_1.save(update_fields=["num"])
+        updated_parclass_2.save(update_fields=["num"])
+
+        self.parclass_1.refresh_from_db()
+        self.parclass_2.refresh_from_db()
+        self.assertEqual(self.parclass_1.num, 2)
+        self.assertEqual(self.parclass_2.num, 1)

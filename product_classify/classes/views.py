@@ -16,7 +16,7 @@ from .models import (
     ParClass,
 )
 from .forms import (
-    ChangeParclassNumForm,
+    ChangeParClassNumForm,
     ProdClassForm,
     EnumClassForm,
     ParClassForm,
@@ -307,7 +307,7 @@ class ChangeNumView(
     UpdateView,
 ):
     queryset = ParClass.objects.all()
-    form_class = ChangeParclassNumForm
+    form_class = ChangeParClassNumForm
     template_name = "classes/change_parclass_num.html"
 
     def get_context_data(self, **kwargs):
