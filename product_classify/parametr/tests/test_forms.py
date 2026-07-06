@@ -503,7 +503,7 @@ class ParametrFormTest(TestCase):
 
     def test_parametr_type_queryset_uses_parametr_types_method(self):
         """Проверяет, что queryset для parametr_type формируется через вызов ClassStruct.parametr_types()."""
-        with patch('classes.models.ClassStruct.parametr_types') as mock_method:
+        with patch("classes.models.ClassStruct.parametr_types") as mock_method:
             mock_method.return_value = ClassStruct.objects.none()
             form = ParametrForm()
             mock_method.assert_called_once()
@@ -534,7 +534,9 @@ class ParametrFormTest(TestCase):
         form = ParametrForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("__all__", form.errors)
-        expected_msg = "Параметр типа 'Перечисление строк' не может иметь единиц измерения"
+        expected_msg = (
+            "Параметр типа 'Перечисление строк' не может иметь единиц измерения"
+        )
         self.assertEqual(form.errors["__all__"][0], expected_msg)
 
     def test_edit_parametr_change_type_to_string_enum_with_par_ei_raises_error(self):
