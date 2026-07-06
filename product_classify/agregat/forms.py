@@ -1,8 +1,10 @@
+from django.core.exceptions import ValidationError
 from django.forms import (
     ModelForm,
     ModelChoiceField,
     Form,
 )
+from loguru import logger
 
 from parametr.models import Parametr
 
@@ -60,16 +62,33 @@ class ChangeAgregatNumForm(Form):
         self.fields["agr_param_1"] = ModelChoiceField(
             queryset=Agregat.objects.filter(agr=agr),
             label="Параметр 1",
+            required=True,
         )
         self.fields["agr_param_2"] = ModelChoiceField(
             queryset=Agregat.objects.filter(agr=agr),
             label="Параметр 2",
+            required=True,
         )
 
     def clean(self):
         cleaned_data = super().clean()
-        agr_param_1 = cleaned_data["agr_param_1"]
-        agr_param_2 = cleaned_data["agr_param_2"]
+        agr_param_1 = cleaned_data.get("agr_param_1")
+
+        if not agr_param_1:
+            raise ValidationError(
+                "Поле первого параметра агрегата в форме необходимо заполнить"
+            )
+
+        agr_param_2 = cleaned_data.get("agr_param_2")
+
+        if not agr_param_2:
+            raise ValidationError(
+                "Поле второго параметра агрегата в форме необходимо заполнить"
+            )
+
+        if agr_param_1 == agr_param_2:
+            raise ValidationError("Выберите разные параметры")
+
         temp_num = agr_param_1.num
         agr_param_1.num = agr_param_2.num
         agr_param_2.num = temp_num
