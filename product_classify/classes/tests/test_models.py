@@ -227,6 +227,36 @@ class ParClassModelTest(TestCase):
         )
         self.assertEqual(ve.exception.messages[0], expected_error_msg)
 
+    def test_min_value_is_none_and_max_value_is_not_none_does_not_raise_validation_error(
+        self,
+    ):
+        num = self.NUM_PLACEHOLDER
+        parclass = ParClass(
+            class_field=self.class_field,
+            parametr=self.parametr,
+            num=num,
+            min_value=None,
+            max_value=self.MAX_VALUE_PLACEHOLDER,
+        )
+        parclass.full_clean()
+        obj = parclass.save()
+        self.assertIsNotNone(parclass.pk)
+
+    def test_max_value_is_none_and_min_value_is_not_none_does_not_raise_validation_error(
+        self,
+    ):
+        num = self.NUM_PLACEHOLDER
+        parclass = ParClass(
+            class_field=self.class_field,
+            parametr=self.parametr,
+            num=num,
+            min_value=self.MIN_VALUE_PLACEHOLDER,
+            max_value=None,
+        )
+        parclass.full_clean()
+        obj = parclass.save()
+        self.assertIsNotNone(parclass.pk)
+
     def test_clean_raises_error_if_max_less_than_min(self):
         num = self.NUM_PLACEHOLDER
         parclass = ParClass(

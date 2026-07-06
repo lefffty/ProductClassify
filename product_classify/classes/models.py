@@ -136,12 +136,12 @@ class ParClass(models.Model):
     min_value = models.FloatField(
         verbose_name="Минимальное значение параметра",
         null=True,
-        blank=False,
+        blank=True,
     )
     max_value = models.FloatField(
         verbose_name="Максимальное значение параметра",
         null=True,
-        blank=False,
+        blank=True,
     )
 
     class Meta:

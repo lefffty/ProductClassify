@@ -4,8 +4,14 @@ from django.db.models import QuerySet
 from unittest.mock import patch
 
 from ei.models import Ei
-from classes.models import ClassStruct
-from classes.forms import ProdClassForm, EnumClassForm
+from parametr.models import Parametr
+from enums.constants import INT_ENUMS_ID
+from products.constants import INT_PARAMS
+from agregat.constants import AGREGAT_TYPE_ID
+
+from classes.constants import NUTS_ID
+from classes.models import ClassStruct, ParClass
+from classes.forms import ProdClassForm, EnumClassForm, ParClassForm
 
 
 class ProdClassFormTest(TestCase):
@@ -627,3 +633,543 @@ class EnumClassFormTest(TestCase):
         for key, value in expected_errors.items():
             self.assertIn(key, form.errors)
             self.assertEqual(form.errors[key], expected_errors[key])
+
+
+class ParClassFormTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.par_ei = Ei.objects.first()
+        cls.int_parametr = ClassStruct.objects.get(pk=INT_PARAMS)
+        cls.int_enum_parametr = ClassStruct.objects.get(pk=INT_ENUMS_ID)
+        cls.agregat_parametr_type = ClassStruct.objects.get(pk=AGREGAT_TYPE_ID)
+        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+        cls.nuts_product_class = ClassStruct.objects.create(
+            name="nuts_product_class",
+            short_name="nuts_prod_class",
+            base_ei=None,
+            main_class=cls.nuts_class,
+        )
+        cls.other_nuts_product_class = ClassStruct.objects.create(
+            name="nuts_product_class",
+            short_name="nuts_prod_class",
+            base_ei=None,
+            main_class=cls.nuts_class,
+        )
+        cls.non_product_class = ClassStruct.objects.create(
+            name="non_product_class",
+            short_name="non_prod_class",
+            base_ei=None,
+            main_class=None,
+        )
+        cls.enum_parametr = Parametr.objects.create(
+            name="enum_parametr",
+            short_name="enum_parametr",
+            parametr_type=cls.int_enum_parametr,
+            par_ei=cls.par_ei,
+        )
+        cls.num_parametr = Parametr.objects.create(
+            name="num_parametr",
+            short_name="num_parametr",
+            parametr_type=cls.int_parametr,
+            par_ei=cls.par_ei,
+        )
+        cls.other_num_parametr = Parametr.objects.create(
+            name="other_num_par",
+            short_name="other_num_par",
+            parametr_type=cls.int_parametr,
+            par_ei=cls.par_ei,
+        )
+        cls.agregat_parametr = Parametr.objects.create(
+            name="agregat_parametr",
+            short_name="agregat_par",
+            parametr_type=cls.agregat_parametr_type,
+            par_ei=cls.par_ei,
+        )
+        cls.min_value = 100.00
+        cls.max_value = 200.00
+        cls.new_min_value = 10.00
+        cls.new_max_value = 30.00
+        cls.invalid_min_value = -1
+        cls.invalid_max_value = -1
+
+    def test_class_field_queryset_is_products(self):
+        """Проверяет, что поле class_field использует queryset с объектами ClassStruct.products()."""
+        form = ParClassForm()
+        self.assertTrue(form.fields["class_field"].queryset, QuerySet)
+        self.assertEqual(len(form.fields["class_field"].queryset), 7)
+
+    def test_parametr_queryset_is_parameters(self):
+        """Проверяет, что поле parametr использует queryset с объектами Parametr.parameters()."""
+        form = ParClassForm()
+        self.assertTrue(form.fields["parametr"].queryset, QuerySet)
+        self.assertEqual(len(form.fields["parametr"].queryset), 3)
+
+    def test_class_field_initial_value_is_not_none_if_class_field_was_passed_into_constructor(
+        self,
+    ):
+        """Проверяет, что при передаче class_field в конструктор формы поле class_field получает начальное значение."""
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.int_parametr,
+            "min_value": None,
+            "max_value": None,
+        }
+        form = ParClassForm(class_field=self.nuts_product_class, data=form_data)
+        self.assertIsNotNone(form.fields["class_field"].initial)
+        self.assertEqual(form.fields["class_field"].initial, self.nuts_product_class)
+
+    def test_class_field_initial_value_is_none_if_class_field_was_passed_into_constructor(
+        self,
+    ):
+        """Проверяет, что без передачи class_field в конструктор поле class_field не имеет начального значения."""
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.int_parametr,
+            "min_value": None,
+            "max_value": None,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertIsNone(form.fields["class_field"].initial)
+
+    def test_class_field_is_required(self):
+        """Проверяет, что поле class_field обязательно для заполнения."""
+        form_data = {
+            "class_field": None,
+            "parametr": self.num_parametr,
+            "min_value": None,
+            "max_value": None,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("__all__", form.errors)
+        self.assertEqual(form.errors["__all__"][0], "Поле 'Класс изделия' обязательно для заполнения.")
+
+    def test_parametr_field_is_required(self):
+        """Проверяет, что поле parametr обязательно для заполнения."""
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": None,
+            "min_value": None,
+            "max_value": None,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("__all__", form.errors)
+        self.assertEqual(form.errors["__all__"][0], "Поле 'Параметр' обязательно для заполнения.")
+
+    def test_min_value_is_optional(self):
+        """Проверяет, что поле min_value может быть пустым (None) и форма проходит валидацию."""
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.num_parametr,
+            "min_value": None,
+            "max_value": self.max_value,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_max_value_is_optional(self):
+        """Проверяет, что поле max_value может быть пустым (None) и форма проходит валидацию."""
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.num_parametr,
+            "min_value": self.min_value,
+            "max_value": None,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_invalid_class_field_raises_validation_error(self):
+        """Проверяет, что выбор class_field, не входящего в products(), вызывает ошибку валидации."""
+        form_data = {
+            "class_field": self.non_product_class,
+            "parametr": self.num_parametr,
+            "min_value": None,
+            "max_value": None,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    def test_invalid_parametr_field_raises_validation_error(self):
+        """Проверяет, что выбор parametr, не входящего в parameters(), вызывает ошибку валидации."""
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.agregat_parametr,
+            "min_value": None,
+            "max_value": None,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    def test_enum_parametr_having_min_value_raises_validation_error(self):
+        """Проверяет, что для enum-параметра указание min_value вызывает ошибку валидации."""
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.enum_parametr,
+            "min_value": self.min_value,
+            "max_value": None,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("__all__", form.errors)
+        self.assertEqual(
+            form.errors["__all__"][0],
+            "У параметра-перечисления не должно быть максимального и минимального значений!"
+        )
+
+    def test_enum_parametr_having_max_value_raises_validation_error(self):
+        """Проверяет, что для enum-параметра указание max_value вызывает ошибку валидации."""
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.enum_parametr,
+            "min_value": None,
+            "max_value": self.max_value,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("__all__", form.errors)
+        self.assertEqual(
+            form.errors["__all__"][0],
+            "У параметра-перечисления не должно быть максимального и минимального значений!"
+        )
+
+    def test_invalid_min_value_raises_validation_error(self):
+        """Проверяет, что отрицательное или нулевое значение min_value вызывает ошибку валидации."""
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.num_parametr,
+            "min_value": self.invalid_min_value,
+            "max_value": None,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    def test_invalid_max_value_raises_validation_error(self):
+        """Проверяет, что отрицательное или нулевое значение max_value вызывает ошибку валидации."""
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.num_parametr,
+            "min_value": None,
+            "max_value": self.invalid_max_value,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    def test_correct_data_for_num_parametr_is_valid(self):
+        """Проверяет, что форма с корректными данными для числового параметра проходит валидацию."""
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.num_parametr,
+            "min_value": self.min_value,
+            "max_value": self.max_value,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+    def test_correct_data_for_enum_parametr_is_valid(self):
+        """Проверяет, что форма с корректными данными для enum-параметра (без min/max) проходит валидацию."""
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.enum_parametr,
+            "min_value": None,
+            "max_value": None,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+    def test_num_par_class_instance_is_saved_correctly(self):
+        """Проверяет, что объект ParClass для числового параметра сохраняется корректно."""
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.num_parametr,
+            "min_value": self.min_value,
+            "max_value": self.max_value,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+        obj = form.save()
+        self.assertIsNotNone(obj.pk)
+        self.assertEqual(form_data["class_field"], obj.class_field)
+        self.assertEqual(form_data["parametr"], obj.parametr)
+        self.assertEqual(form_data["min_value"], obj.min_value)
+        self.assertEqual(form_data["max_value"], obj.max_value)
+
+    def test_enum_par_class_instance_is_saved_correctly(self):
+        """Проверяет, что объект ParClass для enum-параметра сохраняется корректно."""
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.enum_parametr,
+            "min_value": None,
+            "max_value": None,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertTrue(form.is_valid())
+
+        obj = form.save()
+        self.assertIsNotNone(obj.pk)
+        self.assertEqual(form_data["class_field"], obj.class_field)
+        self.assertEqual(form_data["parametr"], obj.parametr)
+        self.assertEqual(form_data["min_value"], obj.min_value)
+        self.assertEqual(form_data["max_value"], obj.max_value)
+
+    def test_edit_form_is_correctly_updating_min_value_and_max_value_fields(self):
+        """Проверяет, что при редактировании поля min_value и max_value обновляются корректно."""
+        instance = ParClass.objects.create(
+            class_field=self.nuts_product_class,
+            parametr=self.num_parametr,
+            min_value=self.min_value,
+            max_value=self.max_value,
+            num=1,
+        )
+
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.num_parametr,
+            "min_value": self.new_min_value,
+            "max_value": self.new_max_value,
+        }
+        form = ParClassForm(data=form_data, instance=instance)
+        obj = form.save()
+        self.assertEqual(obj.pk, instance.pk)
+        self.assertEqual(obj.min_value, form_data["min_value"])
+        self.assertEqual(obj.max_value, form_data["max_value"])
+
+    def test_edit_form_correctly_updates_parametr_field_if_their_types_are_the_same(
+        self,
+    ):
+        """Проверяет, что при смене параметра на другой того же типа (числовой) форма валидна и сохраняет изменения."""
+        instance = ParClass.objects.create(
+            class_field=self.nuts_product_class,
+            parametr=self.num_parametr,
+            min_value=self.min_value,
+            max_value=self.max_value,
+            num=1,
+        )
+
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.other_num_parametr,
+            "min_value": self.new_min_value,
+            "max_value": self.new_max_value,
+        }
+        form = ParClassForm(data=form_data, instance=instance)
+        obj = form.save()
+        self.assertEqual(obj.parametr, form_data["parametr"])
+        self.assertEqual(obj.min_value, form_data["min_value"])
+        self.assertEqual(obj.max_value, form_data["max_value"])
+
+    def test_edit_form_correctly_updates_parametr_field_if_their_types_are_different_and_min_value_and_max_value_were_complied(
+        self,
+    ):
+        """Проверяет, что при смене параметра на enum (с очисткой min/max) форма валидна и сохраняет изменения."""
+        instance = ParClass.objects.create(
+            class_field=self.nuts_product_class,
+            parametr=self.num_parametr,
+            min_value=self.min_value,
+            max_value=self.max_value,
+            num=1,
+        )
+
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.enum_parametr,
+            "min_value": None,
+            "max_value": None,
+        }
+        form = ParClassForm(data=form_data, instance=instance)
+        obj = form.save()
+        self.assertEqual(obj.parametr, form_data["parametr"])
+        self.assertEqual(obj.min_value, form_data["min_value"])
+        self.assertEqual(obj.max_value, form_data["max_value"])
+
+    def test_edit_form_raises_validation_error_is_parametr_types_are_different_and_min_value_and_max_value_were_not_complied(
+        self,
+    ):
+        """Проверяет, что при смене параметра на enum с оставшимися min/max возникает ошибка валидации."""
+
+        instance = ParClass.objects.create(
+            class_field=self.nuts_product_class,
+            parametr=self.num_parametr,
+            min_value=self.min_value,
+            max_value=self.max_value,
+            num=1,
+        )
+
+        form_data = {
+            "class_field": self.nuts_product_class,
+            "parametr": self.enum_parametr,
+            "min_value": self.min_value,
+            "max_value": self.max_value,
+        }
+        form = ParClassForm(data=form_data, instance=instance)
+        self.assertFalse(form.is_valid())
+        expected_error_msg = "У параметра-перечисления не должно быть максимального и минимального значений!"
+        self.assertEqual(form.errors["__all__"][0], expected_error_msg)
+
+    def test_edit_form_correctly_updates_class_field(self):
+        """Проверяет, что при смене class_field объект обновляется и num пересчитывается для нового класса."""
+        instance = ParClass.objects.create(
+            class_field=self.nuts_class,
+            parametr=self.num_parametr,
+            min_value=self.min_value,
+            max_value=self.max_value,
+            num=1,
+        )
+
+        form_data = {
+            "class_field": self.other_nuts_product_class,
+            "parametr": self.num_parametr,
+            "min_value": self.min_value,
+            "max_value": self.max_value,
+        }
+        form = ParClassForm(data=form_data, instance=instance)
+        self.assertTrue(form.is_valid())
+        obj = form.save()
+        self.assertEqual(obj.class_field, form_data["class_field"])
+        self.assertEqual(obj.num, 1)
+
+    def test_equal_pairs_raises_validation_error(self):
+        """Проверяет, что попытка создать дублирующую пару (class_field, parametr) вызывает ошибку валидации."""
+        ParClass.objects.create(
+            class_field=self.nuts_class,
+            parametr=self.num_parametr,
+            min_value=self.min_value,
+            max_value=self.max_value,
+            num=1,
+        )
+
+        form_data = {
+            "class_field": self.nuts_class,
+            "parametr": self.num_parametr,
+            "min_value": self.min_value,
+            "max_value": self.max_value,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertFalse(form.is_valid())
+
+    def test_class_field_parclass_instances_have_correct_num_values(self):
+        """Проверяет, что при создании нескольких объектов для одного класса num последовательно увеличивается."""
+        instance1_form_data = {
+            "class_field": self.nuts_class,
+            "parametr": self.num_parametr,
+            "min_value": self.min_value,
+            "max_value": self.max_value,
+        }
+        form = ParClassForm(data=instance1_form_data)
+        self.assertTrue(form.is_valid())
+        obj1 = form.save()
+        self.assertIsNotNone(obj1.pk)
+        self.assertEqual(obj1.num, 1)
+
+        instance2_form_data = {
+            "class_field": self.nuts_class,
+            "parametr": self.enum_parametr,
+            "min_value": None,
+            "max_value": None,
+        }
+        form = ParClassForm(data=instance2_form_data)
+        self.assertTrue(form.is_valid())
+        obj2 = form.save()
+        self.assertIsNotNone(obj2.pk)
+        self.assertEqual(obj2.num, 2)
+
+    def test_num_field_has_correct_value_after_updating_class_field(self):
+        """Проверяет, что при смене class_field num пересчитывается для нового класса (с учётом уже существующих записей)."""
+        ParClass.objects.create(
+            class_field=self.nuts_product_class,
+            parametr=self.num_parametr,
+            min_value=self.min_value,
+            max_value=self.max_value,
+            num=1,
+        )
+        ParClass.objects.create(
+            class_field=self.nuts_product_class,
+            parametr=self.other_num_parametr,
+            min_value=self.min_value,
+            max_value=self.max_value,
+            num=2,
+        )
+        instance = ParClass.objects.create(
+            class_field=self.nuts_product_class,
+            parametr=self.enum_parametr,
+            min_value=None,
+            max_value=None,
+            num=3,
+        )
+        ParClass.objects.create(
+            class_field=self.other_nuts_product_class,
+            parametr=self.other_num_parametr,
+            min_value=self.min_value,
+            max_value=self.max_value,
+            num=1,
+        )
+
+        form_data = {
+            "class_field": self.other_nuts_product_class,
+            "parametr": self.enum_parametr,
+            "min_value": None,
+            "max_value": None,
+        }
+        form = ParClassForm(data=form_data, instance=instance)
+        self.assertTrue(form.is_valid())
+        obj = form.save()
+        self.assertEqual(obj.num, 2)
+
+    def test_edit_without_changing_class_field_keeps_num(self):
+        """Проверяет, что при редактировании без изменения class_field значение num не меняется."""
+        instance = ParClass.objects.create(
+            class_field=self.nuts_product_class,
+            parametr=self.num_parametr,
+            min_value=self.min_value,
+            max_value=self.max_value,
+            num=1
+        )
+
+        form_data = {
+            "class_field": self.other_nuts_product_class,
+            "parametr": self.num_parametr,
+            "min_value": self.min_value,
+            "max_value": self.max_value,
+        }
+        form = ParClassForm(data=form_data, instance=instance)
+        self.assertTrue(form.is_valid())
+        obj = form.save()
+        self.assertEqual(obj.num, 1)
+
+    def test_edit_without_changing_parametr_does_not_change_num(self):
+        """Проверяет, что при редактировании только min/max (без смены parametr и class_field) num остаётся прежним."""
+        instance = ParClass.objects.create(
+            class_field=self.nuts_product_class,
+            parametr=self.num_parametr,
+            min_value=self.min_value,
+            max_value=self.max_value,
+            num=1
+        )
+
+        form_data = {
+            "class_field": self.other_nuts_product_class,
+            "parametr": self.num_parametr,
+            "min_value": self.new_min_value,
+            "max_value": self.new_max_value,
+        }
+        form = ParClassForm(data=form_data, instance=instance)
+        self.assertTrue(form.is_valid())
+        obj = form.save()
+        self.assertEqual(obj.num, 1)
+
+    def test_model_clean_raises_error_if_min_value_greater_than_max_value(self):
+        """Проверяет, что модель выбрасывает ошибку валидации, если min_value > max_value."""
+        form_data = {
+            "class_field": self.other_nuts_product_class,
+            "parametr": self.num_parametr,
+            "min_value": self.new_max_value,
+            "max_value": self.new_min_value,
+        }
+        form = ParClassForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("__all__", form.errors)
+        self.assertEqual(
+            form.errors["__all__"][0],
+            "У численного параметра минимальное значение должно быть меньше максимального!"
+        )

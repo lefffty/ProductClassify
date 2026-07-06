@@ -17,7 +17,7 @@ from .models import (
     ParClass,
 )
 from .constants import (
-    ENUM_CLASSES_IDS,
+    NUM_PARAM_ID,
     PROD_CLASS_FORM_MAX_LENGTH,
     ENUM_CLASS_FORM_NAME_MAX_LENGTH,
     PARCLASS_FORM_MAX_VALUE_LOWER_BOUND,
@@ -165,10 +165,12 @@ class ParClassForm(ModelForm):
     class_field = ModelChoiceField(
         label="Класс изделия",
         queryset=ClassStruct.objects.none(),
+        required=True,
     )
     parametr = ModelChoiceField(
         label="Параметр",
         queryset=Parametr.objects.none(),
+        required=True,
     )
     min_value = FloatField(
         label="Минимальное значение параметра класса",
@@ -187,12 +189,7 @@ class ParClassForm(ModelForm):
 
     class Meta:
         model = ParClass
-        fields = (
-            "class_field",
-            "parametr",
-            "min_value",
-            "max_value",
-        )
+        fields = ("class_field", "parametr", "min_value", "max_value")
         labels = {
             "class_field": "Класс изделия",
             "parametr": "Параметр",
@@ -209,35 +206,49 @@ class ParClassForm(ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        class_field = cleaned_data.get("class_field")
+        parametr = cleaned_data.get("parametr")
 
-        param = cleaned_data["parametr"]
-        min_val = cleaned_data["min_value"]
-        max_val = cleaned_data["max_value"]
-        param_tp = param.parametr_type.id
-        cls_id = cleaned_data["class_field"].id
+        if not class_field:
+            raise ValidationError("Поле 'Класс изделия' обязательно для заполнения.")
+        if not parametr:
+            raise ValidationError("Поле 'Параметр' обязательно для заполнения.")
 
-        if param_tp in ClassStruct.enum_classes.values_list("id", flat=True) and (
-            min_val or max_val
+        param_tp = parametr.parametr_type.id
+        min_val = cleaned_data.get("min_value")
+        max_val = cleaned_data.get("max_value")
+
+        if param_tp in ClassStruct.enum_classes().values_list("id", flat=True) and (
+            min_val is not None or max_val is not None
         ):
-            raise ValidationError("""У параметра-перечисления не должно быть
-                максимального и минимального значений!""")
+            raise ValidationError(
+                "У параметра-перечисления не должно быть максимального и минимального значений!"
+            )
+        elif param_tp in ClassStruct.objects.filter(main_class__exact=NUM_PARAM_ID).values_list("id", flat=True) and (
+            min_val and max_val and min_val > max_val
+        ):
+            raise ValidationError(
+                "У численного параметра минимальное значение должно быть меньше максимального!"
+            )
 
-        with connection.cursor() as cursor:
-            if param.parametr_type.id in ENUM_CLASSES_IDS:
-                cursor.execute(
-                    """SELECT * FROM to_add_parametr_to_class(
-                        %s, %s, %s, %s
-                    ); """,
-                    [cls_id, param.pk, None, None],
-                )
-            else:
-                cursor.execute(
-                    """SELECT * FROM to_add_parametr_to_class(
-                        %s, %s, %s, %s
-                    );""",
-                    [cls_id, param.pk, min_val, max_val],
-                )
+        if not self.instance.pk:
+            cleaned_data["num"] = (
+                ParClass.objects.filter(class_field=class_field).count() + 1
+            )
+        elif self.instance.pk and self.instance.class_field != class_field:
+            cleaned_data["num"] = (
+                ParClass.objects.filter(class_field=class_field).count() + 1
+            )
+
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if "num" in self.cleaned_data:
+            instance.num = self.cleaned_data["num"]
+        if commit:
+            instance.save()
+        return instance
 
 
 class ChangeParclassNumForm(Form):

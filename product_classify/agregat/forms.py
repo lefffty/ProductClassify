@@ -4,7 +4,6 @@ from django.forms import (
     ModelChoiceField,
     Form,
 )
-from loguru import logger
 
 from parametr.models import Parametr
 

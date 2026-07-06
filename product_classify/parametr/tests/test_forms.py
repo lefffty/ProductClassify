@@ -505,7 +505,7 @@ class ParametrFormTest(TestCase):
         """Проверяет, что queryset для parametr_type формируется через вызов ClassStruct.parametr_types()."""
         with patch("classes.models.ClassStruct.parametr_types") as mock_method:
             mock_method.return_value = ClassStruct.objects.none()
-            form = ParametrForm()
+            _ = ParametrForm()
             mock_method.assert_called_once()
 
     def test_invalid_parametr_type_not_in_queryset_raises_error(self):
