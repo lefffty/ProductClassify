@@ -1,5 +1,7 @@
 from django.forms import (
     ModelChoiceField,
+    IntegerField,
+    FloatField,
     ImageField,
     ModelForm,
     CharField,
@@ -70,14 +72,24 @@ class ParProdForm(ModelForm):
     prod = ModelChoiceField(
         queryset=Prod.objects.none(),
         label="Изделие",
+        required=True,
     )
     par = ModelChoiceField(
         queryset=Parametr.objects.none(),
         label="Параметр",
+        required=True,
     )
     enum_val = ModelChoiceField(
         queryset=Enums.objects.none(),
         label="Значение перечисления",
+        required=False,
+    )
+    int_value = IntegerField(
+        label="Целочисленное значение параметра",
+        required=False,
+    )
+    double_value = FloatField(
+        label="Вещественное значение параметра",
         required=False,
     )
 
@@ -126,29 +138,17 @@ class ParProdForm(ModelForm):
         )
         mn_value = par_class.min_value
         mx_value = par_class.max_value
-        if par.parametr_type.id == FLOAT_PARAMS:
-            cleaned_data["double_value"] = None
-            cleaned_data["enum_val"] = None
-            if (
-                cleaned_data["int_value"] < mn_value
-                or cleaned_data["int_value"] > mx_value
-            ):
-                raise ValidationError(
-                    "Целочисленное значение не входит в границы диапазона"
+        if par.parametr_type.id in [FLOAT_PARAMS, INT_PARAMS]:
+            key = "int_value" if par.parametr_type.id == INT_PARAMS else "double_value"
+            if cleaned_data[key] < mn_value or cleaned_data[key] > mx_value:
+                _enum_str = (
+                    "Целочисленное"
+                    if par.parametr_type.id == INT_PARAMS
+                    else "Вещественное"
                 )
-        elif par.parametr_type.id == INT_PARAMS:
-            cleaned_data["int_value"] = None
-            cleaned_data["enum_val"] = None
-            if (
-                cleaned_data["double_value"] < mn_value
-                or cleaned_data["double_value"] > mx_value
-            ):
                 raise ValidationError(
-                    "Вещественное значение не входит в границы диапазона"
+                    f"{_enum_str} значение не входит в границы диапазона"
                 )
-        else:
-            cleaned_data["int_value"] = None
-            cleaned_data["double_value"] = None
 
         return cleaned_data
 

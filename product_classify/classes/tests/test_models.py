@@ -100,7 +100,7 @@ class ClassStructModelTest(TestCase):
 
     def test_parametr_types_contains_expected_ids(self):
         parametr_types = ClassStruct.parametr_types()
-        expected_ids = {15, 16, 18, 19, 27, 28}
+        expected_ids = {15, 16, 18, 19, 27, 28, 30}
         actual_ids = set(parametr_types.values_list("id", flat=True))
         msg = self.get_expected_ids_error_message(expected_ids, actual_ids)
         length_msg = self.get_expected_length_error_message(

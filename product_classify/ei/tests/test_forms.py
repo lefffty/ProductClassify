@@ -1,3 +1,5 @@
+from parameterized import parameterized
+
 from django.test import TestCase
 from django.db.models import QuerySet
 
@@ -23,76 +25,83 @@ class EiFormTest(TestCase):
         self.assertIsInstance(form.fields["main_class"].queryset, QuerySet)
         self.assertEqual(len(form.fields["main_class"].queryset), Ei.objects.count())
 
-    def test_name_is_required(self):
-        """Проверяет, что поле name обязательно для заполнения."""
+    @parameterized.expand(
+        [
+            (
+                None,
+                "Test",
+                "00000",
+                Ei.objects.first(),
+                0.25,
+                False,
+                "Поле названия единицы измерения необходимо заполнить",
+                "name",
+            ),
+            (
+                "Test name",
+                None,
+                "00000",
+                Ei.objects.first(),
+                0.25,
+                False,
+                "Поле сокращенного названия единицы измерения необходимо заполнить",
+                "short_name",
+            ),
+            (
+                "Test name",
+                "Test",
+                "00000",
+                Ei.objects.first(),
+                None,
+                False,
+                "Поле множителя для перевода в другую единицу измерения необходимо заполнить",
+                "convert_factor",
+            ),
+            (
+                "Test name",
+                "Test",
+                None,
+                Ei.objects.first(),
+                0.25,
+                True,
+                None,
+                None,
+            ),
+            (
+                "Test name",
+                "Test",
+                "00000",
+                None,
+                0.25,
+                True,
+                None,
+                None,
+            ),
+        ],
+    )
+    def test_form_fields_are_required_or_not(
+        self,
+        name,
+        short_name,
+        code,
+        main_class,
+        convert_factor,
+        is_valid,
+        expected_error_msg,
+        field_name,
+    ):
         form_data = {
-            "name": None,
-            "short_name": self.NEW_INSTANCE_SHORT_NAME,
-            "code": self.NEW_INSTANCE_CODE,
-            "main_class": self.NEW_INSTANCE_MAIN_CLASS,
-            "convert_factor": self.NEW_INSTANCE_CONVERT_FACTOR,
-        }
-        expected_error_msg = "Поле названия единицы измерения необходимо заполнить"
-        form = EiForm(data=form_data)
-        self.assertFalse(form.is_valid())
-        self.assertIn("name", form.errors)
-        self.assertEqual(form.errors["name"], [expected_error_msg])
-
-    def test_short_name_is_required(self):
-        """Проверяет, что поле short_name обязательно для заполнения."""
-        form_data = {
-            "name": self.NEW_INSTANCE_NAME,
-            "short_name": None,
-            "code": self.NEW_INSTANCE_CODE,
-            "main_class": self.NEW_INSTANCE_MAIN_CLASS,
-            "convert_factor": self.NEW_INSTANCE_CONVERT_FACTOR,
-        }
-        expected_error_msg = (
-            "Поле сокращенного названия единицы измерения необходимо заполнить"
-        )
-        form = EiForm(data=form_data)
-        self.assertFalse(form.is_valid())
-        self.assertIn("short_name", form.errors)
-        self.assertEqual(form.errors["short_name"], [expected_error_msg])
-
-    def test_convert_factor_is_required(self):
-        """Проверяет, что поле convert_factor обязательно для заполнения."""
-        form_data = {
-            "name": self.NEW_INSTANCE_NAME,
-            "short_name": self.NEW_INSTANCE_SHORT_NAME,
-            "code": self.NEW_INSTANCE_CODE,
-            "main_class": self.NEW_INSTANCE_MAIN_CLASS,
-            "convert_factor": None,
-        }
-        expected_error_msg = "Поле множителя для перевода в другую единицу измерения необходимо заполнить"
-        form = EiForm(data=form_data)
-        self.assertFalse(form.is_valid())
-        self.assertIn("convert_factor", form.errors)
-        self.assertEqual(form.errors["convert_factor"], [expected_error_msg])
-
-    def test_main_class_is_optional(self):
-        """Проверяет, что поле main_class может быть пустым (None) и форма остаётся валидной."""
-        form_data = {
-            "name": self.NEW_INSTANCE_NAME,
-            "short_name": self.NEW_INSTANCE_SHORT_NAME,
-            "code": self.NEW_INSTANCE_CODE,
-            "main_class": None,
-            "convert_factor": self.NEW_INSTANCE_CONVERT_FACTOR,
+            "name": name,
+            "short_name": short_name,
+            "code": code,
+            "main_class": main_class,
+            "convert_factor": convert_factor,
         }
         form = EiForm(data=form_data)
-        self.assertTrue(form.is_valid())
-
-    def test_code_is_optional(self):
-        """Проверяет, что поле code может быть пустым (None или пустая строка) и форма остаётся валидной."""
-        form_data = {
-            "name": self.NEW_INSTANCE_NAME,
-            "short_name": self.NEW_INSTANCE_SHORT_NAME,
-            "code": None,
-            "main_class": self.NEW_INSTANCE_MAIN_CLASS,
-            "convert_factor": self.NEW_INSTANCE_CONVERT_FACTOR,
-        }
-        form = EiForm(data=form_data)
-        self.assertTrue(form.is_valid())
+        self.assertEqual(form.is_valid(), is_valid)
+        if not is_valid:
+            self.assertIn(field_name, form.errors)
+            self.assertEqual(form.errors[field_name], [expected_error_msg])
 
     def test_raises_validation_error_if_convert_factor_is_lte_zero(self):
         """Проверяет, что значение convert_factor меньше минимально допустимого вызывает ошибку валидации."""
