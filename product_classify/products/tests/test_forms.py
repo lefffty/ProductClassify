@@ -7,7 +7,9 @@ from io import BytesIO
 
 from classes.models import ClassStruct
 from classes.constants import NUTS_ID
+from parametr.models import Parametr
 from enums.constants import STRING_ENUMS_ID
+from enums.models import Enums
 
 from products.forms import ProdForm
 
@@ -307,3 +309,41 @@ class ProdFormTest(TestCase):
         self.assertEqual(obj.short_name, new_form_data["short_name"])
         self.assertEqual(obj.class_field, new_form_data["class_field"])
         self.assertNotEqual(obj.image.name, form_files["image"])
+
+
+class ParProdFormTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.INT_VALUE = 5
+        cls.DOUBLE_VALUE = 2.5
+
+        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+        cls.nuts_product_class = ClassStruct.objects.create(
+            name="nuts_product_class",
+            short_name="nuts_prod_class",
+            base_ei=None,
+            main_class=cls.nuts_class,
+        )
+        cls.int_parametr_cls = ClassStruct.objects.get(pk=INT_PARAMS)
+        cls.int_enum_parametr_cls = ClassStruct.objects.get(pk=INT_ENUMS_ID)
+
+        cls.int_parametr = Parametr.objects.create(
+            name="parametr",
+            short_name="par",
+            parametr_type=cls.int_parametr_cls,
+        )
+        cls.int_enum_parametr = Parametr.objects.create(
+            name="parametr",
+            short_name="par",
+            parametr_type=cls.int_enum_parametr_cls
+        )
+
+        cls.ENUM_VAL = Enums.objects.create(
+            enum=cls.int_enum_parametr_cls,
+            num=1,
+            name="test_enum",
+            short_name="test_enum",
+            double_value=None,
+            int_value=cls.INT_VALUE,
+            image=None,
+        )

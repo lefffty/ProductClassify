@@ -1,0 +1,162 @@
+[
+  {
+    "model": "classes.classstruct",
+    "pk": 1,
+    "fields": {
+      "name": "Изделия",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 2,
+    "fields": {
+      "name": "Крепеж",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 1
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 3,
+    "fields": {
+      "name": "Болты",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 2
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 4,
+    "fields": {
+      "name": "Кронштейн",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 2
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 5,
+    "fields": {
+      "name": "Гайки",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 2
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 13,
+    "fields": {
+      "name": "КлассПо",
+      "short_name": "КлПО",
+      "base_ei": null,
+      "main_class": null
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 14,
+    "fields": {
+      "name": "Перечисление",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 15,
+    "fields": {
+      "name": "Перечисление строк",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 16,
+    "fields": {
+      "name": "Перечисление изображений",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 17,
+    "fields": {
+      "name": "Численное перечисление",
+      "short_name": "",
+      "base_ei": null,
+      "main_class": 14
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 18,
+    "fields": {
+      "name": "Вещественное перечисление",
+      "short_name": "ВещПр",
+      "base_ei": null,
+      "main_class": 17
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 19,
+    "fields": {
+      "name": "Целочисленное перечисление",
+      "short_name": "ЦелПр",
+      "base_ei": null,
+      "main_class": 17
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 26,
+    "fields": {
+      "name": "Численные параметры",
+      "short_name": "ЧислПарам",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 27,
+    "fields": {
+      "name": "Вещественные параметры",
+      "short_name": "ВещПарам",
+      "base_ei": null,
+      "main_class": 26
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 28,
+    "fields": {
+      "name": "Целочисленные параметры",
+      "short_name": "ЦелПарам",
+      "base_ei": null,
+      "main_class": 26
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 30,
+    "fields": {
+      "name": "Агрегат",
+      "short_name": "Агрт",
+      "base_ei": null,
+      "main_class": 13
+    }
+  }
+]
