@@ -1,11 +1,13 @@
 from django.test import TestCase
+from django.utils.html import escape
 from django.urls import reverse
 
 from http import HTTPStatus
+from parameterized import parameterized
+from faker import Faker
 
 from classes.models import ClassStruct
-
-from parameterized import parameterized
+from classes.constants import EMPTY_MAIN_CLASS_ERROR, EMPTY_NAME_ERROR
 
 
 class MainPageTemplateViewTest(TestCase):
@@ -80,3 +82,91 @@ class CategoryClassesListViewTest(TestCase):
     def test_main_class_in_context(self):
         response = self.client.get(reverse("classes:category_classes", kwargs={"class_id": 3}))
         self.assertIn("main_class", response.context)
+
+
+class ProdClassCreateViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.nuts_class = ClassStruct.objects.get(pk=3)
+        cls.fake = Faker()
+
+        cls.url = reverse("classes:add_prod_class")
+        cls.redirect_url = reverse("classes:index")
+        cls.data = {
+            "name": cls.fake.name(),
+            "short_name": cls.fake.name(),
+            "base_ei": "",
+            "main_class": cls.nuts_class.pk,
+        }
+        cls.invalid_data = {
+            "name": cls.fake.name(),
+            "short_name": "",
+            "base_ei": "",
+            "main_class": "",
+        }
+
+    def test_prod_class_create_view_uses_prod_class_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "classes/prod_class.html")
+
+    def test_prod_class_create_view_renders_create_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_can_save_a_POST_request(self):
+        count_before = ClassStruct.objects.count()
+        self.client.post(
+            path=self.url,
+            data=self.data
+        )
+        new_class = ClassStruct.objects.last()
+        self.assertEqual(ClassStruct.objects.count(), count_before + 1)
+        self.assertEqual(new_class.name, self.data["name"])
+        self.assertEqual(new_class.short_name, self.data["short_name"])
+        self.assertIsNone(new_class.base_ei)
+
+    def test_redirects_after_POST(self):
+        response = self.client.post(
+            path=self.url,
+            data=self.data
+        )
+        self.assertRedirects(response, self.redirect_url)
+
+    def test_for_invalid_input_renders_prod_class_template(self):
+        response = self.client.post(
+            path=self.url,
+            data=self.invalid_data,
+        )
+        self.assertTemplateUsed(response, "classes/prod_class.html")
+
+    def test_invalid_prod_class_data_is_not_saved(self):
+        count_before = ClassStruct.objects.count()
+        self.client.post(
+            path=self.url,
+            data=self.invalid_data
+        )
+        self.assertEqual(ClassStruct.objects.count(), count_before)
+
+    def test_empty_main_class_validation_error_is_shown_on_page(self):
+        response = self.client.post(
+            path=self.url,
+            data={
+                "name": self.fake.name(),
+                "short_name": "",
+                "base_ei": "",
+                "main_class": "",
+            }
+        )
+        self.assertContains(response, escape(EMPTY_MAIN_CLASS_ERROR))
+
+    def test_empty_name_validation_error_is_shown_on_page(self):
+        response = self.client.post(
+            path=self.url,
+            data={
+                "name": "",
+                "short_name": "",
+                "base_ei": "",
+                "main_class": self.nuts_class.pk,
+            }
+        )
+        self.assertContains(response, escape(EMPTY_NAME_ERROR))

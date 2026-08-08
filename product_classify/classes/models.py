@@ -63,7 +63,7 @@ class ClassStruct(models.Model):
         return cls.objects.filter(id__in=prod_classes_ids)
 
     @classmethod
-    def terminal_product_classes(cls) -> QuerySet:
+    def terminal_product_classes(cls) -> QuerySet[ClassStruct]:
         """Returns QuerySet of terminal products classes"""
         with connection.cursor() as cursor:
             cursor.execute("SELECT * FROM get_terminal_classes(%s);", [FASTENER_ID])

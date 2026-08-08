@@ -23,6 +23,7 @@ from .forms import (
 )
 from .constants import (
     ENUM_CLASSES_IDS,
+    FASTENER_ID
 )
 
 
@@ -117,6 +118,7 @@ def delete_class(
     """
     Удаление класса
     """
+    fastener_classes = ClassStruct.objects.get(pk=FASTENER_ID)
     _class = ClassStruct.objects.get(pk=class_id)
     main_class_id = _class.main_class.id
     context = {
@@ -189,6 +191,7 @@ def add_param_class(
     """
     Добавление параметра класса
     """
+    fastener_classes = ClassStruct.objects.get(pk=FASTENER_ID)
     _class = ClassStruct.objects.get(
         pk=class_id,
     )
@@ -222,6 +225,7 @@ def edit_param_class(
     """
     Редактирование параметра класса
     """
+    fastener_classes = ClassStruct.objects.get(pk=FASTENER_ID)
     instance = ParClass.objects.get(
         class_field=class_id,
         parametr=param_id,
@@ -253,6 +257,7 @@ def delete_param_class(
     """
     Удаление параметра класса
     """
+    fastener_classes = ClassStruct.objects.get(pk=FASTENER_ID)
     instance = ParClass.objects.get(
         class_field=class_id,
         parametr=param_id,
@@ -278,9 +283,10 @@ def change_parclass_num(
     """
     Изменение номера параметра класса
     """
+    fastener_classes = ClassStruct.objects.get(pk=FASTENER_ID)
     _class = ClassStruct.objects.get(pk=class_id)
     if request.method == "POST":
-        form = ChangeParclassNumForm(request.POST, class_id=class_id)
+        form = ChangeParClassNumForm(request.POST, class_id=class_id)
         if form.is_valid():
             instance_1 = form.cleaned_data["class_field_1"]
             instance_2 = form.cleaned_data["class_field_2"]
@@ -293,7 +299,7 @@ def change_parclass_num(
                 class_id,
             )
     else:
-        form = ChangeParclassNumForm(class_id=class_id)
+        form = ChangeParClassNumForm(class_id=class_id)
     context = {
         "fastener_classes": fastener_classes,
         "instance": _class,

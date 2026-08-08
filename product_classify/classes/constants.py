@@ -18,3 +18,7 @@ PARCLASS_FORM_MAX_VALUE_LOWER_BOUND = 0.0
 
 FASTENER_ID = 2
 NUTS_ID = 5
+
+
+EMPTY_MAIN_CLASS_ERROR = "Поле для родительского класса необходимо заполнить"
+EMPTY_NAME_ERROR = "Поле для названия класса необходимо заполнить"

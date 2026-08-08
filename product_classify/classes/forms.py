@@ -25,6 +25,10 @@ from .constants import (
     PROD_CLASS_FORM_SHORT_NAME_MAX_LENGTH,
     ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH,
 )
+from .constants import (
+    EMPTY_MAIN_CLASS_ERROR,
+    EMPTY_NAME_ERROR,
+)
 
 
 class ProdClassForm(ModelForm):
@@ -40,7 +44,7 @@ class ProdClassForm(ModelForm):
         queryset=ClassStruct.objects.none(),
         required=True,
         error_messages={
-            "required": "Поле для родительского класса необходимо заполнить",
+            "required": EMPTY_MAIN_CLASS_ERROR,
         },
     )
     name = CharField(
@@ -48,7 +52,7 @@ class ProdClassForm(ModelForm):
         required=True,
         label="Название класса",
         error_messages={
-            "required": "Поле для названия класса необходимо заполнить",
+            "required": EMPTY_NAME_ERROR,
         },
     )
     short_name = CharField(
