@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, Http404
 from django.urls import reverse_lazy
 from django.db import connection
 from django.views.generic import (
@@ -43,8 +43,12 @@ class CategoryClassesListView(
 
     def get_queryset(self):
         class_id = self.kwargs.get("class_id")
-        classes = ClassStruct.objects.filter(main_class__exact=class_id).order_by("id")
-        return classes
+        try:
+            cls = ClassStruct.objects.get(pk=class_id)
+            classes = ClassStruct.objects.filter(main_class=cls).order_by("id")
+            return classes
+        except ClassStruct.DoesNotExist:
+            raise Http404(f"Класса с ID={class_id} не существует")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
