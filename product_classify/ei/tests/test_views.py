@@ -92,3 +92,24 @@ class EiCreateViewTest(TestCase):
     def test_ei_create_view_redirects_after_a_POST_request(self):
         response = self.client.post(self.url, data=self.data)
         self.assertRedirects(response, self.redirect_url)
+
+
+class EiDeleteViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.ei_id = Ei.objects.last().pk
+        cls.url = reverse("ei:delete_ei", args=[cls.ei_id])
+        cls.redirect_url = reverse("ei:ei_list")
+
+    def test_ei_delete_view_uses_ei_detail_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "ei/ei.html")
+
+    def test_ei_delete_view_can_save_a_POST_request(self):
+        count_before = Ei.objects.count()
+        self.client.post(self.url)
+        self.assertEqual(Ei.objects.count(), count_before - 1)
+
+    def test_ei_delete_view_redirects_after_successful_POST_request(self):
+        response = self.client.post(self.url)
+        self.assertRedirects(response, self.redirect_url)
