@@ -89,14 +89,14 @@ class ClassUpdateView(
     def get_template_names(self):
         class_id = self.kwargs.get("class_id")
         _class = ClassStruct.objects.get(pk=class_id)
-        if _class.pk in ENUM_CLASSES_IDS:
+        if _class.main_class.pk in ENUM_CLASSES_IDS:
             return ["classes/enum_class.html"]
         return ["classes/prod_class.html"]
 
     def get_form_class(self):
         class_id = self.kwargs.get("class_id")
         _class = ClassStruct.objects.get(pk=class_id)
-        if _class.pk in ENUM_CLASSES_IDS:
+        if _class.main_class.pk in ENUM_CLASSES_IDS:
             return EnumClassForm
         return ProdClassForm
 

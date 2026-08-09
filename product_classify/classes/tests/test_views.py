@@ -6,10 +6,17 @@ from http import HTTPStatus
 from parameterized import parameterized
 from faker import Faker
 
+from ei.models import Ei
+from ei.constants import KILOGRAM_ID
+
 from classes.models import ClassStruct
-from classes.constants import EMPTY_MAIN_CLASS_ERROR, EMPTY_NAME_ERROR
+from classes.forms import ProdClassForm, EnumClassForm
+from classes.constants import EMPTY_MAIN_CLASS_ERROR, EMPTY_NAME_ERROR, CLASSIFICATOR_CYCLE_ERROR
 from classes.constants import (
+    NUTS_ID,
     ENUM_CLASSES_IDS,
+    PROD_CLASS_FORM_MAX_LENGTH,
+    PROD_CLASS_FORM_SHORT_NAME_MAX_LENGTH,
     ENUM_CLASS_FORM_NAME_MAX_LENGTH,
     ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH
 )
@@ -92,14 +99,14 @@ class CategoryClassesListViewTest(TestCase):
 class ProdClassCreateViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.nuts_class = ClassStruct.objects.get(pk=3)
+        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
         cls.fake = Faker()
         cls.url = reverse("classes:add_prod_class")
         cls.redirect_url = reverse("classes:index")
 
         cls.data = {
-            "name": cls.fake.name(),
-            "short_name": cls.fake.name(),
+            "name": cls.fake.name()[:PROD_CLASS_FORM_MAX_LENGTH],
+            "short_name": cls.fake.name()[:PROD_CLASS_FORM_SHORT_NAME_MAX_LENGTH],
             "base_ei": "",
             "main_class": cls.nuts_class.pk,
         }
@@ -259,3 +266,142 @@ class EnumClassCreateViewTest(TestCase):
             }
         )
         self.assertContains(response, escape(EMPTY_MAIN_CLASS_ERROR))
+
+
+class ClassUpdateViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.int_enum_class = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[0])
+        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+        cls.base_ei = Ei.objects.get(pk=KILOGRAM_ID)
+        cls.fake = Faker()
+
+        cls.enum_class = ClassStruct.objects.create(
+            name=cls.fake.name()[:ENUM_CLASS_FORM_NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH],
+            base_ei=None,
+            main_class=cls.int_enum_class,
+        )
+        cls.support_enum_class = ClassStruct.objects.create(
+            name=cls.fake.name()[:ENUM_CLASS_FORM_NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH],
+            base_ei=None,
+            main_class=cls.enum_class,
+        )
+        cls.enum_class_edit_data = {
+            "name": cls.fake.name()[:ENUM_CLASS_FORM_NAME_MAX_LENGTH],
+            "short_name": cls.fake.name()[:ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH],
+            "base_ei": "",
+            "main_class": cls.int_enum_class.pk,
+        }
+        cls.invalid_enum_class_edit_data = {
+            "name": cls.fake.name()[:ENUM_CLASS_FORM_NAME_MAX_LENGTH],
+            "short_name": cls.fake.name()[:ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH],
+            "base_ei": "",
+            "main_class": cls.enum_class.pk,
+        }
+        cls.prod_class = ClassStruct.objects.create(
+            name=cls.fake.name()[:PROD_CLASS_FORM_MAX_LENGTH],
+            short_name=cls.fake.name()[:PROD_CLASS_FORM_SHORT_NAME_MAX_LENGTH],
+            base_ei=cls.base_ei,
+            main_class=cls.nuts_class,
+        )
+        cls.support_prod_class = ClassStruct.objects.create(
+            name=cls.fake.name()[:PROD_CLASS_FORM_MAX_LENGTH],
+            short_name=cls.fake.name()[:PROD_CLASS_FORM_SHORT_NAME_MAX_LENGTH],
+            base_ei=cls.base_ei,
+            main_class=cls.prod_class,
+        )
+        cls.prod_class_edit_data = {
+            "name": cls.fake.name()[:PROD_CLASS_FORM_MAX_LENGTH],
+            "short_name": cls.fake.name()[:PROD_CLASS_FORM_SHORT_NAME_MAX_LENGTH],
+            "base_ei": cls.base_ei.pk,
+            "main_class": cls.nuts_class.pk,
+        }
+        cls.invalid_prod_class_edit_data = {
+            "name": cls.fake.name()[:PROD_CLASS_FORM_MAX_LENGTH],
+            "short_name": cls.fake.name()[:PROD_CLASS_FORM_SHORT_NAME_MAX_LENGTH],
+            "base_ei": cls.base_ei.pk,
+            "main_class": cls.prod_class.pk,
+        }
+
+    def test_class_update_view_uses_enum_class_template_for_enum_class(self):
+        response = self.client.get(
+            path=reverse("classes:edit_class", args=[self.enum_class.pk]),
+        )
+        self.assertTemplateUsed(response, "classes/enum_class.html")
+
+    def test_class_update_view_uses_prod_class_template_for_prod_class(self):
+        response = self.client.get(
+            path=reverse("classes:edit_class", args=[self.prod_class.pk]),
+        )
+        self.assertTemplateUsed(response, "classes/prod_class.html")
+
+    def test_class_update_view_renders_enum_class_form_for_enum_class(self):
+        response = self.client.get(
+            path=reverse("classes:edit_class", args=[self.enum_class.pk]),
+        )
+        self.assertIn("form", response.context)
+        self.assertIsInstance(response.context["form"], EnumClassForm)
+
+    def test_class_update_view_renders_prod_class_form_for_prod_class(self):
+        response = self.client.get(
+            path=reverse("classes:edit_class", args=[self.prod_class.pk]),
+        )
+        self.assertIn("form", response.context)
+        self.assertIsInstance(response.context["form"], ProdClassForm)
+
+    def test_class_update_view_can_save_a_POST_request_for_prod_class(self):
+        count_before = ClassStruct.objects.count()
+        self.client.post(
+            path=reverse("classes:edit_class", args=[self.prod_class.pk]),
+            data=self.prod_class_edit_data
+        )
+        self.assertEqual(ClassStruct.objects.count(), count_before)
+        updated_instance = ClassStruct.objects.get(pk=self.prod_class.pk)
+        self.assertEqual(updated_instance.name, self.prod_class_edit_data["name"])
+        self.assertEqual(updated_instance.short_name, self.prod_class_edit_data["short_name"])
+        self.assertEqual(updated_instance.main_class.pk, self.prod_class_edit_data["main_class"])
+        self.assertEqual(updated_instance.base_ei.pk, self.prod_class_edit_data["base_ei"])
+
+    def test_class_update_view_can_save_a_POST_request_for_enum_class(self):
+        count_before = ClassStruct.objects.count()
+        self.client.post(
+            path=reverse("classes:edit_class", args=[self.enum_class.pk]),
+            data=self.enum_class_edit_data
+        )
+        self.assertEqual(ClassStruct.objects.count(), count_before)
+        updated_instance = ClassStruct.objects.get(pk=self.enum_class.pk)
+        self.assertEqual(updated_instance.name, self.enum_class_edit_data["name"])
+        self.assertEqual(updated_instance.short_name, self.enum_class_edit_data["short_name"])
+        self.assertEqual(updated_instance.main_class.pk, self.enum_class_edit_data["main_class"])
+
+    def test_class_update_view_redirects_after_correct_POST_request_for_prod_class(self):
+        response = self.client.post(
+            path=reverse("classes:edit_class", args=[self.prod_class.pk]),
+            data=self.prod_class_edit_data
+        )
+        redirect_url = reverse("classes:category_classes", args=[self.prod_class.main_class.pk])
+        self.assertRedirects(response, redirect_url)
+
+    def test_class_update_view_redirects_after_correct_POST_request_for_enum_class(self):
+        response = self.client.post(
+            path=reverse("classes:edit_class", args=[self.enum_class.pk]),
+            data=self.enum_class_edit_data
+        )
+        redirect_url = reverse("classes:category_classes", args=[self.enum_class.main_class.pk])
+        self.assertRedirects(response, redirect_url)
+
+    def test_detected_classificator_cycle_validation_error_is_shown_on_page_for_prod_class(self):
+        response = self.client.post(
+            path=reverse("classes:edit_class", args=[self.prod_class.pk]),
+            data=self.invalid_prod_class_edit_data
+        )
+        self.assertContains(response, escape(CLASSIFICATOR_CYCLE_ERROR))
+
+    def test_detected_classificator_cycle_validation_error_is_shown_on_page_for_enum_class(self):
+        response = self.client.post(
+            path=reverse("classes:edit_class", args=[self.enum_class.pk]),
+            data=self.invalid_enum_class_edit_data
+        )
+        self.assertContains(response, escape(CLASSIFICATOR_CYCLE_ERROR))

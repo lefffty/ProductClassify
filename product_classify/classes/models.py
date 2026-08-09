@@ -66,7 +66,7 @@ class ClassStruct(models.Model):
     def terminal_product_classes(cls) -> QuerySet[ClassStruct]:
         """Returns QuerySet of terminal products classes"""
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM get_terminal_classes(%s);", [FASTENER_ID])
+            cursor.execute("SELECT * FROM find_gr_gr(%s);", [PRODUCT_ID])
             terminal_classes = cursor.fetchall()
             terminal_classes_ids = [element[0] for element in terminal_classes]
         return cls.objects.filter(id__in=terminal_classes_ids)
@@ -82,7 +82,9 @@ class ClassStruct(models.Model):
             terminal_enum_classes_ids = [
                 element[0] for element in terminal_enum_classes
             ]
-        return cls.objects.filter(id__in=terminal_enum_classes_ids)
+            terminal_enum_classes_ids.extend(ENUM_CLASSES_IDS)
+            ids = set(terminal_enum_classes_ids)
+        return cls.objects.filter(id__in=ids)
 
     @classmethod
     def parametr_types(cls) -> QuerySet:

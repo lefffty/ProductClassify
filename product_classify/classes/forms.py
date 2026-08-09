@@ -26,6 +26,7 @@ from .constants import (
     ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH,
 )
 from .constants import (
+    CLASSIFICATOR_CYCLE_ERROR,
     EMPTY_MAIN_CLASS_ERROR,
     EMPTY_NAME_ERROR,
 )
@@ -96,7 +97,7 @@ class ProdClassForm(ModelForm):
                 is_cycle = self._check_class_struct_cycles(cursor, cls_id, main_cls_id)
                 if is_cycle:
                     raise ValidationError(
-                        "При изменении класса в классификаторе образовывается цикл!"
+                        CLASSIFICATOR_CYCLE_ERROR
                     )
                 return super().clean()
         else:
@@ -110,14 +111,14 @@ class EnumClassForm(ModelForm):
         empty_label="Выберите родительский класс",
         required=True,
         error_messages={
-            "required": "Поле для родительского класса необходимо заполнить"
+            "required": EMPTY_MAIN_CLASS_ERROR
         },
     )
     name = CharField(
         max_length=ENUM_CLASS_FORM_NAME_MAX_LENGTH,
         required=True,
         label="Название класса",
-        error_messages={"required": "Поле для названия класса необходимо заполнить"},
+        error_messages={"required": EMPTY_NAME_ERROR}
     )
     short_name = CharField(
         max_length=ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH,
@@ -157,9 +158,7 @@ class EnumClassForm(ModelForm):
                 main_cls_id = self.cleaned_data["main_class"].id
                 is_cycle = self._check_class_struct_cycles(cursor, cls_id, main_cls_id)
                 if is_cycle:
-                    raise ValidationError(
-                        "При изменении класса в классификаторе образовывается цикл!"
-                    )
+                    raise ValidationError(CLASSIFICATOR_CYCLE_ERROR)
                 return super().clean()
         else:
             return super().clean()
