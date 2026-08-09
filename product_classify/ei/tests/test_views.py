@@ -113,3 +113,42 @@ class EiDeleteViewTest(TestCase):
     def test_ei_delete_view_redirects_after_successful_POST_request(self):
         response = self.client.post(self.url)
         self.assertRedirects(response, self.redirect_url)
+
+
+class EiUpdateViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.ei = Ei.objects.last()
+        cls.ei_id = cls.ei.pk
+        cls.url = reverse("ei:edit_ei", args=[cls.ei_id])
+        cls.redirect_url = reverse("ei:ei_detail", args=[cls.ei_id])
+        cls.fake = Faker()
+
+        cls.data = {
+            "name": cls.fake.name()[:EI_NAME_MAX_LENGTH],
+            "short_name": cls.fake.name()[:EI_SHORT_NAME_MAX_LENGTH],
+            "code": cls.fake.postcode()[:EI_CODE_MAX_LENGTH],
+            "convert_factor": randint(1, 100),
+            "main_class": cls.ei.main_class.pk,
+        }
+
+    def test_ei_update_view_uses_ei_update_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "ei/ei.html")
+
+    def test_ei_update_view_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_ei_update_view_can_save_a_POST_request(self):
+        self.client.post(self.url, data=self.data)
+        ei = Ei.objects.last()
+        self.assertEqual(ei.name, self.data["name"])
+        self.assertEqual(ei.short_name, self.data["short_name"])
+        self.assertEqual(ei.code, self.data["code"])
+        self.assertEqual(ei.convert_factor, self.data["convert_factor"])
+        self.assertEqual(ei.main_class.pk, self.data["main_class"])
+
+    def test_ei_update_view_redirect_after_successful_POST_request(self):
+        response = self.client.post(self.url, data=self.data)
+        self.assertRedirects(response, self.redirect_url)
