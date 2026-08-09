@@ -8,6 +8,11 @@ from faker import Faker
 
 from classes.models import ClassStruct
 from classes.constants import EMPTY_MAIN_CLASS_ERROR, EMPTY_NAME_ERROR
+from classes.constants import (
+    ENUM_CLASSES_IDS,
+    ENUM_CLASS_FORM_NAME_MAX_LENGTH,
+    ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH
+)
 
 
 class MainPageTemplateViewTest(TestCase):
@@ -89,9 +94,9 @@ class ProdClassCreateViewTest(TestCase):
     def setUpTestData(cls):
         cls.nuts_class = ClassStruct.objects.get(pk=3)
         cls.fake = Faker()
-
         cls.url = reverse("classes:add_prod_class")
         cls.redirect_url = reverse("classes:index")
+
         cls.data = {
             "name": cls.fake.name(),
             "short_name": cls.fake.name(),
@@ -170,3 +175,87 @@ class ProdClassCreateViewTest(TestCase):
             }
         )
         self.assertContains(response, escape(EMPTY_NAME_ERROR))
+
+
+
+class EnumClassCreateViewTest(TestCase):    
+    @classmethod
+    def setUpTestData(cls):
+        cls.url = reverse("classes:add_enum_class")
+        cls.redirect_url = reverse("classes:index")
+        cls.fake = Faker()
+        cls.int_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[0])
+
+        cls.valid_data = {
+            "name": cls.fake.name()[:ENUM_CLASS_FORM_NAME_MAX_LENGTH],
+            "short_name": cls.fake.name()[:ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH],
+            "base_ei": "",
+            "main_class": cls.int_enum.pk,
+        }
+        cls.invalid_data = {
+            "name": "",
+            "short_name": "",
+            "base_ei": "",
+            "main_class": "",
+        }
+
+    def test_enum_class_create_view_uses_enum_class_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "classes/enum_class.html")
+
+    def test_enum_class_create_view_render_enum_class_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_enum_class_create_view_can_save_a_POST_request(self):
+        count_before = ClassStruct.objects.count()
+        response = self.client.post(
+            path=self.url,
+            data=self.valid_data
+        )
+        if response.status_code == HTTPStatus.OK:
+            print(response.context["form"].errors)
+        new_enum_class = ClassStruct.objects.last()
+        self.assertEqual(ClassStruct.objects.count(), count_before + 1)
+        self.assertEqual(new_enum_class.name, self.valid_data["name"])
+        self.assertEqual(new_enum_class.short_name, self.valid_data["short_name"])
+        self.assertEqual(new_enum_class.main_class.pk, self.valid_data["main_class"])
+        self.assertIsNone(new_enum_class.base_ei)
+
+    def test_enum_class_create_view_redirect_after_correct_POST_request(self):
+        response = self.client.post(
+            path=self.url,
+            data=self.valid_data
+        )
+        self.assertRedirects(response, self.redirect_url)
+
+    def test_enum_class_create_view_renders_enum_class_template_for_invalid_input(self):
+        response = self.client.post(
+            path=self.url,
+            data=self.invalid_data
+        )
+        self.assertTemplateUsed(response, "classes/enum_class.html")
+
+    def test_empty_name_validation_error_is_shown_on_page(self):
+        response = self.client.post(
+            path=self.url,
+            data={
+                "name": "",
+                "short_name": "",
+                "main_class": self.int_enum.pk,
+                "base_ei": ""
+            }
+        )
+        self.assertContains(response, escape(EMPTY_NAME_ERROR))
+
+    def test_empty_main_class_validation_error_is_shown_on_page(self):
+        response = self.client.post(
+            path=self.url,
+            data={
+                "name": self.fake.name(),
+                "short_name": "",
+                "main_class": "",
+                "base_ei": ""
+            }
+        )
+        self.assertContains(response, escape(EMPTY_MAIN_CLASS_ERROR))
