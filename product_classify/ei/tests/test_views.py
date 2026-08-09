@@ -1,7 +1,15 @@
 from django.test import TestCase
 from django.urls import reverse
 
+from faker import Faker
+from random import randint
+
 from ei.models import Ei
+from ei.constants import (
+    EI_NAME_MAX_LENGTH,
+    EI_CODE_MAX_LENGTH,
+    EI_SHORT_NAME_MAX_LENGTH
+)
 
 
 class EiListViewTest(TestCase):
@@ -46,3 +54,41 @@ class EiDetailViewTest(TestCase):
         self.assertContains(response, self.instance.name)
         self.assertContains(response, self.instance.short_name)
         self.assertContains(response, self.instance.convert_factor)
+
+
+class EiCreateViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+        cls.main_class = Ei.objects.first()
+        cls.url = reverse("ei:add_ei")
+        cls.redirect_url = reverse("ei:ei_list")
+
+        cls.data = {
+            "name": cls.fake.name()[:EI_NAME_MAX_LENGTH],
+            "short_name": cls.fake.name()[:EI_SHORT_NAME_MAX_LENGTH],
+            "code": cls.fake.postcode()[:EI_CODE_MAX_LENGTH],
+            "convert_factor": randint(1, 100),
+            "main_class": cls.main_class.pk,
+        }
+
+    def test_ei_create_view_uses_detail_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "ei/ei.html")
+
+    def test_ei_create_view_renders_ei_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_has_fastener_classes_in_context(self):
+        response = self.client.get(self.url)
+        self.assertIn("fastener_classes", response.context)
+
+    def test_ei_create_view_can_save_a_POST_request(self):
+        count_before = Ei.objects.count()
+        self.client.post(self.url, data=self.data)
+        self.assertEqual(Ei.objects.count(), count_before + 1)
+
+    def test_ei_create_view_redirects_after_a_POST_request(self):
+        response = self.client.post(self.url, data=self.data)
+        self.assertRedirects(response, self.redirect_url)
