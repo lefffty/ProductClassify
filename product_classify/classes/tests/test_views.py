@@ -5,6 +5,7 @@ from django.urls import reverse
 from http import HTTPStatus
 from parameterized import parameterized
 from faker import Faker
+from unittest.mock import patch
 
 from ei.models import Ei
 from ei.constants import KILOGRAM_ID
@@ -405,3 +406,49 @@ class ClassUpdateViewTest(TestCase):
             data=self.invalid_enum_class_edit_data
         )
         self.assertContains(response, escape(CLASSIFICATOR_CYCLE_ERROR))
+
+
+class DeleteClassViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+        cls.nuts_subclass = ClassStruct.objects.create(
+            name=cls.fake.name()[:PROD_CLASS_FORM_MAX_LENGTH],
+            short_name=cls.fake.name()[:PROD_CLASS_FORM_SHORT_NAME_MAX_LENGTH],
+            base_ei=None,
+            main_class=cls.nuts_class
+        )
+        cls.class_id = cls.nuts_subclass.pk
+        cls.url = reverse("classes:delete_class", args=[cls.class_id])
+        cls.redirect_url = reverse("classes:category_classes", args=[cls.nuts_class.pk])
+
+    def test_delete_class_view_uses_enum_class_template(self):
+        response = self.client.get(path=self.url)
+        self.assertTemplateUsed(response, "classes/enum_class.html")
+
+    def test_fastener_classes_are_in_context(self):
+        response = self.client.get(path=self.url)
+        self.assertIn("fastener_classes", response.context)
+
+    def test_instance_is_in_context(self):
+        response = self.client.get(path=self.url)
+        self.assertIn("instance", response.context)
+
+    def test_delete_class_view_correctly_deletes_given_class(self):
+        self.client.post(path=self.url)
+        self.assertEqual(ClassStruct.objects.filter(pk=self.nuts_subclass.pk).count(), 0)
+
+    def test_delete_class_view_redirects_after_a_POST_request(self):
+        response = self.client.post(path=self.url)
+        self.assertRedirects(response, self.redirect_url, fetch_redirect_response=False)
+
+    def test_delete_class_and_descendants_was_called_with_correct_arguments(self):
+        with patch.object(
+            ClassStruct,
+            "delete_class_and_descendants"
+        ) as mock_delete_class_and_descendants:
+            self.client.post(path=self.url)
+            mock_delete_class_and_descendants.assert_called_once()
+            mock_delete_class_and_descendants.assert_called_with(self.class_id)
+    

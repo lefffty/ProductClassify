@@ -117,12 +117,13 @@ class ClassStruct(models.Model):
         return cls.objects.filter(id__in=classes_ids)
 
     @classmethod
-    def delete_class_and_descendants(cls, cursor: object, class_id: int):
-        cursor.execute(
-            "SELECT * FROM delete_class_and_descendants(%s);",
-            [class_id],
-        )
-        data = cursor.fetchone()[0]
+    def delete_class_and_descendants(cls, class_id: int):
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT * FROM delete_class_and_descendants(%s);",
+                [class_id],
+            )
+            data = cursor.fetchone()[0]
         return data
 
     @classmethod

@@ -118,21 +118,16 @@ def delete_class(
     """
     Удаление класса
     """
-    fastener_classes = ClassStruct.objects.get(pk=FASTENER_ID)
+    fastener_classes = ClassStruct.objects.filter(main_class__pk=FASTENER_ID)
     _class = ClassStruct.objects.get(pk=class_id)
-    main_class_id = _class.main_class.id
     context = {
         "fastener_classes": fastener_classes,
         "instance": _class,
     }
     if request.method == "POST":
-        with connection.cursor() as cursor:
-            cursor.execute(f"""SELECT * FROM delete_class_and_descendants(
-                    {_class.id}
-                );""")
-            data = cursor.fetchone()[0]
-            if data:
-                return redirect("classes:category_classes", main_class_id)
+        main_class_id = _class.main_class.pk
+        ClassStruct.delete_class_and_descendants(class_id)
+        return redirect("classes:category_classes", class_id=main_class_id)
     return render(
         request,
         "classes/enum_class.html",
