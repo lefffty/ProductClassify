@@ -116,6 +116,24 @@ class ClassStruct(models.Model):
             classes_ids = [element[0] for element in classes_ids]
         return cls.objects.filter(id__in=classes_ids)
 
+    @classmethod
+    def delete_class_and_descendants(cls, cursor: object, class_id: int):
+        cursor.execute(
+            "SELECT * FROM delete_class_and_descendants(%s);",
+            [class_id],
+        )
+        data = cursor.fetchone()[0]
+        return data
+
+    @classmethod
+    def check_class_struct_cycles(self, cursor: object, cls_id: int, main_cls_id: int):
+        cursor.execute(
+            "SELECT * FROM check_class_struct_cycles(%s, %s);",
+            [cls_id, main_cls_id],
+        )
+        is_cycle = cursor.fetchone()[0]
+        return is_cycle
+
 
 class ParClass(models.Model):
     class_field = models.ForeignKey(

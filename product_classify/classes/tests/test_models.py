@@ -3,15 +3,21 @@ from django.test import TestCase
 from django.db.models import QuerySet
 from django.db import IntegrityError
 
+from unittest.mock import patch
+
 from parametr.models import Parametr
 from products.constants import INT_PARAMS, ENUM_CLASSES_IDS
 from ei.models import Ei
 
 from ..models import ClassStruct, ParClass
-from ..constants import PRODUCT_ID
+from ..constants import PRODUCT_ID, NUTS_ID
 
 
 class ClassStructModelTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+
     @staticmethod
     def get_expected_model_error_message(model_name: str) -> str:
         return f"Expected model 'ClassStruct', got '{model_name}'"

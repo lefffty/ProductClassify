@@ -77,14 +77,6 @@ class ProdClassForm(ModelForm):
         self.fields["main_class"].queryset = ClassStruct.terminal_product_classes()
         self.fields["base_ei"].queryset = Ei.objects.all()
 
-    def _check_class_struct_cycles(self, cursor: object, cls_id: int, main_cls_id: int):
-        cursor.execute(
-            "SELECT * FROM check_class_struct_cycles(%s, %s);",
-            [cls_id, main_cls_id],
-        )
-        is_cycle = cursor.fetchone()[0]
-        return is_cycle
-
     def clean(self):
         if "main_class" not in self.cleaned_data:
             return super().clean()
@@ -94,7 +86,7 @@ class ProdClassForm(ModelForm):
                 self.instance.save()
                 cls_id = self.instance.pk
                 main_cls_id = self.cleaned_data["main_class"].id
-                is_cycle = self._check_class_struct_cycles(cursor, cls_id, main_cls_id)
+                is_cycle = ClassStruct.check_class_struct_cycles(cursor, cls_id, main_cls_id)
                 if is_cycle:
                     raise ValidationError(
                         CLASSIFICATOR_CYCLE_ERROR
@@ -139,14 +131,6 @@ class EnumClassForm(ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["main_class"].queryset = ClassStruct.all_enum_classes()
 
-    def _check_class_struct_cycles(self, cursor: object, cls_id: int, main_cls_id: int):
-        cursor.execute(
-            "SELECT * FROM check_class_struct_cycles(%s, %s);",
-            [cls_id, main_cls_id],
-        )
-        is_cycle = cursor.fetchone()[0]
-        return is_cycle
-
     def clean(self):
         if "main_class" not in self.cleaned_data:
             return super().clean()
@@ -156,7 +140,7 @@ class EnumClassForm(ModelForm):
                 self.instance.save()
                 cls_id = self.instance.pk
                 main_cls_id = self.cleaned_data["main_class"].id
-                is_cycle = self._check_class_struct_cycles(cursor, cls_id, main_cls_id)
+                is_cycle = ClassStruct.check_class_struct_cycles(cursor, cls_id, main_cls_id)
                 if is_cycle:
                     raise ValidationError(CLASSIFICATOR_CYCLE_ERROR)
                 return super().clean()

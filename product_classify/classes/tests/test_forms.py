@@ -78,14 +78,14 @@ class ProdClassFormTest(TestCase):
         self.assertEqual(form.fields["base_ei"].queryset.count(), eis_count)
 
     def test_check_class_struct_cycles_called_with_correct_params(self):
-        """Проверяет, что метод _check_class_struct_cycles вызывается с правильными параметрами (cls_id и main_cls_id)."""
+        """Проверяет, что метод check_class_struct_cycles вызывается с правильными параметрами (cls_id и main_cls_id)."""
         with patch(
             "classes.models.ClassStruct.terminal_product_classes",
             return_value=ClassStruct.objects.all(),
         ):
             with patch.object(
-                ProdClassForm,
-                "_check_class_struct_cycles",
+                ClassStruct,
+                "check_class_struct_cycles",
                 return_value=False,
             ) as mock_check_class_struct_cycles:
                 form_data = {
@@ -264,7 +264,7 @@ class ProdClassFormTest(TestCase):
             return_value=ClassStruct.objects.all(),
         ):
             with patch.object(
-                ProdClassForm, "_check_class_struct_cycles"
+                ClassStruct, "check_class_struct_cycles"
             ) as mock_check_class_struct_cycles:
                 form_data = {
                     "name": "Test Name",
@@ -422,14 +422,14 @@ class EnumClassFormTest(TestCase):
             self.assertTrue(form.is_valid())
 
     def test_check_class_struct_cycles_is_called_with_correct_params(self):
-        """Проверяет, что метод _check_class_struct_cycles вызывается с правильными параметрами (cls_id и main_cls_id)."""
+        """Проверяет, что метод check_class_struct_cycles вызывается с правильными параметрами (cls_id и main_cls_id)."""
         with patch(
             "classes.models.ClassStruct.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
             with patch.object(
-                EnumClassForm,
-                "_check_class_struct_cycles",
+                ClassStruct,
+                "check_class_struct_cycles",
                 return_value=False,
             ) as mock_check_class_struct_cycles:
                 form_data = {
@@ -549,8 +549,8 @@ class EnumClassFormTest(TestCase):
             return_value=ClassStruct.objects.all(),
         ):
             with patch.object(
-                EnumClassForm,
-                "_check_class_struct_cycles",
+                ClassStruct,
+                "check_class_struct_cycles",
             ) as mock_check_class_struct_cycles:
                 form_data = {
                     "name": self.NEW_INSTANCE_NAME,
