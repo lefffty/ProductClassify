@@ -67,4 +67,43 @@ class EnumsListViewTest(TestCase):
     def test_enums_list_view_renders_zero_enums_if_there_is_no_enums_values_for_that_enum_type(self):
         response = self.client.get(self.url2)
         self.assertEqual(response.context["enums"].count(), 0)
-    
+
+
+class EnumsDetailViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+        cls.int_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[-1])
+        cls.int_enum_subclass = ClassStruct.objects.create(
+            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            main_class=cls.int_enum,
+            base_ei=None,
+        )
+        cls.enum = Enums.objects.create(
+            enum=cls.int_enum_subclass,
+            num=1,
+            name=None,
+            short_name=None,
+            double_value=None,
+            int_value=randint(1, 100),
+            image=None
+        )
+        cls.url = reverse("enums:enums_detail", args=[cls.int_enum_subclass.pk, cls.enum.pk])
+
+    def test_enums_detail_view_uses_detail_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "enums/detail.html")
+
+    def test_enums_detail_views_has_enum_object_is_context(self):
+        response = self.client.get(self.url)
+        self.assertIn("enum", response.context)
+
+    def test_enums_detail_views_has_enum_value_is_context(self):
+        response = self.client.get(self.url)
+        self.assertIn("enum_value", response.context)
+
+    def test_enums_detail_views_correctly_renders_information_about_enum(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, self.enum.enum.name)
+        self.assertContains(response, self.enum.value)
