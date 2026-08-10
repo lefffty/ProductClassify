@@ -13,7 +13,6 @@ from core.mixins import CommonContextMixin
 from classes.models import ClassStruct
 
 from .models import Enums
-from .utils import get_enum_value
 from .forms import EnumsForm, ChangeNumForm
 from .constants import FASTENER_ID
 
@@ -41,7 +40,8 @@ class EnumsDetailView(
     pk_url_kwarg = "enum_id"
 
     def get_context_data(self, **kwargs):
-        enum_value = get_enum_value(self.get_object())
+        enum_obj: Enums = self.get_object()
+        enum_value = enum_obj.value
         context = super().get_context_data(**kwargs)
         context["enum_value"] = enum_value
         return context

@@ -76,6 +76,18 @@ class Enums(models.Model):
     def double_nums(cls):
         return cls.objects.filter(enum__main_class__id=DOUBLE_ENUMS_ID)
 
+    @property
+    def value(self):
+        enum_type = self.enum.main_class.pk
+        if enum_type == STRING_ENUMS_ID:
+            return self.name
+        elif enum_type == IMAGE_ENUMS_ID:
+            return self.image
+        elif enum_type == INT_ENUMS_ID:
+            return self.int_value
+        elif enum_type == DOUBLE_ENUMS_ID:
+            return self.double_value
+
     def clean(self):
         try:
             enum = self.enum
