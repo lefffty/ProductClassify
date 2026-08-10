@@ -370,3 +370,56 @@ class EnumsCreateViewTest(TestCase):
             data=self.int_enum_invalid_data
         )
         self.assertContains(response, escape(WRONG_FIELDS_INT_ENUM_WAS_SPECIFIED_ERROR))
+
+
+class EnumsDeleteViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.int_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[-1])
+
+        cls.int_enum_subclass = ClassStruct.objects.create(
+            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            main_class=cls.int_enum,
+            base_ei=None,
+        )
+
+        cls.int_enum_instance = Enums.objects.create(
+            name=None,
+            num=1,
+            short_name=None,
+            enum=cls.int_enum,
+            int_value=randint(1, 100),
+            double_value=None,
+            image=None,
+        )
+
+        cls.url = reverse("enums:delete_enum", kwargs={"enum_id": cls.int_enum_instance.pk, "class_id": cls.int_enum_subclass.pk})
+        cls.redirect_url = reverse("enums:enums_list", kwargs={"class_id": cls.int_enum.pk})
+
+    def test_enums_delete_view_uses_enum_template(self):
+        response = self.client.get(
+            path=self.url,
+        )
+        self.assertTemplateUsed(response, "enums/enum.html")
+
+    def test_enums_delete_view_renders_enum_instance(self):
+        response = self.client.get(
+            path=self.url
+        )
+        self.assertIn("instance", response.context)
+
+    def test_enums_delete_view_can_save_a_POST_request(self):
+        count_before = Enums.objects.count()
+        self.client.post(
+            path=self.url
+        )
+        self.assertEqual(Enums.objects.count(), count_before - 1)
+
+    def test_enums_delete_view_redirects_after_successful_POST_request(self):
+        response = self.client.post(
+            path=self.url,
+        )
+        self.assertRedirects(response, self.redirect_url)
