@@ -84,6 +84,7 @@ class ClassStruct(models.Model):
             ]
             terminal_enum_classes_ids.extend(ENUM_CLASSES_IDS)
             ids = set(terminal_enum_classes_ids)
+            ids = ids.difference(ENUM_CLASSES_IDS)
         return cls.objects.filter(id__in=ids)
 
     @classmethod
