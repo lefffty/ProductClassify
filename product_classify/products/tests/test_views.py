@@ -1,7 +1,10 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from faker import Faker
+from PIL import Image
+from io import BytesIO
 
 from classes.models import ClassStruct, ParClass
 from classes.constants import NUTS_ID, CLASS_STRUCT_NAME_MAX_LENGTH, CLASS_STRUCT_SHORT_NAME_MAX_LENGTH
@@ -139,6 +142,99 @@ class ProductCreateViewTest(TestCase):
         self.assertEqual(self.data["image"], prod.image)
 
     def test_product_create_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url, data=self.data)
+        self.assertRedirects(response, self.redirect_url)
+
+    def test_empty_class_field_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.empty_class_field_data)
+        self.assertContains(response, ProdErrors.EMPTY_CLASS_FIELD)
+
+    def test_empty_name_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.empty_name_field_data)
+        self.assertContains(response, ProdErrors.EMPTY_NAME_FIELD)
+
+
+class ProductUpdateViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+        cls.prod_class = ClassStruct.objects.create(
+            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            base_ei=None,
+            main_class=cls.nuts_class
+        )
+
+        old_name = cls.fake.name()[:PROD_NAME_MAX_LENGTH]
+        old_short_name = cls.fake.name()[:PROD_SHORT_NAME_MAX_LENGTH]
+
+        cls.prod = Prod.objects.create(
+            name=old_name,
+            short_name=old_short_name,
+            class_field=cls.prod_class,
+            image=None,
+        )
+
+        new_name = cls.fake.name()[:PROD_NAME_MAX_LENGTH]
+        new_short_name = cls.fake.name()[:PROD_SHORT_NAME_MAX_LENGTH]
+
+        cls.data = {
+            "name": new_name,
+            "short_name": new_short_name,
+            "class_field": cls.prod_class.pk,
+            "image": cls._create_test_image(),
+        }
+        cls.empty_class_field_data = {
+            "name": new_name,
+            "short_name": new_short_name,
+            "class_field": "",
+            "image": ""
+        }
+        cls.empty_name_field_data = {
+            "name": "",
+            "short_name": new_short_name,
+            "class_field": cls.prod_class.pk,
+            "image": ""
+        }
+
+        cls.url = reverse("products:edit_product", args=[cls.prod.pk])
+        cls.redirect_url = reverse("products:product_detail", args=[cls.prod.pk])
+
+    def _create_test_image(extension='jpg'):
+        image = Image.new('RGB', (100, 100), color='red')
+        file = BytesIO()
+        format = 'JPEG' if extension == 'jpg' else 'PNG'
+        image.save(file, format=format)
+        file.seek(0)
+        return SimpleUploadedFile(
+            f"test.{extension}",
+            file.read(),
+            content_type=f"image/{extension if extension != 'jpg' else 'jpeg'}"
+        )
+
+    def test_product_update_view_uses_product_html(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "products/product.html")
+
+    def test_product_update_view_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_product_update_view_has_instance_in_context(self):
+        response = self.client.get(self.url)
+        self.assertIn("instance", response.context)
+
+    def test_product_update_view_can_save_a_POST_request(self):
+        self.client.post(self.url, data=self.data)
+        prod = Prod.objects.last()
+        self.assertEqual(self.data["name"], prod.name)
+        self.assertEqual(self.data["short_name"], prod.short_name)
+        self.assertEqual(self.data["class_field"], prod.class_field.pk)
+        self.assertIsNotNone(prod.image)
+
+    def test_product_update_view_redirects_after_POST_request(self):
         response = self.client.post(self.url, data=self.data)
         self.assertRedirects(response, self.redirect_url)
 
