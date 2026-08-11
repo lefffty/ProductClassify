@@ -22,6 +22,7 @@ from .constants import (
     ENUM_CLASSES_IDS,
     DOUBLE_PARAMS,
 )
+from .errors import *
 
 
 class ProdForm(ModelForm):
@@ -30,14 +31,16 @@ class ProdForm(ModelForm):
         queryset=ClassStruct.objects.none(),
         required=True,
         error_messages={
-            "required": "Поле для родительского класса изделия необходимо заполнить"
+            "required": ProdErrors.EMPTY_CLASS_FIELD
         },
     )
     name = CharField(
         label="Название изделия",
         max_length=PROD_NAME_MAX_LENGTH,
         required=True,
-        error_messages={"required": "Поле для названия класса необходимо заполнить"},
+        error_messages={
+            "required": ProdErrors.EMPTY_NAME_FIELD
+        },
     )
     short_name = CharField(
         label="Сокращенное название изделия",

@@ -13,6 +13,7 @@ from ei.models import Ei
 
 from products.constants import PROD_NAME_MAX_LENGTH, PROD_SHORT_NAME_MAX_LENGTH
 from products.models import Prod, ParProd, INT_PARAMS
+from products.errors import *
 
 
 class ProductDetailViewTest(TestCase):
@@ -81,3 +82,70 @@ class ProductDetailViewTest(TestCase):
         response = self.client.get(self.url)
         self.assertContains(response, self.parametr.name)
         self.assertContains(response, self.parprod.value)
+
+
+class ProductCreateViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+        cls.prod_class = ClassStruct.objects.create(
+            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            base_ei=None,
+            main_class=cls.nuts_class
+        )
+
+        name = cls.fake.name()[:PROD_NAME_MAX_LENGTH]
+        short_name = cls.fake.name()[:PROD_SHORT_NAME_MAX_LENGTH]
+
+        cls.data = {
+            "name": name,
+            "short_name": short_name,
+            "class_field": cls.prod_class.pk,
+            "image": "",
+        }
+        cls.empty_class_field_data = {
+            "name": name,
+            "short_name": short_name,
+            "class_field": "",
+            "image": ""
+        }
+        cls.empty_name_field_data = {
+            "name": "",
+            "short_name": short_name,
+            "class_field": cls.prod_class.pk,
+            "image": ""
+        }
+
+        cls.url = reverse("products:add_product")
+        cls.redirect_url = reverse("classes:index")
+
+    def test_product_create_view_uses_product_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "products/product.html")
+
+    def test_product_create_view_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_product_create_view_can_save_a_POST_request(self):
+        self.client.post(self.url, data=self.data)
+        prod = Prod.objects.last()
+        self.assertEqual(self.data["name"], prod.name)
+        self.assertEqual(self.data["short_name"], prod.short_name)
+        self.assertEqual(self.data["class_field"], prod.class_field.pk)
+        self.assertEqual(self.data["image"], prod.image)
+
+    def test_product_create_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url, data=self.data)
+        self.assertRedirects(response, self.redirect_url)
+
+    def test_empty_class_field_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.empty_class_field_data)
+        self.assertContains(response, ProdErrors.EMPTY_CLASS_FIELD)
+
+    def test_empty_name_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.empty_name_field_data)
+        self.assertContains(response, ProdErrors.EMPTY_NAME_FIELD)
