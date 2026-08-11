@@ -423,3 +423,69 @@ class EnumsDeleteViewTest(TestCase):
             path=self.url,
         )
         self.assertRedirects(response, self.redirect_url)
+
+
+class EnumsUpdateViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.int_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[-1])
+        cls.int_enum_subclass = ClassStruct.objects.create(
+            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            main_class=cls.int_enum,
+            base_ei=None,
+        )
+
+        cls.instance = Enums.objects.create(
+            name=None,
+            num=1,
+            short_name=None,
+            enum=cls.int_enum_subclass,
+            int_value=randint(1, 100),
+            double_value=None,
+            image=None,
+        )
+
+        cls.url = reverse("enums:edit_enum", kwargs={
+            "class_id": cls.instance.enum.pk,
+            "enum_id": cls.instance.pk
+        })
+        cls.redirect_url = reverse("enums:enums_detail", kwargs={
+            "class_id": cls.instance.enum.pk,
+            "enum_id": cls.instance.pk,
+        })
+
+        cls.update_data = {
+            "name": "",
+            "short_name": "",
+            "enum": cls.int_enum_subclass.pk,
+            "int_value": randint(1, 100),
+            "double_value": "",
+            "image": "",
+        }
+
+    def test_enums_update_view_uses_enum_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "enums/enum.html")
+
+    def test_enums_update_view_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_enums_update_view_has_instance_in_context(self):
+        response = self.client.get(self.url)
+        self.assertIn("instance", response.context)
+
+    def test_enums_update_view_can_save_a_POST_request(self):
+        response = self.client.post(self.url, data=self.update_data)
+        if response.status_code == 200:
+            print(response.context["form"].errors)
+        enum = Enums.objects.last()
+        self.assertEqual(enum.int_value, self.update_data["int_value"])
+        self.assertEqual(enum.enum.pk, self.update_data["enum"])
+
+    def test_enums_update_redirects_after_POST_request(self):
+        response = self.client.post(self.url, data=self.update_data)
+        self.assertRedirects(response, self.redirect_url)
