@@ -672,7 +672,7 @@ class ParProdModelTest(TestCase):
         self.assertEqual(str(parprod), expected)
 
     def test_get_value_for_int_parametr(self):
-        """Проверяет, что get_value возвращает целочисленное значение."""
+        """Проверяет, что value возвращает целочисленное значение."""
         parprod = ParProd.objects.create(
             prod=self.prod,
             par=self.int_parametr,
@@ -680,10 +680,10 @@ class ParProdModelTest(TestCase):
             double_value=None,
             enum_val=None,
         )
-        self.assertEqual(parprod.get_value(), 5)
+        self.assertEqual(parprod.value, 5)
 
     def test_get_value_for_double_parametr(self):
-        """Проверяет, что get_value возвращает вещественное значение."""
+        """Проверяет, что value возвращает вещественное значение."""
         parprod = ParProd.objects.create(
             prod=self.prod,
             par=self.double_parametr,
@@ -691,10 +691,10 @@ class ParProdModelTest(TestCase):
             double_value=3.14,
             enum_val=None,
         )
-        self.assertEqual(parprod.get_value(), 3.14)
+        self.assertEqual(parprod.value, 3.14)
 
     def test_get_value_for_string_enum_value(self):
-        """Проверяет, что get_value возвращает название для строкового перечисления."""
+        """Проверяет, что value возвращает название для строкового перечисления."""
         parprod = ParProd.objects.create(
             prod=self.prod,
             par=self.string_enum_parametr,
@@ -702,10 +702,10 @@ class ParProdModelTest(TestCase):
             double_value=None,
             enum_val=self.string_enum_value,
         )
-        self.assertEqual(parprod.get_value(), self.string_enum_value.name)
+        self.assertEqual(parprod.value, self.string_enum_value.name)
 
     def test_get_value_for_int_enum_value(self):
-        """Проверяет, что get_value возвращает целочисленное значение перечисления."""
+        """Проверяет, что value возвращает целочисленное значение перечисления."""
         parprod = ParProd.objects.create(
             prod=self.prod,
             par=self.int_enum_parametr,
@@ -713,10 +713,10 @@ class ParProdModelTest(TestCase):
             double_value=None,
             enum_val=self.int_enum_value,
         )
-        self.assertEqual(parprod.get_value(), self.int_enum_value.int_value)
+        self.assertEqual(parprod.value, self.int_enum_value.int_value)
 
     def test_get_value_for_double_enum_value(self):
-        """Проверяет, что get_value возвращает вещественное значение перечисления."""
+        """Проверяет, что value возвращает вещественное значение перечисления."""
         parprod = ParProd.objects.create(
             prod=self.prod,
             par=self.double_enum_parametr,
@@ -724,10 +724,10 @@ class ParProdModelTest(TestCase):
             double_value=None,
             enum_val=self.double_enum_value,
         )
-        self.assertEqual(parprod.get_value(), self.double_enum_value.double_value)
+        self.assertEqual(parprod.value, self.double_enum_value.double_value)
 
     def test_get_value_for_image_enum_value(self):
-        """Проверяет, что get_value возвращает объект изображения для перечисления изображений."""
+        """Проверяет, что value возвращает объект изображения для перечисления изображений."""
         parprod = ParProd.objects.create(
             prod=self.prod,
             par=self.image_enum_parametr,
@@ -735,4 +735,4 @@ class ParProdModelTest(TestCase):
             double_value=None,
             enum_val=self.image_enum_value,
         )
-        self.assertEqual(parprod.get_value(), self.image_enum_value.image)
+        self.assertEqual(parprod.value, self.image_enum_value.image)

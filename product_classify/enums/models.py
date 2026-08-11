@@ -137,7 +137,7 @@ class Enums(models.Model):
             return self.short_name
         # если данное значение перечисления является перечислением вещественных чисел
         elif self.enum.main_class.id == 18:
-            return self.short_name + " - " + str(self.double_value)
+            return str(self.double_value)
         # если данное значение перечисления является перечислением целых чисел
         else:
-            return self.enum.short_name + " - " + str(self.int_value)
+            return str(self.int_value)

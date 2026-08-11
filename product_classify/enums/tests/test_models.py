@@ -130,7 +130,7 @@ class EnumsModelTest(TestCase):
             double_value=None,
             int_value=1,
         )
-        expected_representation = "ЦелЗнач - 1"
+        expected_representation = "1"
         self.assertEqual(str(value), expected_representation)
 
     def test_string_representation_of_double_enum_value(self):
@@ -143,7 +143,7 @@ class EnumsModelTest(TestCase):
             double_value=1.0,
             int_value=None,
         )
-        expected_representation = "ВещЗнач - 1.0"
+        expected_representation = "1.0"
         self.assertEqual(str(value), expected_representation)
 
     def test_get_all_image_nums(self):

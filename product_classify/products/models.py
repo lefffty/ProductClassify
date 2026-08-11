@@ -194,7 +194,9 @@ class ParProd(models.Model):
         else:
             return f"{self.prod.name} - {self.par.name} - {self.double_value}"
 
-    def get_value(self):
+
+    @property
+    def value(self):
         if self.int_value is not None:
             return self.int_value
         elif self.double_value is not None:
