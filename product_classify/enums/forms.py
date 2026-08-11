@@ -23,29 +23,17 @@ from .constants import (
     ENUMS_FORM_INT_VALUE_LOWER_BOUND,
     ENUMS_FORM_DOUBLE_VALUE_LOWER_BOUND,
 )
-from .constants import (
-    NEGATIVE_DOUBLE_VALUE_ERROR,
-    NEGATIVE_INT_VALUE_ERROR,
-    EMPTY_ENUM_ERROR,
-    EMPTY_STRING_ENUM_FIELDS_ERROR,
-    WRONG_FIELDS_STRING_ENUM_WAS_SPECIFIED_ERROR,
-    EMPTY_IMAGE_ENUM_FIELDS_ERROR,
-    WRONG_FIELDS_IMAGE_ENUM_WAS_SPECIFIED_ERROR,
-    EMPTY_DOUBLE_ENUM_FIELDS_ERROR,
-    WRONG_FIELDS_DOUBLE_ENUM_WAS_SPECIFIED_ERROR,
-    EMPTY_INT_ENUM_FIELDS_ERROR,
-    WRONG_FIELDS_INT_ENUM_WAS_SPECIFIED_ERROR
-)
+from .errors import *
 
 
 def validate_positive_int(value):
     if value <= ENUMS_FORM_INT_VALUE_LOWER_BOUND:
-        raise ValidationError(NEGATIVE_INT_VALUE_ERROR)
+        raise ValidationError(IntEnumErrors.NEGATIVE_VALUE_ERROR)
 
 
 def validate_positive_double(value):
     if value <= ENUMS_FORM_DOUBLE_VALUE_LOWER_BOUND:
-        raise ValidationError(NEGATIVE_DOUBLE_VALUE_ERROR)
+        raise ValidationError(DoubleEnumErrors.NEGATIVE_VALUE_ERROR)
 
 
 class EnumsForm(ModelForm):
@@ -54,7 +42,7 @@ class EnumsForm(ModelForm):
         queryset=ClassStruct.objects.none(),
         empty_label="Выберите перечисление",
         required=True,
-        error_messages={"required": EMPTY_ENUM_ERROR},
+        error_messages={"required": CommonEnumErrors.EMPTY_ENUM_ERROR},
     )
     image = ImageField(
         help_text='Разрешенные форматы изображений: ["jpg", "png"]',
@@ -123,24 +111,24 @@ class EnumsForm(ModelForm):
 
         if parent_id == STRING_ENUMS_ID:
             if not short_name or not name:
-                raise ValidationError(EMPTY_STRING_ENUM_FIELDS_ERROR)
+                raise ValidationError(StringEnumErrors.EMPTY_FIELDS_ERROR)
             if any([image, int_value, double_value]):
-                raise ValidationError(WRONG_FIELDS_STRING_ENUM_WAS_SPECIFIED_ERROR)
+                raise ValidationError(StringEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
         elif parent_id == IMAGE_ENUMS_ID:
             if not image:
-                raise ValidationError(EMPTY_IMAGE_ENUM_FIELDS_ERROR)
+                raise ValidationError(ImageEnumErrors.EMPTY_FIELDS_ERROR)
             if any([int_value, double_value]):
-                raise ValidationError(WRONG_FIELDS_IMAGE_ENUM_WAS_SPECIFIED_ERROR)
+                raise ValidationError(ImageEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
         elif parent_id == DOUBLE_ENUMS_ID:
             if not double_value:
-                raise ValidationError(EMPTY_DOUBLE_ENUM_FIELDS_ERROR)
+                raise ValidationError(DoubleEnumErrors.EMPTY_FIELDS_ERROR)
             if any([int_value, image, short_name, name]):
-                raise ValidationError(WRONG_FIELDS_DOUBLE_ENUM_WAS_SPECIFIED_ERROR)
+                raise ValidationError(DoubleEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
         elif parent_id == INT_ENUMS_ID:
             if not int_value:
-                raise ValidationError(EMPTY_INT_ENUM_FIELDS_ERROR)
+                raise ValidationError(IntEnumErrors.EMPTY_FIELDS_ERROR)
             if any([double_value, image, short_name, name]):
-                raise ValidationError(WRONG_FIELDS_INT_ENUM_WAS_SPECIFIED_ERROR)
+                raise ValidationError(IntEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
 
         if not self.instance.pk:
             cleaned_data["num"] = Enums.objects.filter(enum=enum).count() + 1

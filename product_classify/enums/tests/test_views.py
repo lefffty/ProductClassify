@@ -19,19 +19,7 @@ from enums.constants import (
     ENUMS_FORM_NAME_MAX_LENGTH,
     ENUMS_FORM_SHORT_NAME_MAX_LENGTH
 )
-from enums.constants import (
-    EMPTY_ENUM_ERROR,
-    EMPTY_INT_ENUM_FIELDS_ERROR,
-    NEGATIVE_INT_VALUE_ERROR,
-    WRONG_FIELDS_INT_ENUM_WAS_SPECIFIED_ERROR,
-    EMPTY_DOUBLE_ENUM_FIELDS_ERROR,
-    NEGATIVE_DOUBLE_VALUE_ERROR,
-    WRONG_FIELDS_DOUBLE_ENUM_WAS_SPECIFIED_ERROR,
-    EMPTY_STRING_ENUM_FIELDS_ERROR,
-    WRONG_FIELDS_STRING_ENUM_WAS_SPECIFIED_ERROR,
-    EMPTY_IMAGE_ENUM_FIELDS_ERROR,
-    WRONG_FIELDS_IMAGE_ENUM_WAS_SPECIFIED_ERROR
-)
+from enums.errors import *
 from enums.models import Enums
 
 
@@ -299,77 +287,77 @@ class EnumsCreateViewTest(TestCase):
             path=self.url,
             data=self.int_enum_empty_enum_data
         )
-        self.assertContains(response, escape(EMPTY_ENUM_ERROR))
+        self.assertContains(response, escape(CommonEnumErrors.EMPTY_ENUM_ERROR))
 
     def test_enums_create_view_shows_validation_error_on_page_if_name_or_short_name_fields_was_not_specified_for_string_enum(self):
         response = self.client.post(
             path=self.url,
             data=self.string_enum_empty_fields_data
         )
-        self.assertContains(response, escape(EMPTY_STRING_ENUM_FIELDS_ERROR))
+        self.assertContains(response, escape(StringEnumErrors.EMPTY_FIELDS_ERROR))
 
     def test_enums_create_view_shows_validation_error_on_page_if_int_value_or_double_value_or_image_fields_was_specified_for_string_enum(self):
         response = self.client.post(
             path=self.url,
             data=self.string_enum_invalid_data
         )
-        self.assertContains(response, escape(WRONG_FIELDS_STRING_ENUM_WAS_SPECIFIED_ERROR))
+        self.assertContains(response, escape(StringEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR))
 
     def test_enums_create_view_shows_validation_error_on_page_if_image_field_was_not_specified_for_image_enum(self):
         response = self.client.post(
             path=self.url,
             data=self.image_enum_empty_fields_data
         )
-        self.assertContains(response, escape(EMPTY_IMAGE_ENUM_FIELDS_ERROR))
+        self.assertContains(response, escape(ImageEnumErrors.EMPTY_FIELDS_ERROR))
 
     def test_enums_create_view_shows_validation_error_on_page_if_int_value_or_double_value_fields_was_specified_for_image_enum(self):
         response = self.client.post(
             path=self.url,
             data=self.image_enum_invalid_data,
         )
-        self.assertContains(response, escape(WRONG_FIELDS_IMAGE_ENUM_WAS_SPECIFIED_ERROR))
+        self.assertContains(response, escape(ImageEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR))
 
     def test_enums_create_view_shows_validation_error_on_page_if_double_value_field_was_not_specified_for_double_enum(self):
         response = self.client.post(
             path=self.url,
             data=self.double_enum_empty_fields_data
         )
-        self.assertContains(response, escape(EMPTY_DOUBLE_ENUM_FIELDS_ERROR))
+        self.assertContains(response, escape(DoubleEnumErrors.EMPTY_FIELDS_ERROR))
 
     def test_enums_create_view_shows_validation_error_on_page_if_double_value_is_negative(self):
         response = self.client.post(
             path=self.url,
             data=self.double_enum_negative_value_data
         )
-        self.assertContains(response, escape(NEGATIVE_DOUBLE_VALUE_ERROR))
+        self.assertContains(response, escape(DoubleEnumErrors.NEGATIVE_VALUE_ERROR))
 
     def test_enums_create_view_shows_validation_error_on_page_if_int_value_or_image_or_name_or_short_name_fields_was_specified_for_double_enum(self):
         response = self.client.post(
             path=self.url,
             data=self.double_enum_invalid_data
         )
-        self.assertContains(response, escape(WRONG_FIELDS_DOUBLE_ENUM_WAS_SPECIFIED_ERROR))
+        self.assertContains(response, escape(DoubleEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR))
 
     def test_enums_create_view_shows_validation_error_on_page_if_int_value_was_not_specified_for_int_enum(self):
         response = self.client.post(
             path=self.url,
             data=self.int_enum_empty_int_value_data,
         )
-        self.assertContains(response, escape(EMPTY_INT_ENUM_FIELDS_ERROR))
+        self.assertContains(response, escape(IntEnumErrors.EMPTY_FIELDS_ERROR))
 
     def test_enums_create_view_shows_validation_error_on_page_if_int_value_is_negative(self):
         response = self.client.post(
             path=self.url,
             data=self.int_enum_negative_value_field_data
         )
-        self.assertContains(response, escape(NEGATIVE_INT_VALUE_ERROR))
+        self.assertContains(response, escape(IntEnumErrors.NEGATIVE_VALUE_ERROR))
 
     def test_enums_create_view_shows_validation_error_on_page_if_double_value_or_image_or_name_or_short_name_field_was_specified_for_int_enum(self):
         response = self.client.post(
             path=self.url,
             data=self.int_enum_invalid_data
         )
-        self.assertContains(response, escape(WRONG_FIELDS_INT_ENUM_WAS_SPECIFIED_ERROR))
+        self.assertContains(response, escape(IntEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR))
 
 
 class EnumsDeleteViewTest(TestCase):
