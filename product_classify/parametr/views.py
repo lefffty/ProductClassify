@@ -7,13 +7,11 @@ from django.views.generic import (
     UpdateView,
 )
 
+from classes.constants import ParamIds
 from core.mixins import CommonContextMixin
 
-from .models import Parametr
-from .forms import ParametrForm
-from .constants import (
-    AGREGAT_TYPE_ID,
-)
+from parametr.models import Parametr
+from parametr.forms import ParametrForm
 
 
 class ParametrListView(
@@ -25,7 +23,7 @@ class ParametrListView(
     ordering = "id"
 
     def get_queryset(self):
-        parameters = Parametr.objects.exclude(parametr_type__exact=AGREGAT_TYPE_ID)
+        parameters = Parametr.objects.exclude(parametr_type__exact=ParamIds.AGREGAT)
         return parameters
 
 

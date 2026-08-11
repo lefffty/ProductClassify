@@ -6,17 +6,16 @@ from django.db import IntegrityError
 from unittest.mock import patch
 
 from parametr.models import Parametr
-from products.constants import INT_PARAMS, ENUM_CLASSES_IDS
 from ei.models import Ei
 
-from ..models import ClassStruct, ParClass
-from ..constants import PRODUCT_ID, NUTS_ID
+from classes.models import ClassStruct, ParClass
+from classes.constants import ProductsConsts, ParamIds, EnumsIds
 
 
 class ClassStructModelTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
 
     @staticmethod
     def get_expected_model_error_message(model_name: str) -> str:
@@ -150,9 +149,9 @@ class ParClassModelTest(TestCase):
     def setUpTestData(cls):
         base_ei = Ei.objects.first()
         par_ei = Ei.objects.first()
-        enum_parametr_type = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[2])
-        parametr_type = ClassStruct.objects.get(pk=INT_PARAMS)
-        main_class = ClassStruct.objects.get(pk=PRODUCT_ID)
+        enum_parametr_type = ClassStruct.objects.get(pk=EnumsIds.DOUBLE)
+        parametr_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        main_class = ClassStruct.objects.get(pk=ProductsConsts.PRODUCT_ID)
         cls.class_field = ClassStruct.objects.create(
             name="Products_class",
             short_name="Pc",
@@ -275,7 +274,6 @@ class ParClassModelTest(TestCase):
         with self.assertRaises(ValidationError) as ve:
             parclass.full_clean()
         self.assertIn("min_value", ve.exception.error_dict)
-        self.assertIn("max_value", ve.exception.error_dict)
 
     def test_check_constraint_raises_integrity_error_if_max_less_than_min(self):
         num = self.NUM_PLACEHOLDER

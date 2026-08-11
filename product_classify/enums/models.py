@@ -1,17 +1,10 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from classes.models import (
-    ClassStruct,
-)
 
-from .constants import (
-    ENUMS_NAME_MAX_LENGTH,
-    ENUMS_SHORT_NAME_MAX_LENGTH,
-    IMAGE_ENUMS_ID,
-    STRING_ENUMS_ID,
-    INT_ENUMS_ID,
-    DOUBLE_ENUMS_ID,
-)
+from classes.models import ClassStruct
+from classes.constants import EnumsIds, ENUMS_IDS
+
+from enums.constants import EnumsConsts
 
 
 class Enums(models.Model):
@@ -28,13 +21,13 @@ class Enums(models.Model):
     )
     name = models.CharField(
         verbose_name="Название перечисления",
-        max_length=ENUMS_NAME_MAX_LENGTH,
+        max_length=EnumsConsts.NAME_MAX_LENGTH,
         null=True,
         blank=True,
     )
     short_name = models.CharField(
         verbose_name="Сокращенное название перечисления",
-        max_length=ENUMS_SHORT_NAME_MAX_LENGTH,
+        max_length=EnumsConsts.SHORT_NAME_MAX_LENGTH,
         null=True,
         blank=True,
     )
@@ -62,30 +55,30 @@ class Enums(models.Model):
 
     @classmethod
     def image_nums(cls):
-        return cls.objects.filter(enum__main_class__id=IMAGE_ENUMS_ID)
+        return cls.objects.filter(enum__main_class__id=EnumsIds.IMAGE)
 
     @classmethod
     def string_nums(cls):
-        return cls.objects.filter(enum__main_class__id=STRING_ENUMS_ID)
+        return cls.objects.filter(enum__main_class__id=EnumsIds.STRING)
 
     @classmethod
     def int_nums(cls):
-        return cls.objects.filter(enum__main_class__id=INT_ENUMS_ID)
+        return cls.objects.filter(enum__main_class__id=EnumsIds.INT)
 
     @classmethod
     def double_nums(cls):
-        return cls.objects.filter(enum__main_class__id=DOUBLE_ENUMS_ID)
+        return cls.objects.filter(enum__main_class__id=EnumsIds.DOUBLE)
 
     @property
     def value(self):
         enum_type = self.enum.main_class.pk
-        if enum_type == STRING_ENUMS_ID:
+        if enum_type == EnumsIds.STRING:
             return self.name
-        elif enum_type == IMAGE_ENUMS_ID:
+        elif enum_type == EnumsIds.IMAGE:
             return self.image
-        elif enum_type == INT_ENUMS_ID:
+        elif enum_type == EnumsIds.INT:
             return self.int_value
-        elif enum_type == DOUBLE_ENUMS_ID:
+        elif enum_type == EnumsIds.DOUBLE:
             return self.double_value
 
     def clean(self):
@@ -94,36 +87,31 @@ class Enums(models.Model):
         except self.__class__.enum.RelatedObjectDoesNotExist:
             return
 
-        if self.enum.main_class.pk not in (
-            STRING_ENUMS_ID,
-            INT_ENUMS_ID,
-            DOUBLE_ENUMS_ID,
-            IMAGE_ENUMS_ID,
-        ):
+        if self.enum.main_class.pk not in ENUMS_IDS:
             raise ValidationError(
                 "Родительский класс должен быть классом-перечислением."
             )
 
-        if self.enum.main_class.pk == IMAGE_ENUMS_ID and any(
+        if self.enum.main_class.pk == EnumsIds.IMAGE and any(
             [self.double_value, self.int_value]
         ):
             raise ValidationError(
                 "Для перечисления типа 'Изображение' поля double_value и int_value должны быть пустыми (null)."
             )
-        elif self.enum.main_class.pk == STRING_ENUMS_ID and any(
+        elif self.enum.main_class.pk == EnumsIds.STRING and any(
             [self.double_value, self.int_value]
         ):
             raise ValidationError(
                 "Для перечисления типа 'Строка' поля double_value и int_value должны быть пустыми (null)."
             )
-        elif self.enum.main_class.pk == INT_ENUMS_ID and any(
+        elif self.enum.main_class.pk == EnumsIds.INT and any(
             [self.name, self.short_name, self.double_value, self.image]
         ):
             raise ValidationError(
                 "Для перечисления типа 'Целое число' поля name, short_name, double_value и image должны быть пустыми (null). "
                 "Заполните только поле int_value."
             )
-        elif self.enum.main_class.pk == DOUBLE_ENUMS_ID and any(
+        elif self.enum.main_class.pk == EnumsIds.DOUBLE and any(
             [self.name, self.short_name, self.int_value, self.image]
         ):
             raise ValidationError(

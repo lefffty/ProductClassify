@@ -1,19 +1,18 @@
 from django.test import TestCase
 
 from classes.models import ClassStruct
-from products.constants import INT_PARAMS
+from classes.constants import ParamIds
 from ei.models import Ei
 
-from ..models import Parametr
-from ..constants import AGREGAT_TYPE_ID
+from parametr.models import Parametr
 
 
 class ParametrModelTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.par_ei = Ei.objects.first()
-        cls.parametr_type = ClassStruct.objects.get(pk=INT_PARAMS)
-        cls.agregat_type = ClassStruct.objects.get(pk=AGREGAT_TYPE_ID)
+        cls.parametr_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.agregat_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
 
     def test_create_with_minimum_requirements(self):
         parametr = Parametr.objects.create(

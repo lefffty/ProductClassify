@@ -1,26 +1,49 @@
-CLASS_STRUCT_NAME_MAX_LENGTH = 128
-CLASS_STRUCT_SHORT_NAME_MAX_LENGTH = 16
-PARCLASS_INLINE_EXTRA = 1
-PARCLASS_NUM_MIN_VALUE = 1
-ENUM_CLASSES_IDS = [15, 16, 18, 19]
-ENUM_PARENT_NODE_ID = 14
-NUM_PARAM_ID = 26
-PRODUCT_ID = 1
-NUM_ENUM_ID = 17
-AGREGAT_TYPE_ID = 30
-PROD_CLASS_FORM_MAX_LENGTH = 128
-PROD_CLASS_FORM_SHORT_NAME_MAX_LENGTH = 16
-ENUM_CLASS_FORM_NAME_MAX_LENGTH = 75
-ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH = 16
-
-PARCLASS_FORM_MIN_VALUE_LOWER_BOUND = 0.0
-PARCLASS_FORM_MAX_VALUE_LOWER_BOUND = 0.0
-
-FASTENER_ID = 2
-NUTS_ID = 5
+from enum import IntEnum
 
 
-EMPTY_MAIN_CLASS_ERROR = "Поле для родительского класса необходимо заполнить"
-EMPTY_NAME_ERROR = "Поле для названия класса необходимо заполнить"
+class ClassStructConsts(IntEnum):
+    NAME_MAX_LENGTH = 128
+    SHORT_NAME_MAX_LENGTH = 16
 
-CLASSIFICATOR_CYCLE_ERROR = "При изменении класса в классификаторе образовывается цикл!"
+
+class ProdClassConsts(IntEnum):
+    NAME_MAX_LENGTH = 128
+    SHORT_NAME_MAX_LENGTH = 16
+
+
+class EnumClassConsts(IntEnum):
+    NAME_MAX_LENGTH = 75
+    SHORT_NAME_MAX_LENGTH = 16
+
+
+class ParClassConsts(IntEnum):
+    INLINE_EXTRA = 1
+    NUM_MIN_VALUE = 1
+    MIN_VALUE_LOWER_BOUND = 0.0
+    MAX_VALUE_LOWER_BOUND = 0.0
+
+
+class EnumsIds(IntEnum):
+    PARENT = 14
+    STRING = 15
+    IMAGE = 16
+    NUMERIC = 17
+    DOUBLE = 18
+    INT = 19
+
+
+class ParamIds(IntEnum):
+    NUMERIC = 26
+    DOUBLE = 27
+    INT = 28
+    AGREGAT = 30
+
+
+class ProductsConsts(IntEnum):
+    PRODUCT_ID = 1
+    FASTENER_ID = 2
+    NUTS_ID = 5
+
+
+ENUMS_IDS = [item.value for item in EnumsIds]
+PARAMS_IDS = [item.value for item in ParamIds]

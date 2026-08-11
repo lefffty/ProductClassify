@@ -10,14 +10,11 @@ from django.views.generic import (
 
 from parametr.models import Parametr
 from classes.models import ClassStruct
+from classes.constants import ParamIds, ProductsConsts
 from core.mixins import CommonContextMixin
 
-from .models import Agregat
-from .forms import AgregatForm, ChangeAgregatNumForm
-from .constants import (
-    FASTENER_ID,
-    AGREGAT_TYPE_ID,
-)
+from agregat.models import Agregat
+from agregat.forms import AgregatForm, ChangeAgregatNumForm
 
 
 class AgregatListView(
@@ -25,7 +22,7 @@ class AgregatListView(
     ListView,
 ):
     queryset = Parametr.objects.filter(
-        parametr_type__exact=AGREGAT_TYPE_ID,
+        parametr_type__exact=ParamIds.AGREGAT,
     )
     template_name = "agregat/list.html"
     context_object_name = "agregats"
@@ -127,7 +124,7 @@ def change_agregat_num(
     """
     Изменение номера параметра в агрегат
     """
-    fastener_classes = ClassStruct.objects.filter(main_class__exact=FASTENER_ID)
+    fastener_classes = ClassStruct.objects.filter(main_class__exact=ProductsConsts.FASTENER_ID)
     agregat = Parametr.objects.get(pk=agregat_id)
     form = ChangeAgregatNumForm(request.POST or None, agr=agregat)
     if form.is_valid():

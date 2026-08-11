@@ -1,25 +1,22 @@
 from django.db import models
 
 from classes.models import ClassStruct
+from classes.constants import ParamIds
 from ei.models import Ei
 
-from .constants import (
-    PARAMETR_NAME_MAX_LENGTH,
-    PARAMETR_SHORT_NAME_MAX_LENGTH,
-    AGREGAT_TYPE_ID,
-)
+from parametr.constants import ParametrConsts
 
 
 class Parametr(models.Model):
     name = models.CharField(
         verbose_name="Название параметра",
-        max_length=PARAMETR_NAME_MAX_LENGTH,
+        max_length=ParametrConsts.NAME_MAX_LENGTH,
         null=False,
         blank=False,
     )
     short_name = models.CharField(
         verbose_name="Сокращенное название параметра",
-        max_length=PARAMETR_SHORT_NAME_MAX_LENGTH,
+        max_length=ParametrConsts.SHORT_NAME_MAX_LENGTH,
         null=False,
         blank=True,
     )
@@ -49,8 +46,8 @@ class Parametr(models.Model):
 
     @classmethod
     def parameters(cls):
-        return cls.objects.exclude(parametr_type__exact=AGREGAT_TYPE_ID)
+        return cls.objects.exclude(parametr_type__exact=ParamIds.AGREGAT)
 
     @classmethod
     def agregats(cls):
-        return cls.objects.filter(parametr_type__exact=AGREGAT_TYPE_ID)
+        return cls.objects.filter(parametr_type__exact=ParamIds.AGREGAT)

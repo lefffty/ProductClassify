@@ -11,20 +11,18 @@ from django.views.generic import (
 
 from core.mixins import CommonContextMixin
 
-from .models import (
+from classes.models import (
     ClassStruct,
     ParClass,
 )
-from .forms import (
+from classes.forms import (
     ChangeParClassNumForm,
     ProdClassForm,
     EnumClassForm,
     ParClassForm,
 )
-from .constants import (
-    ENUM_CLASSES_IDS,
-    FASTENER_ID
-)
+from classes.constants import ENUMS_IDS, ProductsConsts
+
 
 
 class MainPageTemplateView(
@@ -89,14 +87,14 @@ class ClassUpdateView(
     def get_template_names(self):
         class_id = self.kwargs.get("class_id")
         _class = ClassStruct.objects.get(pk=class_id)
-        if _class.main_class.pk in ENUM_CLASSES_IDS:
+        if _class.main_class.pk in ENUMS_IDS:
             return ["classes/enum_class.html"]
         return ["classes/prod_class.html"]
 
     def get_form_class(self):
         class_id = self.kwargs.get("class_id")
         _class = ClassStruct.objects.get(pk=class_id)
-        if _class.main_class.pk in ENUM_CLASSES_IDS:
+        if _class.main_class.pk in ENUMS_IDS:
             return EnumClassForm
         return ProdClassForm
 
@@ -118,7 +116,7 @@ def delete_class(
     """
     Удаление класса
     """
-    fastener_classes = ClassStruct.objects.filter(main_class__pk=FASTENER_ID)
+    fastener_classes = ClassStruct.objects.filter(main_class__pk=ProductsConsts.FASTENER_ID)
     _class = ClassStruct.objects.get(pk=class_id)
     context = {
         "fastener_classes": fastener_classes,
@@ -186,7 +184,7 @@ def add_param_class(
     """
     Добавление параметра класса
     """
-    fastener_classes = ClassStruct.objects.get(pk=FASTENER_ID)
+    fastener_classes = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
     _class = ClassStruct.objects.get(
         pk=class_id,
     )
@@ -220,7 +218,7 @@ def edit_param_class(
     """
     Редактирование параметра класса
     """
-    fastener_classes = ClassStruct.objects.get(pk=FASTENER_ID)
+    fastener_classes = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
     instance = ParClass.objects.get(
         class_field=class_id,
         parametr=param_id,
@@ -252,7 +250,7 @@ def delete_param_class(
     """
     Удаление параметра класса
     """
-    fastener_classes = ClassStruct.objects.get(pk=FASTENER_ID)
+    fastener_classes = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
     instance = ParClass.objects.get(
         class_field=class_id,
         parametr=param_id,
@@ -278,7 +276,7 @@ def change_parclass_num(
     """
     Изменение номера параметра класса
     """
-    fastener_classes = ClassStruct.objects.get(pk=FASTENER_ID)
+    fastener_classes = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
     _class = ClassStruct.objects.get(pk=class_id)
     if request.method == "POST":
         form = ChangeParClassNumForm(request.POST, class_id=class_id)

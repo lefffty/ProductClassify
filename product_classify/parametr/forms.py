@@ -2,16 +2,11 @@ from django.forms import ModelForm, ModelChoiceField, CharField
 from django.core.exceptions import ValidationError
 
 from classes.models import ClassStruct
+from classes.constants import EnumsIds, ParamIds
 from ei.models import Ei
-from parametr.models import Parametr
 
-from .constants import (
-    IMAGE_ENUMS_ID,
-    STRING_ENUMS_ID,
-    AGREGAT_TYPE_ID,
-    PARAMETR_FORM_NAME_MAX_LENGTH,
-    PARAMETR_SHORT_NAME_MAX_LENGTH,
-)
+from parametr.models import Parametr
+from parametr.constants import ParametrConsts
 
 
 class ParametrForm(ModelForm):
@@ -26,12 +21,12 @@ class ParametrForm(ModelForm):
         required=False,
     )
     name = CharField(
-        max_length=PARAMETR_FORM_NAME_MAX_LENGTH,
+        max_length=ParametrConsts.NAME_MAX_LENGTH,
         required=True,
         label="Название параметра",
     )
     short_name = CharField(
-        max_length=PARAMETR_SHORT_NAME_MAX_LENGTH,
+        max_length=ParametrConsts.SHORT_NAME_MAX_LENGTH,
         required=False,
         label="Сокращенное название параметра",
     )
@@ -61,9 +56,9 @@ class ParametrForm(ModelForm):
         parametr_tp = cleaned_data.get("parametr_type")
         par_ei = cleaned_data.get("par_ei")
 
-        str_enum = ClassStruct.objects.get(pk=STRING_ENUMS_ID)
-        img_enum = ClassStruct.objects.get(pk=IMAGE_ENUMS_ID)
-        agregat_type = ClassStruct.objects.get(pk=AGREGAT_TYPE_ID)
+        str_enum = ClassStruct.objects.get(pk=EnumsIds.STRING)
+        img_enum = ClassStruct.objects.get(pk=EnumsIds.IMAGE)
+        agregat_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
 
         if parametr_tp == str_enum and par_ei is not None:
             raise ValidationError(

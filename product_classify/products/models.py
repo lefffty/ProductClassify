@@ -1,18 +1,12 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from loguru import logger
-
 from classes.models import ClassStruct, ParClass
+from classes.constants import ParamIds,EnumsIds
 from parametr.models import Parametr
 from enums.models import Enums
-from products.constants import INT_PARAMS, DOUBLE_PARAMS
 
-from .constants import (
-    ENUM_CLASSES_IDS,
-    PROD_NAME_MAX_LENGTH,
-    PROD_SHORT_NAME_MAX_LENGTH,
-)
+from products.constants import ProdConsts
 
 
 class Prod(models.Model):
@@ -20,13 +14,13 @@ class Prod(models.Model):
         verbose_name="Название изделия",
         null=False,
         blank=False,
-        max_length=PROD_NAME_MAX_LENGTH,
+        max_length=ProdConsts.NAME_MAX_LENGTH,
     )
     short_name = models.CharField(
         verbose_name="Сокращенное название изделия",
         null=False,
         blank=True,
-        max_length=PROD_SHORT_NAME_MAX_LENGTH,
+        max_length=ProdConsts.SHORT_NAME_MAX_LENGTH,
     )
     class_field = models.ForeignKey(
         ClassStruct,
@@ -110,43 +104,43 @@ class ParProd(models.Model):
             )
 
         # параметр является перечислением строк
-        if self.par.parametr_type.pk == ENUM_CLASSES_IDS[0] and (
+        if self.par.parametr_type.pk == EnumsIds.STRING and (
             not self.enum_val or
             any([self.double_value, self.int_value]) or # если для параметра-перечисления строк указаны значения полей int_value, double_value
-            self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[0]
+            self.enum_val.enum.main_class.pk != EnumsIds.STRING
         ):
             raise ValidationError(
                 "Для параметра типа 'Строковое перечисление' необходимо выбрать значение из списка строковых перечислений."
             )
         # параметр является перечислением изображений
-        elif self.par.parametr_type.pk == ENUM_CLASSES_IDS[1] and (
+        elif self.par.parametr_type.pk == EnumsIds.IMAGE and (
             not self.enum_val or
             any([self.double_value, self.int_value]) or # если для параметра-перечисления изображений указаны значения полей int_value, double_value
-            self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[1]
+            self.enum_val.enum.main_class.pk != EnumsIds.IMAGE
         ):
             raise ValidationError(
                 "Для параметра типа 'Перечисление изображений' необходимо выбрать значение из списка перечислений изображений."
             )
         # параметр является целочисленным перечислением
-        elif self.par.parametr_type.pk == ENUM_CLASSES_IDS[2] and (
+        elif self.par.parametr_type.pk == EnumsIds.DOUBLE and (
             not self.enum_val or
             any([self.int_value, self.int_value]) or # если для параметра-перечисления целых чисел указаны значения полей int_value, double_value
-            self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[2]
+            self.enum_val.enum.main_class.pk != EnumsIds.DOUBLE
         ):
             raise ValidationError(
                 "Для параметра типа 'Вещественное перечисление' необходимо выбрать значение из списка вещественных перечислений."
             )
         # параметр является вещественным перечислением
-        elif self.par.parametr_type.pk == ENUM_CLASSES_IDS[3] and (
+        elif self.par.parametr_type.pk == EnumsIds.INT and (
             not self.enum_val or
             any([self.int_value, self.int_value]) or # если для параметра-перечисления вещественных чисел указаны значения полей int_value, double_value
-            self.enum_val.enum.main_class.pk != ENUM_CLASSES_IDS[3]
+            self.enum_val.enum.main_class.pk != EnumsIds.INT
         ):
             raise ValidationError(
                 "Для параметра типа 'Целочисленное перечисление' необходимо выбрать значение из списка целочисленных перечислений."
             )
         # параметр является целочисленным
-        elif self.par.parametr_type.pk == INT_PARAMS and (
+        elif self.par.parametr_type.pk == ParamIds.INT and (
             not self.int_value or
             any([self.enum_val, self.double_value]) # если для целочисленного параметра указаны значения полей enum_val или double_value
         ):
@@ -154,7 +148,7 @@ class ParProd(models.Model):
                 "Для параметра типа 'Целое число' необходимо указать целочисленное значение."
             )
         # параметр является вещественным
-        elif self.par.parametr_type.pk == DOUBLE_PARAMS and (
+        elif self.par.parametr_type.pk == ParamIds.DOUBLE and (
             not self.double_value or
             any([self.enum_val, self.int_value]) # если для вещественного параметра указаны значения полей enum_val или double_value
         ):
@@ -165,11 +159,11 @@ class ParProd(models.Model):
     def _get_enum_display_value(self):
         """Возвращает строковое представление для значения перечисления в зависимости от его типа."""
         enum_type_id = self.enum_val.enum.main_class.id
-        if enum_type_id == ENUM_CLASSES_IDS[0]:  # строковое
+        if enum_type_id == EnumsIds.STRING:  # строковое
             return self.enum_val.name
-        elif enum_type_id == ENUM_CLASSES_IDS[1]:  # изображение
+        elif enum_type_id == EnumsIds.IMAGE:  # изображение
             return self.enum_val.short_name
-        elif enum_type_id == ENUM_CLASSES_IDS[2]:  # вещественное
+        elif enum_type_id == EnumsIds.DOUBLE:  # вещественное
             return f"{self.enum_val.short_name} - {self.enum_val.double_value}"
         else:  # целочисленное
             return f"{self.enum_val.short_name} - {self.enum_val.int_value}"
@@ -177,13 +171,13 @@ class ParProd(models.Model):
     def _get_enum_raw_value(self):
         """Возвращает сырое значение перечисления (для get_value)."""
         enum_type_id = self.enum_val.enum.main_class.id
-        if enum_type_id == ENUM_CLASSES_IDS[0]:
+        if enum_type_id == EnumsIds.STRING: # строковое
             return self.enum_val.name
-        elif enum_type_id == ENUM_CLASSES_IDS[1]:
+        elif enum_type_id == EnumsIds.IMAGE: # изображение
             return self.enum_val.image
-        elif enum_type_id == ENUM_CLASSES_IDS[2]:
+        elif enum_type_id == EnumsIds.DOUBLE: # вещественное
             return self.enum_val.double_value
-        else:
+        else: # целочисленное
             return self.enum_val.int_value
 
     def __str__(self):

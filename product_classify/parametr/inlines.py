@@ -2,10 +2,10 @@ from django.contrib import admin
 
 from agregat.models import Agregat
 
-from .constants import AGR_INLINE_EXTRA
+from parametr.constants import AgrConsts
 
 
 class AgregatInline(admin.TabularInline):
     model = Agregat
-    extra = AGR_INLINE_EXTRA
+    extra = AgrConsts.INLINE_EXTRA
     fk_name = "agr"

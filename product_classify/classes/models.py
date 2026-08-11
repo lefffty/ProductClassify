@@ -4,19 +4,14 @@ from django.db.models import QuerySet, Q, F
 from django.forms import ValidationError
 
 from ei.models import Ei
-from agregat.constants import AGREGAT_TYPE_ID
 
-from .constants import (
-    CLASS_STRUCT_SHORT_NAME_MAX_LENGTH,
-    CLASS_STRUCT_NAME_MAX_LENGTH,
-    PARCLASS_NUM_MIN_VALUE,
-    ENUM_PARENT_NODE_ID,
-    ENUM_CLASSES_IDS,
-    AGREGAT_TYPE_ID,
-    NUM_PARAM_ID,
-    FASTENER_ID,
-    NUM_ENUM_ID,
-    PRODUCT_ID,
+from classes.constants import (
+    EnumsIds,
+    ClassStructConsts,
+    ParClassConsts,
+    ProductsConsts,
+    ParamIds,
+    ENUMS_IDS
 )
 
 
@@ -25,13 +20,13 @@ class ClassStruct(models.Model):
         verbose_name="Название класса",
         null=False,
         blank=False,
-        max_length=CLASS_STRUCT_NAME_MAX_LENGTH,
+        max_length=ClassStructConsts.NAME_MAX_LENGTH,
     )
     short_name = models.CharField(
         verbose_name="Сокращенное название класса",
         null=False,
         blank=True,
-        max_length=CLASS_STRUCT_SHORT_NAME_MAX_LENGTH,
+        max_length=ClassStructConsts.SHORT_NAME_MAX_LENGTH,
     )
     base_ei = models.ForeignKey(
         Ei,
@@ -57,7 +52,7 @@ class ClassStruct(models.Model):
     def products(cls) -> QuerySet:
         """Returns QuerySet of products classes"""
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM find_gr_gr(%s);", [PRODUCT_ID])
+            cursor.execute("SELECT * FROM find_gr_gr(%s);", [ProductsConsts.PRODUCT_ID])
             data = cursor.fetchall()
             prod_classes_ids = [element[0] for element in data]
         return cls.objects.filter(id__in=prod_classes_ids)
@@ -66,7 +61,7 @@ class ClassStruct(models.Model):
     def terminal_product_classes(cls) -> QuerySet[ClassStruct]:
         """Returns QuerySet of terminal products classes"""
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM find_gr_gr(%s);", [PRODUCT_ID])
+            cursor.execute("SELECT * FROM find_gr_gr(%s);", [ProductsConsts.PRODUCT_ID])
             terminal_classes = cursor.fetchall()
             terminal_classes_ids = [element[0] for element in terminal_classes]
         return cls.objects.filter(id__in=terminal_classes_ids)
@@ -76,25 +71,25 @@ class ClassStruct(models.Model):
         """Returns QuerySet of terminal enum classes"""
         with connection.cursor() as cursor:
             cursor.execute(
-                "SELECT * FROM get_terminal_classes(%s);", [ENUM_PARENT_NODE_ID]
+                "SELECT * FROM get_terminal_classes(%s);", [EnumsIds.PARENT]
             )
             terminal_enum_classes = cursor.fetchall()
             terminal_enum_classes_ids = [
                 element[0] for element in terminal_enum_classes
             ]
-            terminal_enum_classes_ids.extend(ENUM_CLASSES_IDS)
+            terminal_enum_classes_ids.extend(ENUMS_IDS)
             ids = set(terminal_enum_classes_ids)
-            ids = ids.difference(ENUM_CLASSES_IDS)
+            ids = ids.difference(ENUMS_IDS)
         return cls.objects.filter(id__in=ids)
 
     @classmethod
     def parametr_types(cls) -> QuerySet:
         """Returns QuerySet of parametr types"""
-        string_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[0])
-        image_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[1])
-        num_enums = ClassStruct.objects.filter(main_class__exact=NUM_ENUM_ID)
-        num_params = ClassStruct.objects.filter(main_class__exact=NUM_PARAM_ID)
-        agregat_type = ClassStruct.objects.filter(pk__in=[AGREGAT_TYPE_ID])
+        string_enum = ClassStruct.objects.filter(pk=EnumsIds.STRING)
+        image_enum = ClassStruct.objects.filter(pk=EnumsIds.IMAGE)
+        num_enums = ClassStruct.objects.filter(main_class__exact=EnumsIds.NUMERIC)
+        num_params = ClassStruct.objects.filter(main_class__exact=ParamIds.NUMERIC)
+        agregat_type = ClassStruct.objects.filter(pk__in=[ParamIds.AGREGAT])
         result_queryset = (
             string_enum | image_enum | num_params | num_enums | agregat_type
         )
@@ -103,16 +98,16 @@ class ClassStruct(models.Model):
     @classmethod
     def enum_classes(cls) -> QuerySet:
         """Returns QuerySet of enum classes"""
-        string_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[0])
-        image_enum = ClassStruct.objects.filter(pk=ENUM_CLASSES_IDS[1])
-        num_enums = ClassStruct.objects.filter(main_class__exact=NUM_ENUM_ID)
+        string_enum = ClassStruct.objects.filter(pk=EnumsIds.STRING)
+        image_enum = ClassStruct.objects.filter(pk=EnumsIds.IMAGE)
+        num_enums = ClassStruct.objects.filter(main_class__exact=EnumsIds.NUMERIC)
         return string_enum | image_enum | num_enums
 
     @classmethod
     def all_enum_classes(cls) -> QuerySet:
         """Returns QuerySet of all enum classes"""
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM find_gr_gr(%s);", [ENUM_PARENT_NODE_ID])
+            cursor.execute("SELECT * FROM find_gr_gr(%s);", [EnumsIds.NUMERIC])
             classes_ids = cursor.fetchall()
             classes_ids = [element[0] for element in classes_ids]
         return cls.objects.filter(id__in=classes_ids)
@@ -153,7 +148,7 @@ class ParClass(models.Model):
         verbose_name="Позиция в списке параметров класса",
         null=False,
         blank=False,
-        validators=[MinValueValidator(PARCLASS_NUM_MIN_VALUE)],
+        validators=[MinValueValidator(ParClassConsts.NUM_MIN_VALUE)],
     )
     min_value = models.FloatField(
         verbose_name="Минимальное значение параметра",
@@ -188,7 +183,7 @@ class ParClass(models.Model):
         if not self.parametr_id:
             return
 
-        enum_param_type_ids = list([*ENUM_CLASSES_IDS, AGREGAT_TYPE_ID])
+        enum_param_type_ids = list([*ENUMS_IDS, ParamIds.AGREGAT])
         if self.parametr.parametr_type.id in enum_param_type_ids and (
             self.min_value or self.max_value
         ):
@@ -202,8 +197,7 @@ class ParClass(models.Model):
             if self.min_value > self.max_value:
                 raise ValidationError(
                     {
-                        "min_value": "Minimum value should be less than maximum value",
-                        "max_value": "Maximum value should be greater than minimum value",
+                        "min_value": "У численного параметра минимальное значение должно быть меньше максимального!",
                     }
                 )
 

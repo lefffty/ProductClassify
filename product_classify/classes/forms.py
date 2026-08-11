@@ -12,24 +12,9 @@ from django.db import connection
 from ei.models import Ei
 from parametr.models import Parametr
 
-from .models import (
-    ClassStruct,
-    ParClass,
-)
-from .constants import (
-    NUM_PARAM_ID,
-    PROD_CLASS_FORM_MAX_LENGTH,
-    ENUM_CLASS_FORM_NAME_MAX_LENGTH,
-    PARCLASS_FORM_MAX_VALUE_LOWER_BOUND,
-    PARCLASS_FORM_MIN_VALUE_LOWER_BOUND,
-    PROD_CLASS_FORM_SHORT_NAME_MAX_LENGTH,
-    ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH,
-)
-from .constants import (
-    CLASSIFICATOR_CYCLE_ERROR,
-    EMPTY_MAIN_CLASS_ERROR,
-    EMPTY_NAME_ERROR,
-)
+from classes.models import ClassStruct, ParClass
+from classes.constants import ProdClassConsts, ParClassConsts, EnumClassConsts, EnumsIds
+from classes.errors import ClassStructErrors
 
 
 class ProdClassForm(ModelForm):
@@ -45,19 +30,19 @@ class ProdClassForm(ModelForm):
         queryset=ClassStruct.objects.none(),
         required=True,
         error_messages={
-            "required": EMPTY_MAIN_CLASS_ERROR,
+            "required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
         },
     )
     name = CharField(
-        max_length=PROD_CLASS_FORM_MAX_LENGTH,
+        max_length=ProdClassConsts.NAME_MAX_LENGTH,
         required=True,
         label="Название класса",
         error_messages={
-            "required": EMPTY_NAME_ERROR,
+            "required": ClassStructErrors.EMPTY_NAME_ERROR,
         },
     )
     short_name = CharField(
-        max_length=PROD_CLASS_FORM_SHORT_NAME_MAX_LENGTH,
+        max_length=ProdClassConsts.SHORT_NAME_MAX_LENGTH,
         required=False,
         label="Сокращенное название класса",
     )
@@ -89,7 +74,7 @@ class ProdClassForm(ModelForm):
                 is_cycle = ClassStruct.check_class_struct_cycles(cursor, cls_id, main_cls_id)
                 if is_cycle:
                     raise ValidationError(
-                        CLASSIFICATOR_CYCLE_ERROR
+                        ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR
                     )
                 return super().clean()
         else:
@@ -103,17 +88,17 @@ class EnumClassForm(ModelForm):
         empty_label="Выберите родительский класс",
         required=True,
         error_messages={
-            "required": EMPTY_MAIN_CLASS_ERROR
+            "required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR
         },
     )
     name = CharField(
-        max_length=ENUM_CLASS_FORM_NAME_MAX_LENGTH,
+        max_length=EnumClassConsts.NAME_MAX_LENGTH,
         required=True,
         label="Название класса",
-        error_messages={"required": EMPTY_NAME_ERROR}
+        error_messages={"required": ClassStructErrors.EMPTY_NAME_ERROR}
     )
     short_name = CharField(
-        max_length=ENUM_CLASS_FORM_SHORT_NAME_MAX_LENGTH,
+        max_length=EnumClassConsts.SHORT_NAME_MAX_LENGTH,
         required=False,
         label="Сокращенное название класса",
     )
@@ -142,7 +127,7 @@ class EnumClassForm(ModelForm):
                 main_cls_id = self.cleaned_data["main_class"].id
                 is_cycle = ClassStruct.check_class_struct_cycles(cursor, cls_id, main_cls_id)
                 if is_cycle:
-                    raise ValidationError(CLASSIFICATOR_CYCLE_ERROR)
+                    raise ValidationError(ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR)
                 return super().clean()
         else:
             return super().clean()
@@ -162,14 +147,14 @@ class ParClassForm(ModelForm):
     min_value = FloatField(
         label="Минимальное значение параметра класса",
         validators=[
-            MinValueValidator(PARCLASS_FORM_MIN_VALUE_LOWER_BOUND),
+            MinValueValidator(ParClassConsts.MIN_VALUE_LOWER_BOUND),
         ],
         required=False,
     )
     max_value = FloatField(
         label="Максимальное значение параметра класса",
         validators=[
-            MinValueValidator(PARCLASS_FORM_MAX_VALUE_LOWER_BOUND),
+            MinValueValidator(ParClassConsts.MAX_VALUE_LOWER_BOUND),
         ],
         required=False,
     )
@@ -212,7 +197,7 @@ class ParClassForm(ModelForm):
                 "У параметра-перечисления не должно быть максимального и минимального значений!"
             )
         elif param_tp in ClassStruct.objects.filter(
-            main_class__exact=NUM_PARAM_ID
+            main_class__exact=EnumsIds.NUMERIC
         ).values_list("id", flat=True) and (min_val and max_val and min_val > max_val):
             raise ValidationError(
                 "У численного параметра минимальное значение должно быть меньше максимального!"

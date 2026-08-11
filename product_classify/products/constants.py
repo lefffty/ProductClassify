@@ -1,7 +1,10 @@
-PROD_NAME_MAX_LENGTH = 64
-PROD_SHORT_NAME_MAX_LENGTH = 16
-PARPROD_INLINE_EXTRA = 1
-FASTENER_ID = 2
-ENUM_CLASSES_IDS = [15, 16, 18, 19]
-INT_PARAMS = 27
-DOUBLE_PARAMS = 28
+from enum import IntEnum
+
+
+class ProdConsts(IntEnum):
+    NAME_MAX_LENGTH = 64
+    SHORT_NAME_MAX_LENGTH = 16
+
+
+class ParProdConsts(IntEnum):
+    INLINE_EXTRA = 1

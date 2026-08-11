@@ -20,18 +20,18 @@ from classes.models import (
     ClassStruct,
     ParClass,
 )
+from classes.constants import ProductsConsts
 from core.mixins import CommonContextMixin
 
-from .forms import (
+from products.forms import (
     ProdForm,
     ParProdForm,
     SearchForm,
 )
-from .models import (
+from products.models import (
     Prod,
     ParProd,
 )
-from .constants import FASTENER_ID
 
 
 def class_products(
@@ -48,7 +48,7 @@ def class_products(
     cls = ClassStruct.objects.get(
         pk=class_id,
     )
-    fastener_classes = ClassStruct.objects.filter(main_class__exact=FASTENER_ID)
+    fastener_classes = ClassStruct.objects.filter(main_class__exact=ProductsConsts.FASTENER_ID)
 
     base_query = Q(prod__class_field__exact=class_id)
 

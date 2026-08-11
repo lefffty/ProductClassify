@@ -3,11 +3,10 @@ from django.db.models import QuerySet
 
 from ei.models import Ei
 from classes.models import ClassStruct
+from classes.constants import ParamIds
 from parametr.models import Parametr
-from products.constants import DOUBLE_PARAMS
 
 from agregat.models import Agregat
-from agregat.constants import AGREGAT_TYPE_ID
 from agregat.forms import AgregatForm, ChangeAgregatNumForm
 
 
@@ -15,8 +14,8 @@ class AgregatFormTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.par_ei = Ei.objects.first()
-        cls.agregat_type = ClassStruct.objects.get(pk=AGREGAT_TYPE_ID)
-        cls.double_parametr_type = ClassStruct.objects.get(pk=DOUBLE_PARAMS)
+        cls.agregat_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
+        cls.double_parametr_type = ClassStruct.objects.get(pk=ParamIds.DOUBLE)
 
         cls.agregat = Parametr.objects.create(
             name="Габариты",
@@ -185,8 +184,8 @@ class ChangeAgregatNumFormTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.par_ei = Ei.objects.first()
-        cls.agregat_type = ClassStruct.objects.get(pk=AGREGAT_TYPE_ID)
-        cls.double_parametr_type = ClassStruct.objects.get(pk=DOUBLE_PARAMS)
+        cls.agregat_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
+        cls.double_parametr_type = ClassStruct.objects.get(pk=ParamIds.DOUBLE)
 
         cls.agregat = Parametr.objects.create(
             name="Габариты",

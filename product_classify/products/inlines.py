@@ -1,9 +1,9 @@
 from django.contrib import admin
 
-from .models import ParProd
-from .constants import PARPROD_INLINE_EXTRA
+from products.models import ParProd
+from products.constants import ParProdConsts
 
 
 class ParProdInline(admin.TabularInline):
     model = ParProd
-    extra = PARPROD_INLINE_EXTRA
+    extra = ParProdConsts.INLINE_EXTRA

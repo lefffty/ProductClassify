@@ -1,17 +1,12 @@
 from django.test import TestCase
-from django.db.models import QuerySet, PositiveSmallIntegerField
-from django.db import transaction
-from django.db.backends.base.operations import BaseDatabaseOperations
+from django.db.models import QuerySet
 
 from unittest.mock import patch
 
 from ei.models import Ei
 from parametr.models import Parametr
-from enums.constants import INT_ENUMS_ID
-from products.constants import INT_PARAMS
-from agregat.constants import AGREGAT_TYPE_ID
 
-from classes.constants import NUTS_ID
+from classes.constants import ProductsConsts, ParamIds, EnumsIds
 from classes.models import ClassStruct, ParClass
 from classes.forms import (
     ProdClassForm,
@@ -646,10 +641,10 @@ class ParClassFormTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.par_ei = Ei.objects.first()
-        cls.int_parametr = ClassStruct.objects.get(pk=INT_PARAMS)
-        cls.int_enum_parametr = ClassStruct.objects.get(pk=INT_ENUMS_ID)
-        cls.agregat_parametr_type = ClassStruct.objects.get(pk=AGREGAT_TYPE_ID)
-        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+        cls.int_parametr = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.int_enum_parametr = ClassStruct.objects.get(pk=EnumsIds.INT)
+        cls.agregat_parametr_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.nuts_product_class = ClassStruct.objects.create(
             name="nuts_product_class",
             short_name="nuts_prod_class",
@@ -1180,9 +1175,8 @@ class ParClassFormTest(TestCase):
         }
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
-        self.assertIn("__all__", form.errors)
         self.assertEqual(
-            form.errors["__all__"][0],
+            form.errors["min_value"][0],
             "У численного параметра минимальное значение должно быть меньше максимального!",
         )
 
@@ -1191,10 +1185,10 @@ class ChangeParClassNumFormTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.par_ei = Ei.objects.first()
-        cls.int_parametr = ClassStruct.objects.get(pk=INT_PARAMS)
-        cls.int_enum_parametr = ClassStruct.objects.get(pk=INT_ENUMS_ID)
-        cls.agregat_parametr_type = ClassStruct.objects.get(pk=AGREGAT_TYPE_ID)
-        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+        cls.int_parametr = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.int_enum_parametr = ClassStruct.objects.get(pk=EnumsIds.INT)
+        cls.agregat_parametr_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.nuts_product_class = ClassStruct.objects.create(
             name="nuts_product_class",
             short_name="nuts_prod_class",

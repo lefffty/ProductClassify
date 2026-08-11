@@ -11,18 +11,13 @@ from django.forms import (
 from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 
-from enums.models import Enums
 from classes.models import ClassStruct, ParClass
+from classes.constants import ParamIds, ENUMS_IDS
+from enums.models import Enums
 
-from .models import Parametr, ParProd, Prod
-from .constants import (
-    PROD_SHORT_NAME_MAX_LENGTH,
-    PROD_NAME_MAX_LENGTH,
-    INT_PARAMS,
-    ENUM_CLASSES_IDS,
-    DOUBLE_PARAMS,
-)
-from .errors import *
+from products.models import Parametr, ParProd, Prod
+from products.constants import ProdConsts
+from products.errors import *
 
 
 class ProdForm(ModelForm):
@@ -36,7 +31,7 @@ class ProdForm(ModelForm):
     )
     name = CharField(
         label="Название изделия",
-        max_length=PROD_NAME_MAX_LENGTH,
+        max_length=ProdConsts.NAME_MAX_LENGTH,
         required=True,
         error_messages={
             "required": ProdErrors.EMPTY_NAME_FIELD
@@ -44,7 +39,7 @@ class ProdForm(ModelForm):
     )
     short_name = CharField(
         label="Сокращенное название изделия",
-        max_length=PROD_SHORT_NAME_MAX_LENGTH,
+        max_length=ProdConsts.SHORT_NAME_MAX_LENGTH,
         required=False,
     )
     image = ImageField(
@@ -173,7 +168,7 @@ class ParProdForm(ModelForm):
         )
 
         # проверяем, что если параметр является численным
-        if par.parametr_type.id in [DOUBLE_PARAMS, INT_PARAMS]:
+        if par.parametr_type.id in [ParamIds.DOUBLE, ParamIds.INT]:
             # получаем максимальное и минимальное значения параметра
             mn_value, mx_value = par_class.min_value, par_class.max_value
 
@@ -181,7 +176,7 @@ class ParProdForm(ModelForm):
             double_key = "double_value"
 
             # если параметр является целочисленным
-            if par.parametr_type.id == INT_PARAMS:
+            if par.parametr_type.id == ParamIds.INT:
                 # если для целочисленного параметра изделия указано значение поля double_value
                 if cleaned_data[double_key]:
                     raise ValidationError(
@@ -227,7 +222,7 @@ class ParProdForm(ModelForm):
                         f"Вещественное значение не входит в границы диапазона(<{mn_value}, {mx_value}>)"
                     )
         # если параметр является параметром-перечислением
-        elif par.parametr_type.id in ENUM_CLASSES_IDS:
+        elif par.parametr_type.id in ENUMS_IDS:
             # то проверяем, что в форме не указаны значения int_value или double_value
             int_value = cleaned_data.get("int_value")
             double_value = cleaned_data.get("double_value")
@@ -270,7 +265,7 @@ class SearchForm(Form):
 
         for par_class in ParClass.objects.filter(class_field=cls):
             if (
-                par_class.parametr.parametr_type.id == INT_PARAMS
+                par_class.parametr.parametr_type.id == ParamIds.INT
                 and ParProd.objects.filter(par=par_class.parametr).exists()
             ):
                 self.fields[f"{par_class.parametr.name}"] = RangeField(

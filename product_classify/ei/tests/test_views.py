@@ -5,11 +5,7 @@ from faker import Faker
 from random import randint
 
 from ei.models import Ei
-from ei.constants import (
-    EI_NAME_MAX_LENGTH,
-    EI_CODE_MAX_LENGTH,
-    EI_SHORT_NAME_MAX_LENGTH
-)
+from ei.constants import EiConsts
 
 
 class EiListViewTest(TestCase):
@@ -65,9 +61,9 @@ class EiCreateViewTest(TestCase):
         cls.redirect_url = reverse("ei:ei_list")
 
         cls.data = {
-            "name": cls.fake.name()[:EI_NAME_MAX_LENGTH],
-            "short_name": cls.fake.name()[:EI_SHORT_NAME_MAX_LENGTH],
-            "code": cls.fake.postcode()[:EI_CODE_MAX_LENGTH],
+            "name": cls.fake.name()[:EiConsts.NAME_MAX_LENGTH],
+            "short_name": cls.fake.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
+            "code": cls.fake.postcode()[:EiConsts.CODE_MAX_LENGTH],
             "convert_factor": randint(1, 100),
             "main_class": cls.main_class.pk,
         }
@@ -125,9 +121,9 @@ class EiUpdateViewTest(TestCase):
         cls.fake = Faker()
 
         cls.data = {
-            "name": cls.fake.name()[:EI_NAME_MAX_LENGTH],
-            "short_name": cls.fake.name()[:EI_SHORT_NAME_MAX_LENGTH],
-            "code": cls.fake.postcode()[:EI_CODE_MAX_LENGTH],
+            "name": cls.fake.name()[:EiConsts.NAME_MAX_LENGTH],
+            "short_name": cls.fake.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
+            "code": cls.fake.postcode()[:EiConsts.CODE_MAX_LENGTH],
             "convert_factor": randint(1, 100),
             "main_class": cls.ei.main_class.pk,
         }

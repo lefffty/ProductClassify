@@ -1,25 +1,24 @@
 from django.db import models
 
-
-from .constants import EI_NAME_MAX_LENGTH, EI_SHORT_NAME_MAX_LENGTH, EI_CODE_MAX_LENGTH
+from ei.constants import EiConsts
 
 
 class Ei(models.Model):
     name = models.CharField(
         verbose_name="Название единицы измерения",
-        max_length=EI_NAME_MAX_LENGTH,
+        max_length=EiConsts.NAME_MAX_LENGTH,
         null=False,
         blank=False,
     )
     short_name = models.CharField(
         verbose_name="Сокращенное название единицы измерения",
-        max_length=EI_SHORT_NAME_MAX_LENGTH,
+        max_length=EiConsts.SHORT_NAME_MAX_LENGTH,
         null=False,
         blank=False,
     )
     code = models.CharField(
         verbose_name="Код единицы измерения",
-        max_length=EI_CODE_MAX_LENGTH,
+        max_length=EiConsts.CODE_MAX_LENGTH,
         null=False,
         blank=True,
     )

@@ -11,10 +11,10 @@ from django.views.generic import (
 
 from core.mixins import CommonContextMixin
 from classes.models import ClassStruct
+from classes.constants import ProductsConsts
 
-from .models import Enums
-from .forms import EnumsForm, ChangeNumForm
-from .constants import FASTENER_ID
+from enums.models import Enums
+from enums.forms import EnumsForm, ChangeNumForm
 
 
 class EnumsListView(
@@ -105,7 +105,7 @@ def change_num(
     """
     Изменение номера перечисления
     """
-    fastener_classes = ClassStruct.objects.filter(main_class__exact=FASTENER_ID)
+    fastener_classes = ClassStruct.objects.filter(main_class__exact=ProductsConsts.FASTENER_ID)
     form = ChangeNumForm(request.POST or None)
     if form.is_valid():
         form.clean()

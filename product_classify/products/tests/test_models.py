@@ -5,11 +5,11 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from ei.models import Ei
 from enums.models import Enums
-from classes.models import ClassStruct, ParClass
 from parametr.models import Parametr
+from classes.models import ClassStruct, ParClass
+from classes.constants import ParamIds, ProductsConsts, EnumsIds
 
-from ..models import Prod, ParProd
-from ..constants import INT_PARAMS, DOUBLE_PARAMS, ENUM_CLASSES_IDS, FASTENER_ID
+from products.models import Prod, ParProd
 
 
 class ProdModelTest(TestCase):
@@ -85,7 +85,7 @@ class ParProdModelTest(TestCase):
     def setUpTestData(cls):
         par_ei = Ei.objects.first()
         base_ei = Ei.objects.order_by("id")[1]
-        fastener_class = ClassStruct.objects.get(pk=FASTENER_ID)
+        fastener_class = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
         class_field = ClassStruct.objects.create(
             name="products_class",
             short_name="prod_cls",
@@ -93,13 +93,13 @@ class ParProdModelTest(TestCase):
             main_class=fastener_class,
         )
 
-        # типы параметров
-        cls.int_parametr_type = ClassStruct.objects.get(pk=INT_PARAMS)
-        cls.double_parametr_type = ClassStruct.objects.get(pk=DOUBLE_PARAMS)
-        cls.string_enum_type = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[0])
-        cls.image_enum_type = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[1])
-        cls.double_enum_type = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[2])
-        cls.int_enum_type = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[3])
+        # типы параметров, EnumsIds
+        cls.int_parametr_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.double_parametr_type = ClassStruct.objects.get(pk=ParamIds.DOUBLE)
+        cls.string_enum_type = ClassStruct.objects.get(pk=EnumsIds.STRING)
+        cls.image_enum_type = ClassStruct.objects.get(pk=EnumsIds.IMAGE)
+        cls.double_enum_type = ClassStruct.objects.get(pk=EnumsIds.DOUBLE)
+        cls.int_enum_type = ClassStruct.objects.get(pk=EnumsIds.INT)
 
         # классы перечислений
         cls.int_enum_class = ClassStruct.objects.create(

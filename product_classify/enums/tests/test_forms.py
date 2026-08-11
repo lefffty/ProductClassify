@@ -9,15 +9,10 @@ from PIL import Image
 from io import BytesIO
 
 from classes.models import ClassStruct
+from classes.constants import EnumsIds
 
 from enums.models import Enums
 from enums.forms import EnumsForm, ChangeNumForm
-from enums.constants import (
-    STRING_ENUMS_ID,
-    INT_ENUMS_ID,
-    DOUBLE_ENUMS_ID,
-    IMAGE_ENUMS_ID,
-)
 
 AllowedImageFormats: TypeAlias = Literal["jpg", "png"]
 
@@ -38,10 +33,10 @@ def create_test_image(extension: AllowedImageFormats = "jpg"):
 class EnumsFormTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.string_enum_type = ClassStruct.objects.get(pk=STRING_ENUMS_ID)
-        cls.int_enum_type = ClassStruct.objects.get(pk=INT_ENUMS_ID)
-        cls.double_enum_type = ClassStruct.objects.get(pk=DOUBLE_ENUMS_ID)
-        cls.image_enum_type = ClassStruct.objects.get(pk=IMAGE_ENUMS_ID)
+        cls.string_enum_type = ClassStruct.objects.get(pk=EnumsIds.STRING)
+        cls.int_enum_type = ClassStruct.objects.get(pk=EnumsIds.INT)
+        cls.double_enum_type = ClassStruct.objects.get(pk=EnumsIds.DOUBLE)
+        cls.image_enum_type = ClassStruct.objects.get(pk=EnumsIds.IMAGE)
 
         cls.non_terminal_enum = ClassStruct.objects.create(
             name="Не терминальный",
@@ -1085,8 +1080,8 @@ class EnumsFormTest(TestCase):
 class ChangeNumFormTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.int_enum_type = ClassStruct.objects.get(pk=INT_ENUMS_ID)
-        cls.double_enum_type = ClassStruct.objects.get(pk=DOUBLE_ENUMS_ID)
+        cls.int_enum_type = ClassStruct.objects.get(pk=EnumsIds.INT)
+        cls.double_enum_type = ClassStruct.objects.get(pk=EnumsIds.DOUBLE)
 
         cls.int_enum = ClassStruct.objects.create(
             name="Диаметр стержня",

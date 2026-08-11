@@ -1,5 +1,3 @@
-import math
-
 from django.forms import (
     ModelChoiceField,
     ModelForm,
@@ -14,29 +12,20 @@ from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 
 from classes.models import ClassStruct
+from classes.constants import EnumsIds
 
-from .models import Enums
-from .constants import (
-    INT_ENUMS_ID,
-    IMAGE_ENUMS_ID,
-    DOUBLE_ENUMS_ID,
-    STRING_ENUMS_ID,
-    ENUMS_FORM_NAME_MAX_LENGTH,
-    ENUMS_FORM_SHORT_NAME_MAX_LENGTH,
-    ENUMS_FORM_INT_VALUE_LOWER_BOUND,
-    ENUMS_FORM_DOUBLE_VALUE_LOWER_BOUND,
-    MAX_NUM_VALUE
-)
-from .errors import *
+from enums.models import Enums
+from enums.constants import EnumsConsts
+from enums.errors import *
 
 
 def validate_positive_int(value):
-    if value <= ENUMS_FORM_INT_VALUE_LOWER_BOUND:
+    if value <= EnumsConsts.INT_VALUE_LOWER_BOUND:
         raise ValidationError(IntEnumErrors.NEGATIVE_VALUE_ERROR)
 
 
 def validate_positive_double(value):
-    if value <= ENUMS_FORM_DOUBLE_VALUE_LOWER_BOUND:
+    if value <= EnumsConsts.DOUBLE_VALUE_LOWER_BOUND:
         raise ValidationError(DoubleEnumErrors.NEGATIVE_VALUE_ERROR)
 
 
@@ -55,12 +44,12 @@ class EnumsForm(ModelForm):
         validators=[FileExtensionValidator(allowed_extensions=["jpg", "png"])],
     )
     name = CharField(
-        max_length=ENUMS_FORM_NAME_MAX_LENGTH,
+        max_length=EnumsConsts.NAME_MAX_LENGTH,
         label="Название перечисления",
         required=False,
     )
     short_name = CharField(
-        max_length=ENUMS_FORM_SHORT_NAME_MAX_LENGTH,
+        max_length=EnumsConsts.SHORT_NAME_MAX_LENGTH,
         required=False,
         label="Сокращенное название перечисления",
     )
@@ -113,22 +102,22 @@ class EnumsForm(ModelForm):
 
         parent_id = enum.main_class.id
 
-        if parent_id == STRING_ENUMS_ID:
+        if parent_id == EnumsIds.STRING:
             if not short_name or not name:
                 raise ValidationError(StringEnumErrors.EMPTY_FIELDS_ERROR)
             if any([image, int_value, double_value]):
                 raise ValidationError(StringEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
-        elif parent_id == IMAGE_ENUMS_ID:
+        elif parent_id == EnumsIds.IMAGE:
             if not image:
                 raise ValidationError(ImageEnumErrors.EMPTY_FIELDS_ERROR)
             if any([int_value, double_value]):
                 raise ValidationError(ImageEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
-        elif parent_id == DOUBLE_ENUMS_ID:
+        elif parent_id == EnumsIds.DOUBLE:
             if not double_value:
                 raise ValidationError(DoubleEnumErrors.EMPTY_FIELDS_ERROR)
             if any([int_value, image, short_name, name]):
                 raise ValidationError(DoubleEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
-        elif parent_id == INT_ENUMS_ID:
+        elif parent_id == EnumsIds.INT:
             if not int_value:
                 raise ValidationError(IntEnumErrors.EMPTY_FIELDS_ERROR)
             if any([double_value, image, short_name, name]):
@@ -183,8 +172,8 @@ class ChangeNumForm(Form):
             old_num_1 = enum_1.num
             old_num_2 = enum_2.num
 
-            temp_num_1 = MAX_NUM_VALUE
-            temp_num_2 = MAX_NUM_VALUE - 1
+            temp_num_1 = EnumsConsts.MAX_NUM_VALUE
+            temp_num_2 = EnumsConsts.MAX_NUM_VALUE - 1
             enum_1.num = temp_num_1
             enum_2.num = temp_num_2
             enum_1.save(update_fields=['num'])

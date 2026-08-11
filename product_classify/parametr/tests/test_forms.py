@@ -4,32 +4,22 @@ from django.db.models import QuerySet
 from unittest.mock import patch
 
 from classes.models import ClassStruct
+from classes.constants import EnumsIds, ParamIds
 from ei.models import Ei
-from enums.constants import (
-    STRING_ENUMS_ID,
-    INT_ENUMS_ID,
-    DOUBLE_ENUMS_ID,
-    IMAGE_ENUMS_ID,
-)
-from products.constants import (
-    INT_PARAMS,
-    DOUBLE_PARAMS,
-)
 
-from parametr.constants import AGREGAT_TYPE_ID
 from parametr.forms import ParametrForm
 
 
 class ParametrFormTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.string_enum_type = ClassStruct.objects.get(pk=STRING_ENUMS_ID)
-        cls.int_enum_type = ClassStruct.objects.get(pk=INT_ENUMS_ID)
-        cls.double_enum_type = ClassStruct.objects.get(pk=DOUBLE_ENUMS_ID)
-        cls.image_enum_type = ClassStruct.objects.get(pk=IMAGE_ENUMS_ID)
-        cls.int_type = ClassStruct.objects.get(pk=INT_PARAMS)
-        cls.double_type = ClassStruct.objects.get(pk=DOUBLE_PARAMS)
-        cls.agregat_type = ClassStruct.objects.get(pk=AGREGAT_TYPE_ID)
+        cls.string_enum_type = ClassStruct.objects.get(pk=EnumsIds.STRING)
+        cls.int_enum_type = ClassStruct.objects.get(pk=EnumsIds.INT)
+        cls.double_enum_type = ClassStruct.objects.get(pk=EnumsIds.DOUBLE)
+        cls.image_enum_type = ClassStruct.objects.get(pk=EnumsIds.IMAGE)
+        cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.double_type = ClassStruct.objects.get(pk=ParamIds.DOUBLE)
+        cls.agregat_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
 
         cls.par_ei = Ei.objects.first()
         cls.NAME = "Test name"

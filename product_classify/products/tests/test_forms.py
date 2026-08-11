@@ -6,12 +6,10 @@ from PIL import Image
 from io import BytesIO
 
 from classes.models import ClassStruct, ParClass
-from classes.constants import NUTS_ID
+from classes.constants import ProductsConsts, EnumsIds, ParamIds
 from parametr.models import Parametr
-from enums.constants import STRING_ENUMS_ID, INT_ENUMS_ID
 from enums.models import Enums
 
-from products.constants import INT_PARAMS, DOUBLE_PARAMS
 from products.models import Prod, ParProd
 from products.forms import ProdForm, ParProdForm
 
@@ -32,8 +30,8 @@ def create_image(extension: str = "jpg"):
 class ProdFormTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.NUTS_CLASS = ClassStruct.objects.get(pk=NUTS_ID)
-        cls.INVALID_CLASS = ClassStruct.objects.get(pk=STRING_ENUMS_ID)
+        cls.NUTS_CLASS = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.INVALID_CLASS = ClassStruct.objects.get(pk=EnumsIds.STRING)
 
         cls.PNG_IMAGE = create_image("png")
         cls.JPG_IMAGE = create_image("jpg")
@@ -323,16 +321,16 @@ class ParProdFormTest(TestCase):
         cls.INT_VALUE = 3
         cls.DOUBLE_VALUE = 4.5
 
-        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.nuts_product_class = ClassStruct.objects.create(
             name="nuts_product_class",
             short_name="nuts_prod_class",
             base_ei=None,
             main_class=cls.nuts_class,
         )
-        cls.int_parametr_cls = ClassStruct.objects.get(pk=INT_PARAMS)
-        cls.double_parametr_cls = ClassStruct.objects.get(pk=DOUBLE_PARAMS)
-        cls.int_enum_parametr_cls = ClassStruct.objects.get(pk=INT_ENUMS_ID)
+        cls.int_parametr_cls = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.double_parametr_cls = ClassStruct.objects.get(pk=ParamIds.DOUBLE)
+        cls.int_enum_parametr_cls = ClassStruct.objects.get(pk=EnumsIds.INT)
         cls.int_enum = ClassStruct.objects.create(
             name="int_enum_class",
             short_name="int_enum",

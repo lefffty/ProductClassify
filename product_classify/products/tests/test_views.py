@@ -7,15 +7,15 @@ from PIL import Image
 from io import BytesIO
 
 from classes.models import ClassStruct, ParClass
-from classes.constants import NUTS_ID, CLASS_STRUCT_NAME_MAX_LENGTH, CLASS_STRUCT_SHORT_NAME_MAX_LENGTH
+from classes.constants import ProductsConsts, ClassStructConsts, ParamIds
 
 from parametr.models import Parametr
-from parametr.constants import PARAMETR_NAME_MAX_LENGTH, PARAMETR_SHORT_NAME_MAX_LENGTH
+from parametr.constants import ParametrConsts
 
 from ei.models import Ei
 
-from products.constants import PROD_NAME_MAX_LENGTH, PROD_SHORT_NAME_MAX_LENGTH
-from products.models import Prod, ParProd, INT_PARAMS
+from products.constants import ProdConsts
+from products.models import Prod, ParProd
 from products.errors import *
 
 
@@ -24,18 +24,18 @@ class ProductDetailViewTest(TestCase):
     def setUpTestData(cls):
         cls.fake = Faker()
 
-        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.ei = Ei.objects.first()
-        cls.int_params = ClassStruct.objects.get(pk=INT_PARAMS)
+        cls.int_params = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.prod_class = ClassStruct.objects.create(
-            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=None,
             main_class=cls.nuts_class
         )
         cls.parametr = Parametr.objects.create(
-            name=cls.fake.name()[:PARAMETR_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:PARAMETR_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
             parametr_type=cls.int_params,
             par_ei=cls.ei
         )
@@ -48,8 +48,8 @@ class ProductDetailViewTest(TestCase):
         )
 
         cls.prod = Prod.objects.create(
-            name=cls.fake.name()[:PROD_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:PROD_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.prod_class,
             image=None,
         )
@@ -92,16 +92,16 @@ class ProductCreateViewTest(TestCase):
     def setUpTestData(cls):
         cls.fake = Faker()
 
-        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
         cls.prod_class = ClassStruct.objects.create(
-            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=None,
             main_class=cls.nuts_class
         )
 
-        name = cls.fake.name()[:PROD_NAME_MAX_LENGTH]
-        short_name = cls.fake.name()[:PROD_SHORT_NAME_MAX_LENGTH]
+        name = cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH]
+        short_name = cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
 
         cls.data = {
             "name": name,
@@ -159,16 +159,16 @@ class ProductUpdateViewTest(TestCase):
     def setUpTestData(cls):
         cls.fake = Faker()
 
-        cls.nuts_class = ClassStruct.objects.get(pk=NUTS_ID)
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.prod_class = ClassStruct.objects.create(
-            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=None,
             main_class=cls.nuts_class
         )
 
-        old_name = cls.fake.name()[:PROD_NAME_MAX_LENGTH]
-        old_short_name = cls.fake.name()[:PROD_SHORT_NAME_MAX_LENGTH]
+        old_name = cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH]
+        old_short_name = cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
 
         cls.prod = Prod.objects.create(
             name=old_name,
@@ -177,8 +177,8 @@ class ProductUpdateViewTest(TestCase):
             image=None,
         )
 
-        new_name = cls.fake.name()[:PROD_NAME_MAX_LENGTH]
-        new_short_name = cls.fake.name()[:PROD_SHORT_NAME_MAX_LENGTH]
+        new_name = cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH]
+        new_short_name = cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
 
         cls.data = {
             "name": new_name,

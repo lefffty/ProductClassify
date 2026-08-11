@@ -9,16 +9,9 @@ from io import BytesIO
 from PIL import Image
 
 from classes.models import ClassStruct
-from classes.constants import (
-    ENUM_CLASSES_IDS,
-    CLASS_STRUCT_NAME_MAX_LENGTH,
-    CLASS_STRUCT_SHORT_NAME_MAX_LENGTH
-)
+from classes.constants import ClassStructConsts, EnumsIds
 
-from enums.constants import (
-    ENUMS_FORM_NAME_MAX_LENGTH,
-    ENUMS_FORM_SHORT_NAME_MAX_LENGTH
-)
+from enums.constants import EnumsConsts
 from enums.errors import *
 from enums.models import Enums
 
@@ -27,11 +20,11 @@ class EnumsListViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
-        cls.int_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[-1])
-        cls.string_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[0])
+        cls.int_enum = ClassStruct.objects.get(pk=EnumsIds.INT)
+        cls.string_enum = ClassStruct.objects.get(pk=EnumsIds.STRING)
         cls.int_enum_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             main_class=cls.int_enum,
             base_ei=None,
         )
@@ -81,10 +74,10 @@ class EnumsDetailViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
-        cls.int_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[-1])
+        cls.int_enum = ClassStruct.objects.get(pk=EnumsIds.INT)
         cls.int_enum_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             main_class=cls.int_enum,
             base_ei=None,
         )
@@ -121,32 +114,32 @@ class EnumsCreateViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
-        cls.int_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[-1])
-        cls.string_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[0])
-        cls.image_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[1])
-        cls.double_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[2])
+        cls.int_enum = ClassStruct.objects.get(pk=EnumsIds.INT)
+        cls.string_enum = ClassStruct.objects.get(pk=EnumsIds.STRING)
+        cls.image_enum = ClassStruct.objects.get(pk=EnumsIds.IMAGE)
+        cls.double_enum = ClassStruct.objects.get(pk=EnumsIds.DOUBLE)
 
         cls.int_enum_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             main_class=cls.int_enum,
             base_ei=None,
         )
         cls.string_enum_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             main_class=cls.string_enum,
             base_ei=None,
         )
         cls.image_enum_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             main_class=cls.image_enum,
             base_ei=None,
         )
         cls.double_enum_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             main_class=cls.double_enum,
             base_ei=None,
         )
@@ -184,7 +177,7 @@ class EnumsCreateViewTest(TestCase):
         }
         cls.int_enum_invalid_data = {
             "enum": cls.int_enum_subclass.pk,
-            "name": cls.fake.name()[:ENUMS_FORM_NAME_MAX_LENGTH],
+            "name": cls.fake.name()[:EnumsConsts.NAME_MAX_LENGTH],
             "short_name": "",
             "int_value": randint(1, 100),
             "double_value": "",
@@ -192,15 +185,15 @@ class EnumsCreateViewTest(TestCase):
 
         cls.string_enum_empty_fields_data = {
             "enum": cls.string_enum_subclass.pk,
-            "name": cls.fake.name()[:ENUMS_FORM_NAME_MAX_LENGTH],
+            "name": cls.fake.name()[:EnumsConsts.SHORT_NAME_MAX_LENGTH],
             "short_name": "",
             "int_value": "",
             "double_value": "",
         }
         cls.string_enum_invalid_data = {
             "enum": cls.string_enum_subclass.pk,
-            "name": cls.fake.name()[:ENUMS_FORM_NAME_MAX_LENGTH],
-            "short_name": cls.fake.name()[:ENUMS_FORM_SHORT_NAME_MAX_LENGTH],
+            "name": cls.fake.name()[:EnumsConsts.NAME_MAX_LENGTH],
+            "short_name": cls.fake.name()[:EnumsConsts.SHORT_NAME_MAX_LENGTH],
             "int_value": randint(1, 100),
             "double_value": "",
         }
@@ -238,7 +231,7 @@ class EnumsCreateViewTest(TestCase):
         }
         cls.double_enum_invalid_data = {
             "enum": cls.double_enum_subclass.pk,
-            "name": cls.fake.name()[:ENUMS_FORM_NAME_MAX_LENGTH],
+            "name": cls.fake.name()[:EnumsConsts.NAME_MAX_LENGTH],
             "short_name": "",
             "int_value": "",
             "double_value": randint(1, 100),
@@ -365,11 +358,11 @@ class EnumsDeleteViewTest(TestCase):
     def setUpTestData(cls):
         cls.fake = Faker()
 
-        cls.int_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[-1])
+        cls.int_enum = ClassStruct.objects.get(pk=EnumsIds.INT)
 
         cls.int_enum_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             main_class=cls.int_enum,
             base_ei=None,
         )
@@ -418,10 +411,10 @@ class EnumsUpdateViewTest(TestCase):
     def setUpTestData(cls):
         cls.fake = Faker()
 
-        cls.int_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[-1])
+        cls.int_enum = ClassStruct.objects.get(pk=EnumsIds.INT)
         cls.int_enum_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             main_class=cls.int_enum,
             base_ei=None,
         )
@@ -482,17 +475,17 @@ class ChangeNumViewTest(TestCase):
     def setUpTestData(cls):
         cls.fake = Faker()
 
-        cls.int_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[-1])
-        cls.string_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[0])
+        cls.int_enum = ClassStruct.objects.get(pk=EnumsIds.INT)
+        cls.string_enum = ClassStruct.objects.get(pk=EnumsIds.STRING)
         cls.int_enum_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             main_class=cls.int_enum,
             base_ei=None,
         )
         cls.string_enum_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             main_class=cls.string_enum,
             base_ei=None,
         )
@@ -516,9 +509,9 @@ class ChangeNumViewTest(TestCase):
             image=None,
         )
         cls.instance3 = Enums.objects.create(
-            name=cls.fake.name()[:ENUMS_FORM_NAME_MAX_LENGTH],
+            name=cls.fake.name()[:EnumsConsts.NAME_MAX_LENGTH],
             num=1,
-            short_name=cls.fake.name()[:ENUMS_FORM_SHORT_NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:EnumsConsts.SHORT_NAME_MAX_LENGTH],
             enum=cls.string_enum_subclass,
             int_value=None,
             double_value=None,

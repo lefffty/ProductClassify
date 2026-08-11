@@ -2,17 +2,16 @@ from django.db import IntegrityError
 from django.test import TestCase
 
 from classes.models import ClassStruct
-from products.constants import INT_PARAMS
+from classes.constants import ParamIds
 
-from ..constants import AGREGAT_TYPE_ID
-from ..models import Agregat, Parametr
+from agregat.models import Agregat, Parametr
 
 
 class AgregatModelTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        parametr_type = ClassStruct.objects.get(pk=INT_PARAMS)
-        agregat_type = ClassStruct.objects.get(pk=AGREGAT_TYPE_ID)
+        parametr_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        agregat_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
 
         cls.agr = Parametr.objects.create(
             name="test_agregat",

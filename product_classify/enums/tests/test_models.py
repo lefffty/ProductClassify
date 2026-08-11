@@ -4,14 +4,9 @@ from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from classes.models import ClassStruct
-from ..models import Enums
-from ..constants import (
-    INT_ENUMS_ID,
-    IMAGE_ENUMS_ID,
-    DOUBLE_ENUMS_ID,
-    STRING_ENUMS_ID,
-    FASTENER_ID,
-)
+from classes.constants import EnumsIds, ProductsConsts
+
+from enums.models import Enums
 
 
 class EnumsModelTest(TestCase):
@@ -22,10 +17,10 @@ class EnumsModelTest(TestCase):
             content=b"content",
             content_type="image/jpeg",
         )
-        cls.int_enum = ClassStruct.objects.get(pk=INT_ENUMS_ID)
-        cls.double_enum = ClassStruct.objects.get(pk=DOUBLE_ENUMS_ID)
-        cls.string_enum = ClassStruct.objects.get(pk=STRING_ENUMS_ID)
-        cls.image_enum = ClassStruct.objects.get(pk=IMAGE_ENUMS_ID)
+        cls.int_enum = ClassStruct.objects.get(pk=EnumsIds.INT)
+        cls.double_enum = ClassStruct.objects.get(pk=EnumsIds.DOUBLE)
+        cls.string_enum = ClassStruct.objects.get(pk=EnumsIds.STRING)
+        cls.image_enum = ClassStruct.objects.get(pk=EnumsIds.IMAGE)
 
         cls.int_enum_class = ClassStruct.objects.create(
             name="Test int enum class",
@@ -51,7 +46,7 @@ class EnumsModelTest(TestCase):
             base_ei=None,
             main_class=cls.image_enum,
         )
-        cls.invalid_enum_class = ClassStruct.objects.get(pk=FASTENER_ID)
+        cls.invalid_enum_class = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
 
     def test_create_with_minimal_requirements(self):
         num = 1
