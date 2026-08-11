@@ -1,3 +1,5 @@
+import math
+
 from django.forms import (
     ModelChoiceField,
     ModelForm,
@@ -7,6 +9,7 @@ from django.forms import (
     IntegerField,
     Form,
 )
+from django.db import transaction
 from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 
@@ -22,6 +25,7 @@ from .constants import (
     ENUMS_FORM_SHORT_NAME_MAX_LENGTH,
     ENUMS_FORM_INT_VALUE_LOWER_BOUND,
     ENUMS_FORM_DOUBLE_VALUE_LOWER_BOUND,
+    MAX_NUM_VALUE
 )
 from .errors import *
 
@@ -160,21 +164,35 @@ class ChangeNumForm(Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        enum_1 = cleaned_data.get("enum_1", None)
-        enum_2 = cleaned_data.get("enum_2", None)
+        enum_1: Enums = cleaned_data.get("enum_1", None)
+        enum_2: Enums = cleaned_data.get("enum_2", None)
 
         if not enum_1:
-            raise ValidationError("Пожалуйста, выберите первое перечисление.")
+            raise ValidationError(ChangeNumErrors.EMPTY_FIRST_NUM)
 
         if not enum_2:
-            raise ValidationError("Пожалуйста, выберите второе перечисление.")
+            raise ValidationError(ChangeNumErrors.EMPTY_SECOND_NUM)
 
-        if enum_1 == enum_2:
-            raise ValidationError("Перечисления не могут быть одинаковыми")
+        if enum_1.pk == enum_2.pk:
+            raise ValidationError(ChangeNumErrors.EQUAL_ENUMS)
 
         if enum_1.enum.pk != enum_2.enum.pk:
-            raise ValidationError("Перечисления должны быть из одного класса")
+            raise ValidationError(ChangeNumErrors.NON_SAME_CLASS)
 
-        enum_1.num, enum_2.num = enum_2.num, enum_1.num
+        with transaction.atomic():        
+            old_num_1 = enum_1.num
+            old_num_2 = enum_2.num
+
+            temp_num_1 = MAX_NUM_VALUE
+            temp_num_2 = MAX_NUM_VALUE - 1
+            enum_1.num = temp_num_1
+            enum_2.num = temp_num_2
+            enum_1.save(update_fields=['num'])
+            enum_2.save(update_fields=['num'])
+
+            enum_1.num = old_num_2
+            enum_2.num = old_num_1
+            enum_1.save(update_fields=['num'])
+            enum_2.save(update_fields=['num'])
 
         return cleaned_data

@@ -140,4 +140,4 @@ class Enums(models.Model):
             return self.short_name + " - " + str(self.double_value)
         # если данное значение перечисления является перечислением целых чисел
         else:
-            return self.short_name + " - " + str(self.int_value)
+            return self.enum.short_name + " - " + str(self.int_value)

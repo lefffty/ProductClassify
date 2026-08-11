@@ -467,9 +467,7 @@ class EnumsUpdateViewTest(TestCase):
         self.assertIn("instance", response.context)
 
     def test_enums_update_view_can_save_a_POST_request(self):
-        response = self.client.post(self.url, data=self.update_data)
-        if response.status_code == 200:
-            print(response.context["form"].errors)
+        self.client.post(self.url, data=self.update_data)
         enum = Enums.objects.last()
         self.assertEqual(enum.int_value, self.update_data["int_value"])
         self.assertEqual(enum.enum.pk, self.update_data["enum"])
@@ -477,3 +475,135 @@ class EnumsUpdateViewTest(TestCase):
     def test_enums_update_redirects_after_POST_request(self):
         response = self.client.post(self.url, data=self.update_data)
         self.assertRedirects(response, self.redirect_url)
+
+
+class ChangeNumViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.int_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[-1])
+        cls.string_enum = ClassStruct.objects.get(pk=ENUM_CLASSES_IDS[0])
+        cls.int_enum_subclass = ClassStruct.objects.create(
+            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            main_class=cls.int_enum,
+            base_ei=None,
+        )
+        cls.string_enum_subclass = ClassStruct.objects.create(
+            name=cls.fake.name()[:CLASS_STRUCT_NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:CLASS_STRUCT_SHORT_NAME_MAX_LENGTH],
+            main_class=cls.string_enum,
+            base_ei=None,
+        )
+
+        cls.instance1 = Enums.objects.create(
+            name=None,
+            num=1,
+            short_name=None,
+            enum=cls.int_enum_subclass,
+            int_value=randint(1, 100),
+            double_value=None,
+            image=None,
+        )
+        cls.instance2 = Enums.objects.create(
+            name=None,
+            num=2,
+            short_name=None,
+            enum=cls.int_enum_subclass,
+            int_value=randint(1, 100),
+            double_value=None,
+            image=None,
+        )
+        cls.instance3 = Enums.objects.create(
+            name=cls.fake.name()[:ENUMS_FORM_NAME_MAX_LENGTH],
+            num=1,
+            short_name=cls.fake.name()[:ENUMS_FORM_SHORT_NAME_MAX_LENGTH],
+            enum=cls.string_enum_subclass,
+            int_value=None,
+            double_value=None,
+            image=None,
+        )
+
+        cls.url = reverse("enums:change_num")
+        cls.redirect_url = reverse("classes:index")
+
+    def test_change_num_view_uses_change_num_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "enums/change_num.html")
+
+    def test_change_num_view_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_change_num_view_has_fastener_classes_in_context(self):
+        response = self.client.get(self.url)
+        self.assertIn("fastener_classes", response.context)
+
+    def test_change_num_view_can_save_a_POST_request(self):
+        from enums.forms import ChangeNumForm
+
+        form = ChangeNumForm(data={
+            "enum_1": self.instance1.pk,
+            "enum_2": self.instance2.pk,
+        })
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+        self.client.post(self.url, data={
+            "enum_1": self.instance1.pk,
+            "enum_2": self.instance2.pk,
+        })
+
+        self.instance1.refresh_from_db()
+        self.instance2.refresh_from_db()
+        
+        self.assertEqual(self.instance1.num, 2)
+        self.assertEqual(self.instance2.num, 1)
+
+    def test_change_num_view_redirect_after_successful_POST_request(self):
+        response = self.client.post(self.url, data={
+            "enum_1": self.instance1.pk,
+            "enum_2": self.instance2.pk
+        })
+        self.assertRedirects(response, self.redirect_url)
+
+    def test_empty_first_num_validation_error_is_shown_on_page(self):
+        response = self.client.post(
+            self.url,
+            data={
+                "enum_1": "",
+                "enum_2": self.instance2.pk
+            }
+        )
+        self.assertContains(response, escape(ChangeNumErrors.EMPTY_FIRST_NUM))
+
+    def test_empty_second_num_validation_error_is_shown_on_page(self):
+        response = self.client.post(
+            self.url,
+            data={
+                "enum_1": self.instance1.pk,
+                "enum_2": ""
+            }
+        )
+        self.assertContains(response, escape(ChangeNumErrors.EMPTY_SECOND_NUM))
+
+    def test_equal_nums_validation_error_is_shown_on_page(self):
+        response = self.client.post(
+            self.url,
+            data={
+                "enum_1": self.instance1.pk,
+                "enum_2": self.instance1.pk
+            }
+        )
+        self.assertContains(response, escape(ChangeNumErrors.EQUAL_ENUMS))
+
+    def test_non_same_class_nums_validation_error_is_shown_on_page(self):
+        response = self.client.post(
+            self.url,
+            data={
+                "enum_1": self.instance1.pk,
+                "enum_2": self.instance3.pk
+            }
+        )
+        self.assertContains(response, escape(ChangeNumErrors.NON_SAME_CLASS))
