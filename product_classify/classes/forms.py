@@ -237,11 +237,15 @@ class ChangeParClassNumForm(Form):
     def clean(self):
         cleaned_data = super().clean()
         class_field_1 = cleaned_data.get("class_field_1")
+
         if not class_field_1:
             raise ValidationError(ChangeParClassErrors.EMPTY_FIRST_PAR)
+        
         class_field_2 = cleaned_data.get("class_field_2")
         if not class_field_2:
             raise ValidationError(ChangeParClassErrors.EMPTY_SECOND_PAR)
+        
         if class_field_1 == class_field_2:
             raise ValidationError(ChangeParClassErrors.EQUAL_PAR)
+        
         return cleaned_data

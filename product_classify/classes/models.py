@@ -5,6 +5,8 @@ from django.forms import ValidationError
 
 from ei.models import Ei
 
+from core.queries import ClassStructQueries
+
 from classes.constants import (
     EnumsIds,
     ClassStructConsts,
@@ -53,7 +55,7 @@ class ClassStruct(models.Model):
     def products(cls) -> QuerySet:
         """Returns QuerySet of products classes"""
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM find_gr_gr(%s);", [ProductsConsts.PRODUCT_ID])
+            cursor.execute(ClassStructQueries.FIND_GR_GR, [ProductsConsts.PRODUCT_ID])
             data = cursor.fetchall()
             prod_classes_ids = [element[0] for element in data]
         return cls.objects.filter(id__in=prod_classes_ids)
@@ -62,7 +64,7 @@ class ClassStruct(models.Model):
     def terminal_product_classes(cls) -> QuerySet[ClassStruct]:
         """Returns QuerySet of terminal products classes"""
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM find_gr_gr(%s);", [ProductsConsts.PRODUCT_ID])
+            cursor.execute(ClassStructQueries.FIND_GR_GR, [ProductsConsts.PRODUCT_ID])
             terminal_classes = cursor.fetchall()
             terminal_classes_ids = [element[0] for element in terminal_classes]
         return cls.objects.filter(id__in=terminal_classes_ids)
@@ -72,7 +74,7 @@ class ClassStruct(models.Model):
         """Returns QuerySet of terminal enum classes"""
         with connection.cursor() as cursor:
             cursor.execute(
-                "SELECT * FROM get_terminal_classes(%s);", [EnumsIds.PARENT]
+                ClassStructQueries.GET_TERMINAL_CLASSES, [EnumsIds.PARENT]
             )
             terminal_enum_classes = cursor.fetchall()
             terminal_enum_classes_ids = [
@@ -108,7 +110,7 @@ class ClassStruct(models.Model):
     def all_enum_classes(cls) -> QuerySet:
         """Returns QuerySet of all enum classes"""
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM find_gr_gr(%s);", [EnumsIds.NUMERIC])
+            cursor.execute(ClassStructQueries.FIND_GR_GR, [EnumsIds.NUMERIC])
             classes_ids = cursor.fetchall()
             classes_ids = [element[0] for element in classes_ids]
         return cls.objects.filter(id__in=classes_ids)
@@ -117,7 +119,7 @@ class ClassStruct(models.Model):
     def delete_class_and_descendants(cls, class_id: int):
         with connection.cursor() as cursor:
             cursor.execute(
-                "SELECT * FROM delete_class_and_descendants(%s);",
+                ClassStructQueries.DELETE_CLASS_AND_DESCENDANTS,
                 [class_id],
             )
             data = cursor.fetchone()[0]
@@ -126,7 +128,7 @@ class ClassStruct(models.Model):
     @classmethod
     def check_class_struct_cycles(self, cursor: object, cls_id: int, main_cls_id: int):
         cursor.execute(
-            "SELECT * FROM check_class_struct_cycles(%s, %s);",
+            ClassStructQueries.CHECK_CYCLE,
             [cls_id, main_cls_id],
         )
         is_cycle = cursor.fetchone()[0]
