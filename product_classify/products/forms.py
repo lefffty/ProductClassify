@@ -74,7 +74,7 @@ class ParProdForm(ModelForm):
         label="Изделие",
         required=True,
         error_messages={
-            "required": "Поле для изделия необходимо заполнить",
+            "required": CommonParProdErrors.EMPTY_PROD_FIELD,
         }
     )
     par = ModelChoiceField(
@@ -82,7 +82,7 @@ class ParProdForm(ModelForm):
         label="Параметр",
         required=True,
         error_messages={
-            "required": "Поле для параметра необходимо заполнить",
+            "required": CommonParProdErrors.EMPTY_PAR_FIELD,
         }
     )
     enum_val = ModelChoiceField(
@@ -135,15 +135,11 @@ class ParProdForm(ModelForm):
 
         # если поле для изделия пустое 
         if not prod:
-            raise ValidationError(
-                "Поле для изделия необходимо заполнить"
-            )
+            raise ValidationError(CommonParProdErrors.EMPTY_PROD_FIELD)
 
         # если поле для параметра пустое
         if not par:
-            raise ValidationError(
-                "Поле для параметра необходимо заполнить"
-            )
+            raise ValidationError(CommonParProdErrors.EMPTY_PAR_FIELD)
 
         # находим идентификатор родительского класса изделия
         cls_id = prod.class_field.id
@@ -155,11 +151,7 @@ class ParProdForm(ModelForm):
 
         # проверяем, что параметр входит в число параметров родительского класса
         if par.id not in class_params_ids:
-            raise ValidationError(
-                "Параметр '{}' не принадлежит классу изделия '{}'".format(
-                    par.name, prod.class_field.name
-                )
-            )
+            raise ValidationError(CommonParProdErrors.INVALID_PAR.format(par.name, prod.class_field.name))
 
         # отыскиваем параметр класса в таблице ParClass
         par_class = ParClass.objects.get(
@@ -177,72 +169,58 @@ class ParProdForm(ModelForm):
 
             # если параметр является целочисленным
             if par.parametr_type.id == ParamIds.INT:
-                # если для целочисленного параметра изделия указано значение поля double_value
+                # проверяем, указано ли значение поля double_value для целочисленного параметра
                 if cleaned_data[double_key]:
-                    raise ValidationError(
-                        "Для целочисленного параметра нельзя указать значение поля double_value"
-                    )
+                    raise ValidationError(IntParErrors.DOUBLE_FIELD_SPECIFIED)
 
+                # проверяем, указано ли значение поля enum_val для целочисленного параметра
                 if cleaned_data["enum_val"]:
-                    raise ValidationError(
-                        "Для целочисленного параметра нельзя указать значение поля enum_val"
-                    )
+                    raise ValidationError(IntParErrors.ENUM_FIELD_SPECIFIED)
 
+                # проверяем, указано ли значение поля int_value для целочисленного параметра
                 if not cleaned_data[int_key]:
-                    raise ValidationError(
-                        "Для целочисленного параметра изделия необходимо указать значение поля int_value"
-                    )
+                    raise ValidationError(IntParErrors.INT_FIELD_EMPTY)
 
                 # если значение целочисленного параметра не входит в заданный диапазон
                 if cleaned_data[int_key] < mn_value or cleaned_data[int_key] > mx_value:
-                    raise ValidationError(
-                        f"Целочисленное значение не входит в границы диапазона(<{mn_value}, {mx_value}>)"
-                    )
+                    raise ValidationError(IntParErrors.INVALID_RANGE.format(mn_value, mx_value))
+                
             # если параметр является вещественным
             else:
                 # если для вещественного параметра изделия указано значение поля int_value
                 if cleaned_data[int_key]:
-                    raise ValidationError(
-                        "Для вещественного параметра нельзя указать значение поля int_value"
-                    )
+                    raise ValidationError(DoubleParErrors.INT_FIELD_SPECIFIED)
 
+                # проверяем, указано ли значение поля enum_val для вещественного параметра
                 if cleaned_data["enum_val"]:
-                    raise ValidationError(
-                        "Для вещественного параметра нельзя указать значение поля enum_val"
-                    )
+                    raise ValidationError(DoubleParErrors.ENUM_FIELD_SPECIFIED)
 
+                # проверяем, указано ли значение поля double_value для вещественного параметра
                 if not cleaned_data[double_key]:
-                    raise ValidationError(
-                        "Для вещественного параметра изделия необходимо указать значение поля int_value"
-                    )
+                    raise ValidationError(DoubleParErrors.DOUBLE_FIELD_EMPTY)
 
                 # если значение вещественного параметра не входит в заданный диапазон
                 if cleaned_data[double_key] < mn_value or cleaned_data[double_key] > mx_value:
-                    raise ValidationError(
-                        f"Вещественное значение не входит в границы диапазона(<{mn_value}, {mx_value}>)"
-                    )
+                    raise ValidationError(DoubleParErrors.INVALID_RANGE.format(mn_value, mx_value))
+                
         # если параметр является параметром-перечислением
         elif par.parametr_type.id in ENUMS_IDS:
+
             # то проверяем, что в форме не указаны значения int_value или double_value
             int_value = cleaned_data.get("int_value")
             double_value = cleaned_data.get("double_value")
 
             # проверяем, указано ли значение int_value для параметра-перечисления
             if int_value:
-                raise ValidationError(
-                    "Для параметра-перечисления изделия нельзя указать значение поля int_value"
-                )
+                raise ValidationError(EnumsParErrors.INT_FIELD_SPECIFIED)
 
             # проверяем, указано ли значение double_value для параметра-перечисления
             if double_value:
-                raise ValidationError(
-                    "Для параметра-перечисления изделия нельзя указать значение поля double_value"
-                )
+                raise ValidationError(EnumsParErrors.DOUBLE_FIELD_SPECIFIED)
 
+            # проверяем, указано ли значение enum_value для параметра-перечисления
             if not cleaned_data["enum_val"]:
-                raise ValidationError(
-                    "Для параметра-перечисления изделия необходимо указать значение поля enum_val"
-                )
+                raise ValidationError(EnumsParErrors.ENUM_FIELD_EMPTY)
 
         return cleaned_data
 
