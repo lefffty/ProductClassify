@@ -14,7 +14,7 @@ from parametr.models import Parametr
 
 from classes.models import ClassStruct, ParClass
 from classes.constants import ProdClassConsts, ParClassConsts, EnumClassConsts, EnumsIds
-from classes.errors import ClassStructErrors
+from classes.errors import ClassStructErrors, ParClassErrors
 
 
 class ProdClassForm(ModelForm):
@@ -182,9 +182,10 @@ class ParClassForm(ModelForm):
         parametr = cleaned_data.get("parametr")
 
         if not class_field:
-            raise ValidationError("Поле 'Класс изделия' обязательно для заполнения.")
+            raise ValidationError(ParClassErrors.EMPTY_CLASS_FIELD)
+        
         if not parametr:
-            raise ValidationError("Поле 'Параметр' обязательно для заполнения.")
+            raise ValidationError(ParClassErrors.EMPTY_PAR_FIELD)
 
         param_tp = parametr.parametr_type.id
         min_val = cleaned_data.get("min_value")
@@ -193,15 +194,12 @@ class ParClassForm(ModelForm):
         if param_tp in ClassStruct.enum_classes().values_list("id", flat=True) and (
             min_val is not None or max_val is not None
         ):
-            raise ValidationError(
-                "У параметра-перечисления не должно быть максимального и минимального значений!"
-            )
+            raise ValidationError(ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(parametr.name))
+        
         elif param_tp in ClassStruct.objects.filter(
             main_class__exact=EnumsIds.NUMERIC
         ).values_list("id", flat=True) and (min_val and max_val and min_val > max_val):
-            raise ValidationError(
-                "У численного параметра минимальное значение должно быть меньше максимального!"
-            )
+            raise ValidationError(ParClassErrors.MIN_GE_MAX)
 
         if not self.instance.pk:
             cleaned_data["num"] = (

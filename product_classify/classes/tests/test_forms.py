@@ -7,6 +7,7 @@ from ei.models import Ei
 from parametr.models import Parametr
 
 from classes.constants import ProductsConsts, ParamIds, EnumsIds
+from classes.errors import ParClassErrors
 from classes.models import ClassStruct, ParClass
 from classes.forms import (
     ProdClassForm,
@@ -821,7 +822,7 @@ class ParClassFormTest(TestCase):
         self.assertIn("__all__", form.errors)
         self.assertEqual(
             form.errors["__all__"][0],
-            "У параметра-перечисления не должно быть максимального и минимального значений!",
+            ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(form_data["parametr"].name),
         )
 
     def test_enum_parametr_having_max_value_raises_validation_error(self):
@@ -837,7 +838,7 @@ class ParClassFormTest(TestCase):
         self.assertIn("__all__", form.errors)
         self.assertEqual(
             form.errors["__all__"][0],
-            "У параметра-перечисления не должно быть максимального и минимального значений!",
+            ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(form_data["parametr"].name)
         )
 
     def test_invalid_min_value_raises_validation_error(self):
@@ -1011,7 +1012,7 @@ class ParClassFormTest(TestCase):
         }
         form = ParClassForm(data=form_data, instance=instance)
         self.assertFalse(form.is_valid())
-        expected_error_msg = "У параметра-перечисления не должно быть максимального и минимального значений!"
+        expected_error_msg = ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(form_data["parametr"].name)
         self.assertEqual(form.errors["__all__"][0], expected_error_msg)
 
     def test_edit_form_correctly_updates_class_field(self):
