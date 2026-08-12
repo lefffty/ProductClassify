@@ -7,6 +7,10 @@ class CommonEnumErrors(StrEnum):
     EMPTY_ENUM_ERROR = "Поле перечисления необходимо заполнить"
 
 
+class EnumsErrors(StrEnum):
+    INVALID_PARENT = "Родительский класс должен быть классом-перечислением."
+
+
 class StringEnumErrors(StrEnum):
     """Ошибки для строковых перечислений
     """

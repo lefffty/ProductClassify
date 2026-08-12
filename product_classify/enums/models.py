@@ -5,6 +5,7 @@ from classes.models import ClassStruct
 from classes.constants import EnumsIds, ENUMS_IDS
 
 from enums.constants import EnumsConsts
+from enums.errors import StringEnumErrors, ImageEnumErrors, IntEnumErrors, DoubleEnumErrors, EnumsErrors
 
 
 class Enums(models.Model):
@@ -88,36 +89,24 @@ class Enums(models.Model):
             return
 
         if self.enum.main_class.pk not in ENUMS_IDS:
-            raise ValidationError(
-                "Родительский класс должен быть классом-перечислением."
-            )
+            raise ValidationError(EnumsErrors.INVALID_PARENT)
 
         if self.enum.main_class.pk == EnumsIds.IMAGE and any(
             [self.double_value, self.int_value]
         ):
-            raise ValidationError(
-                "Для перечисления типа 'Изображение' поля double_value и int_value должны быть пустыми (null)."
-            )
+            raise ValidationError(ImageEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
         elif self.enum.main_class.pk == EnumsIds.STRING and any(
             [self.double_value, self.int_value]
         ):
-            raise ValidationError(
-                "Для перечисления типа 'Строка' поля double_value и int_value должны быть пустыми (null)."
-            )
+            raise ValidationError(StringEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
         elif self.enum.main_class.pk == EnumsIds.INT and any(
             [self.name, self.short_name, self.double_value, self.image]
         ):
-            raise ValidationError(
-                "Для перечисления типа 'Целое число' поля name, short_name, double_value и image должны быть пустыми (null). "
-                "Заполните только поле int_value."
-            )
+            raise ValidationError(IntEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
         elif self.enum.main_class.pk == EnumsIds.DOUBLE and any(
             [self.name, self.short_name, self.int_value, self.image]
         ):
-            raise ValidationError(
-                "Для перечисления типа 'Вещественное число' поля name, short_name, int_value и image должны быть пустыми (null). "
-                "Заполните только поле double_value."
-            )
+            raise ValidationError(DoubleEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
 
     def __str__(self):
         # если данное значение перечисления является перечислением строк или изображений

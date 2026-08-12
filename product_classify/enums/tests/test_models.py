@@ -7,6 +7,7 @@ from classes.models import ClassStruct
 from classes.constants import EnumsIds, ProductsConsts
 
 from enums.models import Enums
+from enums.errors import ImageEnumErrors, IntEnumErrors, StringEnumErrors, DoubleEnumErrors, EnumsErrors
 
 
 class EnumsModelTest(TestCase):
@@ -212,8 +213,7 @@ class EnumsModelTest(TestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             enum.full_clean()
-        expected_error_msg = "Для перечисления типа 'Изображение' поля double_value и int_value должны быть пустыми (null)."
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], ImageEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
 
     def test_raises_validation_error_if_enum_class_is_string_enum(self):
         enum = Enums(
@@ -227,8 +227,7 @@ class EnumsModelTest(TestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             enum.full_clean()
-        expected_error_msg = "Для перечисления типа 'Строка' поля double_value и int_value должны быть пустыми (null)."
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], StringEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
 
     def test_raises_validation_error_if_enum_class_is_int_enum(self):
         enum = Enums(
@@ -242,11 +241,7 @@ class EnumsModelTest(TestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             enum.full_clean()
-        expected_error_msg = (
-            "Для перечисления типа 'Целое число' поля name, short_name, double_value и image должны быть пустыми (null). "
-            "Заполните только поле int_value."
-        )
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], IntEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
 
     def test_raises_validation_error_if_enum_class_is_double_enum(self):
         enum = Enums(
@@ -260,11 +255,7 @@ class EnumsModelTest(TestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             enum.full_clean()
-        expected_error_msg = (
-            "Для перечисления типа 'Вещественное число' поля name, short_name, int_value и image должны быть пустыми (null). "
-            "Заполните только поле double_value."
-        )
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], DoubleEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
 
     def test_raises_validation_error_if_enum_class_is_not_enum(self):
         enum = Enums(
@@ -278,5 +269,4 @@ class EnumsModelTest(TestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             enum.full_clean()
-        expected_error_msg = "Родительский класс должен быть классом-перечислением."
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], EnumsErrors.INVALID_PARENT)
