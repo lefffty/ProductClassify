@@ -8,6 +8,7 @@ from django.core.validators import MinValueValidator
 
 from ei.models import Ei
 from ei.constants import EiConsts
+from ei.errors import EiErrors
 
 
 class EiForm(ModelForm):
@@ -16,7 +17,7 @@ class EiForm(ModelForm):
         validators=[MinValueValidator(EiConsts.CONVERT_FACTOR_MIN_VALUE)],
         required=True,
         error_messages={
-            "required": "Поле множителя для перевода в другую единицу измерения необходимо заполнить",
+            "required": EiErrors.EMPTY_FACTOR,
         },
     )
     name = CharField(
@@ -24,7 +25,7 @@ class EiForm(ModelForm):
         required=True,
         label="Название единицы измерения",
         error_messages={
-            "required": "Поле названия единицы измерения необходимо заполнить",
+            "required": EiErrors.EMPTY_NAME
         },
     )
     short_name = CharField(
@@ -32,7 +33,7 @@ class EiForm(ModelForm):
         required=True,
         label="Сокращенное название единицы измерения",
         error_messages={
-            "required": "Поле сокращенного названия единицы измерения необходимо заполнить",
+            "required": EiErrors.EMPTY_SHORT_NAME,
         },
     )
     main_class = ModelChoiceField(

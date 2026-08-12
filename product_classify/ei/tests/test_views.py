@@ -122,7 +122,7 @@ class EiUpdateViewTest(TestCase):
 
         cls.data = {
             "name": cls.fake.name()[:EiConsts.NAME_MAX_LENGTH],
-            "short_name": cls.fake.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
+            "short_name": cls.fake.name()[:EiConsts.SHORT_NAME_MAX_LENGTH].strip(),
             "code": cls.fake.postcode()[:EiConsts.CODE_MAX_LENGTH],
             "convert_factor": randint(1, 100),
             "main_class": cls.ei.main_class.pk,
