@@ -13,6 +13,7 @@ from classes.constants import (
     ParamIds,
     ENUMS_IDS
 )
+from classes.errors import ParClassErrors
 
 
 class ClassStruct(models.Model):
@@ -187,19 +188,13 @@ class ParClass(models.Model):
         if self.parametr.parametr_type.id in enum_param_type_ids and (
             self.min_value or self.max_value
         ):
-            raise ValidationError(
-                f"Для параметра '{self.parametr.name}' типа 'Перечисление' или 'Агрегат' не допускается указывать "
-                f"минимальное и максимальное значения."
-                f" Оставьте поля min_value и max_value пустыми."
-            )
+            raise ValidationError(ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(self.parametr.name))
 
         if self.min_value and self.max_value:
             if self.min_value > self.max_value:
-                raise ValidationError(
-                    {
-                        "min_value": "У численного параметра минимальное значение должно быть меньше максимального!",
-                    }
-                )
+                raise ValidationError({
+                    "min_value": ParClassErrors.MIN_GE_MAX,
+                })
 
     def __str__(self):
         return f"{self.class_field.name} - {self.parametr.name}"
