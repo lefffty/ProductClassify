@@ -14,7 +14,7 @@ from parametr.models import Parametr
 
 from classes.models import ClassStruct, ParClass
 from classes.constants import ProdClassConsts, ParClassConsts, EnumClassConsts, EnumsIds
-from classes.errors import ClassStructErrors, ParClassErrors
+from classes.errors import ClassStructErrors, ParClassErrors, ChangeParClassErrors
 
 
 class ProdClassForm(ModelForm):
@@ -238,10 +238,10 @@ class ChangeParClassNumForm(Form):
         cleaned_data = super().clean()
         class_field_1 = cleaned_data.get("class_field_1")
         if not class_field_1:
-            raise ValidationError("Поле class_field_1 не может быть пустым")
+            raise ValidationError(ChangeParClassErrors.EMPTY_FIRST_PAR)
         class_field_2 = cleaned_data.get("class_field_2")
         if not class_field_2:
-            raise ValidationError("Поле class_field_2 не может быть пустым")
+            raise ValidationError(ChangeParClassErrors.EMPTY_SECOND_PAR)
         if class_field_1 == class_field_2:
-            raise ValidationError("Классы изделия не могут быть одинаковыми!")
+            raise ValidationError(ChangeParClassErrors.EQUAL_PAR)
         return cleaned_data

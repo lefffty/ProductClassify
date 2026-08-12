@@ -16,4 +16,9 @@ class ParClassErrors:
     MIN_GE_MAX = "У численного параметра минимальное значение должно быть меньше максимального!"
     EMPTY_CLASS_FIELD = "Поле 'Класс изделия' обязательно для заполнения."
     EMPTY_PAR_FIELD = "Поле 'Параметр' обязательно для заполнения."
-    
+
+
+class ChangeParClassErrors(StrEnum):
+    EMPTY_FIRST_PAR = "Поле class_field_1 не может быть пустым"
+    EMPTY_SECOND_PAR = "Поле class_field_2 не может быть пустым"
+    EQUAL_PAR = "Классы изделия не могут быть одинаковыми!"
