@@ -7,6 +7,7 @@ from ei.models import Ei
 
 from parametr.models import Parametr
 from parametr.constants import ParametrConsts
+from parametr.errors import ParametrErrors
 
 
 class ParametrForm(ModelForm):
@@ -61,15 +62,12 @@ class ParametrForm(ModelForm):
         agregat_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
 
         if parametr_tp == str_enum and par_ei is not None:
-            raise ValidationError(
-                """Параметр типа 'Перечисление строк' не может иметь единиц измерения"""
-            )
+            raise ValidationError(ParametrErrors.STRING_ENUM)
+        
         elif parametr_tp == img_enum and par_ei is not None:
-            raise ValidationError(
-                """Параметр типа 'Перечисление изображений' не может иметь единиц измерения"""
-            )
+            raise ValidationError(ParametrErrors.IMAGE_ENUM)
+        
         elif parametr_tp == agregat_type and par_ei is not None:
-            raise ValidationError(
-                """Параметр типа 'Агрегат' не может иметь единиц измерения"""
-            )
+            raise ValidationError(ParametrErrors.AGREGAT)
+        
         return cleaned_data
