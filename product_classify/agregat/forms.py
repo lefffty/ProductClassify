@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.forms import (
     ModelForm,
     ModelChoiceField,
@@ -7,7 +8,9 @@ from django.forms import (
 
 from parametr.models import Parametr
 
-from .models import Agregat
+from agregat.models import Agregat
+from agregat.constants import AgregatConsts
+from agregat.errors import AgregatErrors
 
 
 class AgregatForm(ModelForm):
@@ -71,26 +74,33 @@ class ChangeAgregatNumForm(Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        agr_param_1 = cleaned_data.get("agr_param_1")
+        agr_param_1: Agregat = cleaned_data.get("agr_param_1")
 
         if not agr_param_1:
-            raise ValidationError(
-                "Поле первого параметра агрегата в форме необходимо заполнить"
-            )
+            raise ValidationError(AgregatErrors.EMPTY_FIRST_PARAM)
 
-        agr_param_2 = cleaned_data.get("agr_param_2")
+        agr_param_2: Agregat = cleaned_data.get("agr_param_2")
 
         if not agr_param_2:
-            raise ValidationError(
-                "Поле второго параметра агрегата в форме необходимо заполнить"
-            )
+            raise ValidationError(AgregatErrors.EMPTY_SECOND_PARAM)
 
         if agr_param_1 == agr_param_2:
-            raise ValidationError("Выберите разные параметры")
+            raise ValidationError(AgregatErrors.SAME_PARAMS)
 
-        temp_num = agr_param_1.num
-        agr_param_1.num = agr_param_2.num
-        agr_param_2.num = temp_num
-        agr_param_1.save()
-        agr_param_2.save()
+        with transaction.atomic():
+            old_num_1 = agr_param_1.num
+            old_num_2 = agr_param_2.num
+
+            temp_num_1 = AgregatConsts.MAX_NUM_VALUE
+            temp_num_2 = AgregatConsts.MAX_NUM_VALUE - 1
+            agr_param_1.num = temp_num_1
+            agr_param_2.num = temp_num_2
+            agr_param_1.save(update_fields=["num"])
+            agr_param_2.save(update_fields=["num"])
+
+            agr_param_1.num = old_num_2
+            agr_param_2.num = old_num_1
+            agr_param_1.save(update_fields=["num"])
+            agr_param_2.save(update_fields=["num"])
+
         return cleaned_data

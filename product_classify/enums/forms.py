@@ -153,6 +153,7 @@ class ChangeNumForm(Form):
 
     def clean(self):
         cleaned_data = super().clean()
+        
         enum_1: Enums = cleaned_data.get("enum_1", None)
         enum_2: Enums = cleaned_data.get("enum_2", None)
 
