@@ -245,3 +245,35 @@ class ProductUpdateViewTest(TestCase):
     def test_empty_name_validation_error_is_shown_on_page(self):
         response = self.client.post(self.url, data=self.empty_name_field_data)
         self.assertContains(response, ProdErrors.EMPTY_NAME_FIELD)
+
+
+class ProductDeleteViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.instance = Prod.objects.create(
+            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            class_field=cls.nuts_class,
+        )
+
+        cls.url = reverse("products:delete_product", args=[cls.instance.pk])
+        cls.redirect_url = reverse("products:class_products", kwargs={
+            "main_class_id": cls.nuts_class.main_class.pk,
+            "class_id": cls.nuts_class.pk,
+        })
+
+    def test_product_delete_view_uses_product_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "products/product.html")
+
+    def test_product_delete_view_can_save_a_POST_request(self):
+        count_before = Prod.objects.count()
+        self.client.post(self.url)
+        self.assertEqual(Prod.objects.count(), count_before - 1)
+
+    def test_product_delete_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url)
+        self.assertRedirects(response, self.redirect_url)

@@ -101,12 +101,12 @@ class ProdClassFormTest(TestCase):
                     "main_cls_id должен быть равен id выбранного родителя"
                 )
                 self.assertEqual(
-                    call_args[1],
+                    call_args[0],
                     self.root.pk,
                     expected_first_arg_error,
                 )
                 self.assertEqual(
-                    call_args[2],
+                    call_args[1],
                     self.other.pk,
                     expected_second_arg_error,
                 )
@@ -443,8 +443,8 @@ class EnumClassFormTest(TestCase):
                 expected_second_arg_error = (
                     "main_cls_id должен быть равен id выбранного родителя"
                 )
-                self.assertEqual(call_args[1], self.root.pk, expected_first_arg_error)
-                self.assertEqual(call_args[2], self.other.pk, expected_second_arg_error)
+                self.assertEqual(call_args[0], self.root.pk, expected_first_arg_error)
+                self.assertEqual(call_args[1], self.other.pk, expected_second_arg_error)
 
     def test_clean_raises_error_when_cycle_detected_while_editing_existing_record(self):
         """Проверяет, что при редактировании существующей записи и создании циклической ссылки форма невалидна и содержит ошибку о цикле."""
