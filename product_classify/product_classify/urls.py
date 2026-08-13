@@ -25,7 +25,7 @@ urlpatterns = [
     path("", include("classes.urls")),
     path("", include("products.urls")),
     path("", include("ei.urls")),
-    path("", include("parametr.urls")),
+    path("parametrs/", include("parametr.urls")),
     path("", include("agregat.urls")),
     path("", include("enums.urls")),
 ]
