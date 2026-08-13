@@ -19,6 +19,8 @@ from classes.errors import ParClassErrors
 
 
 class ClassStruct(models.Model):
+    """Модель классификатора
+    """
     name = models.CharField(
         verbose_name="Название класса",
         null=False,
@@ -126,16 +128,19 @@ class ClassStruct(models.Model):
         return data
 
     @classmethod
-    def check_class_struct_cycles(self, cursor: object, cls_id: int, main_cls_id: int):
-        cursor.execute(
-            ClassStructQueries.CHECK_CYCLE,
-            [cls_id, main_cls_id],
-        )
-        is_cycle = cursor.fetchone()[0]
+    def check_class_struct_cycles(self, cls_id: int, main_cls_id: int):
+        with connection.cursor() as cursor:
+            cursor.execute(
+                ClassStructQueries.CHECK_CYCLE,
+                [cls_id, main_cls_id],
+            )
+            is_cycle = cursor.fetchone()[0]
         return is_cycle
 
 
 class ParClass(models.Model):
+    """Модель параметра класса
+    """
     class_field = models.ForeignKey(
         ClassStruct,
         verbose_name="Класс",
@@ -183,15 +188,23 @@ class ParClass(models.Model):
         ]
 
     def clean(self):
+        # если параметр не указан
         if not self.parametr_id:
             return
 
+        # получаем списком типов перечислений + тип параметр-агрегат
         enum_param_type_ids = list([*ENUMS_IDS, ParamIds.AGREGAT])
+
+        # проверяем, что параметр является параметром-перечислением или агрегатом и заполнены поля min_value и max_value
+        # если да, то выбрасываем исключение, так как для параметра-перечисления или для параметра-агрегата нельзя задать
+        # значения полей min_value или max_value
         if self.parametr.parametr_type.id in enum_param_type_ids and (
             self.min_value or self.max_value
         ):
             raise ValidationError(ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(self.parametr.name))
 
+        # если указаны поля min_value и max_value и min_value > max_value,
+        # то выбрасываем исключение
         if self.min_value and self.max_value:
             if self.min_value > self.max_value:
                 raise ValidationError({

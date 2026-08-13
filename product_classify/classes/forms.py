@@ -7,17 +7,18 @@ from django.forms import (
 )
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
-from django.db import connection
 
 from ei.models import Ei
 from parametr.models import Parametr
 
 from classes.models import ClassStruct, ParClass
-from classes.constants import ProdClassConsts, ParClassConsts, EnumClassConsts, EnumsIds
+from classes.constants import ProdClassConsts, ParClassConsts, EnumClassConsts, EnumsIds, ParamIds
 from classes.errors import ClassStructErrors, ParClassErrors, ChangeParClassErrors
 
 
 class ProdClassForm(ModelForm):
+    """Форма для создания класса изделия
+    """
     base_ei = ModelChoiceField(
         label="Единица измерения",
         empty_label="Выберите единицу измерения",
@@ -63,25 +64,30 @@ class ProdClassForm(ModelForm):
         self.fields["base_ei"].queryset = Ei.objects.all()
 
     def clean(self):
+        # проверяем, что поле main_class заполнено
         if "main_class" not in self.cleaned_data:
             return super().clean()
 
+        # если форма предназначена для редактирования существующего объекта
         if self.instance.pk:
-            with connection.cursor() as cursor:
-                self.instance.save()
-                cls_id = self.instance.pk
-                main_cls_id = self.cleaned_data["main_class"].id
-                is_cycle = ClassStruct.check_class_struct_cycles(cursor, cls_id, main_cls_id)
-                if is_cycle:
-                    raise ValidationError(
-                        ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR
-                    )
-                return super().clean()
+            self.instance.save()
+            cls_id = self.instance.pk
+            main_cls_id = self.cleaned_data["main_class"].id
+            # проверяем, что при редактирования объекта в классификаторе не образовался цикл
+            is_cycle = ClassStruct.check_class_struct_cycles(cls_id, main_cls_id)
+            # выбрасываем исключение, если образовался цикл
+            if is_cycle:
+                raise ValidationError(
+                    ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR
+                )
+            return super().clean()
         else:
             return super().clean()
 
 
 class EnumClassForm(ModelForm):
+    """Форма для создания класса перечисления
+    """
     main_class = ModelChoiceField(
         label="Родительский класс",
         queryset=ClassStruct.objects.none(),
@@ -117,23 +123,28 @@ class EnumClassForm(ModelForm):
         self.fields["main_class"].queryset = ClassStruct.all_enum_classes()
 
     def clean(self):
+        # проверяем, что поле main_class заполнено
         if "main_class" not in self.cleaned_data:
             return super().clean()
 
+        # если форма предназначена для редактирования существующего объекта
         if self.instance.pk:
-            with connection.cursor() as cursor:
-                self.instance.save()
-                cls_id = self.instance.pk
-                main_cls_id = self.cleaned_data["main_class"].id
-                is_cycle = ClassStruct.check_class_struct_cycles(cursor, cls_id, main_cls_id)
-                if is_cycle:
-                    raise ValidationError(ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR)
-                return super().clean()
+            self.instance.save()
+            cls_id = self.instance.pk
+            main_cls_id = self.cleaned_data["main_class"].id
+            # проверяем, что при редактирования объекта в классификаторе не образовался цикл
+            is_cycle = ClassStruct.check_class_struct_cycles(cls_id, main_cls_id)
+            # выбрасываем исключение, если образовался цикл
+            if is_cycle:
+                raise ValidationError(ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR)
+            return super().clean()
         else:
             return super().clean()
 
 
 class ParClassForm(ModelForm):
+    """Форма для создания параметра класса
+    """
     class_field = ModelChoiceField(
         label="Класс изделия",
         queryset=ClassStruct.objects.none(),
@@ -181,9 +192,11 @@ class ParClassForm(ModelForm):
         class_field = cleaned_data.get("class_field")
         parametr = cleaned_data.get("parametr")
 
+        # проверяем, что поле class_field заполнено
         if not class_field:
             raise ValidationError(ParClassErrors.EMPTY_CLASS_FIELD)
-        
+
+        # проверяем, что поле parametr заполнено
         if not parametr:
             raise ValidationError(ParClassErrors.EMPTY_PAR_FIELD)
 
@@ -191,16 +204,18 @@ class ParClassForm(ModelForm):
         min_val = cleaned_data.get("min_value")
         max_val = cleaned_data.get("max_value")
 
+        # если параметр является перечислением
         if param_tp in ClassStruct.enum_classes().values_list("id", flat=True) and (
             min_val is not None or max_val is not None
         ):
             raise ValidationError(ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(parametr.name))
-        
+        # если параметр является численным и минимальное значение больше максимального значения параметра
         elif param_tp in ClassStruct.objects.filter(
-            main_class__exact=EnumsIds.NUMERIC
+            main_class__exact=ParamIds.NUMERIC
         ).values_list("id", flat=True) and (min_val and max_val and min_val > max_val):
             raise ValidationError(ParClassErrors.MIN_GE_MAX)
 
+        # проверяем, что редактируем объект и задаем значение поля num
         if not self.instance.pk:
             cleaned_data["num"] = (
                 ParClass.objects.filter(class_field=class_field).count() + 1
@@ -222,6 +237,8 @@ class ParClassForm(ModelForm):
 
 
 class ChangeParClassNumForm(Form):
+    """Форма для изменения позиции параметра класса
+    """
     def __init__(self, *args, **kwargs):
         class_id = kwargs.pop("class_id", None)
         super().__init__(*args, **kwargs)
@@ -238,13 +255,16 @@ class ChangeParClassNumForm(Form):
         cleaned_data = super().clean()
         class_field_1 = cleaned_data.get("class_field_1")
 
+        # проверяем, что поле для первого параметра класса заполнено
         if not class_field_1:
             raise ValidationError(ChangeParClassErrors.EMPTY_FIRST_PAR)
-        
+
+        # проверяем, что поле для второго параметра класса заполнено
         class_field_2 = cleaned_data.get("class_field_2")
         if not class_field_2:
             raise ValidationError(ChangeParClassErrors.EMPTY_SECOND_PAR)
-        
+
+        # проверяем, что оба параметра относятся к одному классу
         if class_field_1 == class_field_2:
             raise ValidationError(ChangeParClassErrors.EQUAL_PAR)
         

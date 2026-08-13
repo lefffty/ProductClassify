@@ -29,6 +29,8 @@ class MainPageTemplateView(
     CommonContextMixin,
     TemplateView,
 ):
+    """Представление для главной страницы
+    """
     template_name = "classes/index.html"
 
 
@@ -36,6 +38,8 @@ class CategoryClassesListView(
     CommonContextMixin,
     ListView,
 ):
+    """Представление для категории изделия(болты, гайки, кронштейны)
+    """
     template_name = "classes/category.html"
     model = ClassStruct
     context_object_name = "classes"
@@ -61,6 +65,8 @@ class ProdClassCreateView(
     CommonContextMixin,
     CreateView,
 ):
+    """Представление для создания нового класса изделия
+    """
     form_class = ProdClassForm
     success_url = reverse_lazy("classes:index")
     template_name = "classes/prod_class.html"
@@ -70,6 +76,8 @@ class EnumClassCreateView(
     CommonContextMixin,
     CreateView,
 ):
+    """Представление для создания нового класса перечисления
+    """
     form_class = EnumClassForm
     success_url = reverse_lazy("classes:index")
     template_name = "classes/enum_class.html"
@@ -79,6 +87,8 @@ class ClassUpdateView(
     CommonContextMixin,
     UpdateView,
 ):
+    """Представление для изменения экземпляра класса
+    """
     def get_object(self):
         class_id = self.kwargs.get("class_id")
         _class = ClassStruct.objects.get(pk=class_id)
@@ -113,8 +123,7 @@ def delete_class(
     request: HttpRequest,
     class_id: int,
 ) -> HttpResponse:
-    """
-    Удаление класса
+    """Представление для удаления класса
     """
     fastener_classes = ClassStruct.objects.filter(main_class__pk=ProductsConsts.FASTENER_ID)
     _class = ClassStruct.objects.get(pk=class_id)
@@ -137,6 +146,8 @@ class ClassParamsListView(
     CommonContextMixin,
     ListView,
 ):
+    """Представление для вывода списка параметров класса
+    """
     template_name = "classes/params.html"
     context_object_name = "params"
 
@@ -161,6 +172,8 @@ class ClassParamCreateView(
     CommonContextMixin,
     CreateView,
 ):
+    """Представление для добавления нового параметра класса
+    """
     template_name = "classes/param_class.html"
     form_class = ParClassForm
 
@@ -181,8 +194,7 @@ def add_param_class(
     request: HttpRequest,
     class_id: int,
 ) -> HttpResponse:
-    """
-    Добавление параметра класса
+    """Представление для добавления параметра класса
     """
     fastener_classes = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
     _class = ClassStruct.objects.get(
@@ -215,8 +227,7 @@ def edit_param_class(
     class_id: int,
     param_id: int,
 ) -> HttpResponse:
-    """
-    Редактирование параметра класса
+    """Представление для редактирования параметра класса
     """
     fastener_classes = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
     instance = ParClass.objects.get(
@@ -247,8 +258,7 @@ def delete_param_class(
     class_id: int,
     param_id: int,
 ) -> HttpResponse:
-    """
-    Удаление параметра класса
+    """Представление для удаления параметра класса
     """
     fastener_classes = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
     instance = ParClass.objects.get(
@@ -273,8 +283,7 @@ def change_parclass_num(
     request: HttpRequest,
     class_id: int,
 ) -> HttpResponse:
-    """
-    Изменение номера параметра класса
+    """Представление для изменения номера параметра класса
     """
     fastener_classes = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
     _class = ClassStruct.objects.get(pk=class_id)
@@ -309,6 +318,8 @@ class ChangeNumView(
     CommonContextMixin,
     UpdateView,
 ):
+    """Представление для изменения номера параметра класса
+    """
     queryset = ParClass.objects.all()
     form_class = ChangeParClassNumForm
     template_name = "classes/change_parclass_num.html"
