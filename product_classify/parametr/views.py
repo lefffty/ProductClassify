@@ -48,7 +48,7 @@ class ParametrCreateView(
     CreateView,
 ):
     form_class = ParametrForm
-    success_url = reverse_lazy("parametr:parametr_list")
+    success_url = reverse_lazy("parametr:list")
 
 
 class ParametrUpdateView(
@@ -74,6 +74,6 @@ class ParametrDeleteView(
     CommonContextMixin,
     DeleteView,
 ):
-    success_url = reverse_lazy("parametr:parametr_list")
+    success_url = reverse_lazy("parametr:list")
     pk_url_kwarg = "parametr_id"
     context_object_name = "instance"
