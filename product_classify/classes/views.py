@@ -190,35 +190,28 @@ class ClassParamCreateView(
         )
 
 
-def edit_param(
-    request: HttpRequest,
-    class_id: int,
-    param_id: int,
-) -> HttpResponse:
-    """Представление для редактирования параметра класса
-    """
-    fastener_classes = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
-    instance = ParClass.objects.get(
-        class_field=class_id,
-        parametr=param_id,
-    )
-    form = ParClassForm(
-        request.POST or None,
-        instance=instance,
-    )
-    if form.is_valid():
-        form.save(commit=True)
-        return redirect("classes:params_list", class_id)
-    context = {
-        "instance": instance,
-        "form": form,
-        "fastener_classes": fastener_classes,
-    }
-    return render(
-        request,
-        "classes/param_class.html",
-        context,
-    )
+class ClassParamUpdateView(
+    CommonContextMixin,
+    UpdateView
+):
+    template_name = "classes/param_class.html"
+    form_class = ParClassForm
+
+    def get_object(self):
+        class_id = self.kwargs.get("class_id")
+        param_id = self.kwargs.get("param_id")
+        return ParClass.objects.get(
+            class_field=class_id,
+            parametr=param_id,
+        )
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "classes:params_list",
+            kwargs={
+                "class_id": self.kwargs.get("class_id")
+            }
+        )
 
 
 def delete_param(

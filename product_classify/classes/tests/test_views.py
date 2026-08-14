@@ -592,3 +592,63 @@ class ClassParamCreateViewTest(TestCase):
     def test_min_value_is_gt_max_value_for_numeric_param_validation_error_is_shown_on_page(self):
         response = self.client.post(self.url, data=self.mn_gt_mx_data)
         self.assertContains(response, escape(ParClassErrors.MIN_GE_MAX))
+
+
+class ClassParamUpdateViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.base_ei = Ei.objects.first()
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.nuts_subclass = ClassStruct.objects.create(
+            name=cls.fake.name()[:ProdClassConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=cls.base_ei,
+            main_class=cls.nuts_class,
+        )
+        cls.int_param_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.par1 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_param_type,
+            par_ei=cls.base_ei
+        )
+
+        cls.parclass1 = ParClass.objects.create(
+            class_field=cls.nuts_subclass,
+            parametr=cls.par1,
+            min_value=randint(1, 10),
+            max_value=randint(11, 20),
+            num=1
+        )
+
+        cls.valid_data = {
+            "class_field": cls.nuts_subclass.pk,
+            "parametr": cls.par1.pk,
+            "min_value": randint(10, 20),
+            "max_value": randint(21, 30)
+        }
+
+        cls.url = reverse("classes:edit_param", args=[cls.nuts_subclass.pk, cls.par1.pk])
+        cls.redirect_url = reverse("classes:params_list", args=[cls.nuts_subclass.pk])
+
+    def test_class_param_update_view_uses_param_class_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "classes/param_class.html")
+
+    def test_class_param_update_view_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_class_param_update_view_can_save_a_POST_request(self):
+        self.client.post(self.url, data=self.valid_data)
+        p1 = ParClass.objects.first()
+        self.assertEqual(p1.class_field.pk, self.valid_data["class_field"])
+        self.assertEqual(p1.parametr.pk, self.valid_data["parametr"])
+        self.assertTrue(p1.min_value, self.valid_data["min_value"])
+        self.assertTrue(p1.max_value, self.valid_data["max_value"])
+
+    def test_class_param_update_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url, data=self.valid_data)
+        self.assertRedirects(response, self.redirect_url)

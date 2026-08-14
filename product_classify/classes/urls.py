@@ -47,7 +47,7 @@ urlpatterns = [
     ),
     path(
         "<int:class_id>/params/<int:param_id>/edit/",
-        views.edit_param,
+        views.ClassParamUpdateView.as_view(),
         name="edit_param",
     ),
     path(
