@@ -1,7 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from http import HTTPStatus
 from faker import Faker
 
 from classes.constants import ParamIds
@@ -114,3 +113,57 @@ class AgregatParametrCreateViewTest(TestCase):
     def test_agregat_parametr_create_view_redirects_after_a_POST_request(self):
         response = self.client.post(self.url, data=self.valid_data)
         self.assertRedirects(response, self.redirect_url)
+
+
+class AgregatParametrDetailViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.agr_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
+        cls.par_ei = Ei.objects.first()
+
+        cls.par1 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_type,
+            par_ei=cls.par_ei
+        )
+        cls.par2 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_type,
+            par_ei=cls.par_ei
+        )
+        cls.agr = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.agr_type,
+            par_ei=cls.par_ei
+        )
+
+        Agregat.objects.bulk_create((
+            Agregat(agr=cls.agr, par=cls.par1, num=1),
+            Agregat(agr=cls.agr, par=cls.par2, num=2)
+        ))
+
+        cls.url = reverse("agregat:detail", kwargs={"agregat_id": cls.agr.pk})
+
+    def test_agregat_parametr_detail_view_uses_detail_html(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "agregat/detail.html")
+
+    def test_agregat_parametr_detail_view_renders_agregat_instance(self):
+        response = self.client.get(self.url)
+        self.assertIn("agregat", response.context)
+
+    def test_agregat_parametr_detail_view_renders_agregat_parameters(self):
+        response = self.client.get(self.url)
+        self.assertIn("agr_parametrs", response.context)
+
+    def test_agregat_parametr_detail_view_correctly_renders_information_about_agregat(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, self.agr.name)
+        self.assertContains(response, self.par1.name)
+        self.assertContains(response, self.par2.name)

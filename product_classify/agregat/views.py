@@ -42,11 +42,12 @@ class AgregatDetailView(
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        agregat_parametrs = Agregat.objects.filter(agr=self.get_object()).order_by(
+        agregat = self.get_object()
+        agregat_parametrs = Agregat.objects.filter(agr=agregat).order_by(
             "num"
         )
         context["agr_parametrs"] = agregat_parametrs
-        context["agregat"] = self.get_object()
+        context["agregat"] = agregat
         return context
 
 
