@@ -238,3 +238,37 @@ class ParametrUpdateViewTest(TestCase):
     def test_parametr_update_view_redirects_after_POST_request(self):
         response = self.client.post(self.url, data=self.update_data)
         self.assertRedirects(response, self.redirect_url)
+
+
+class ParametrDeleteViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.par_ei = Ei.objects.first()
+
+        name = cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH]
+        short_name = cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH]
+
+        cls.instance = Parametr.objects.create(
+            name=name,
+            short_name=short_name,
+            parametr_type=cls.int_type,
+            par_ei=cls.par_ei
+        )
+
+        cls.url = reverse("parametr:delete", args=[cls.instance.pk])
+        cls.redirect_url = reverse("parametr:list")
+
+    def test_parametr_delete_view_uses_parametr_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "parametr/parametr.html")
+
+    def test_parametr_delete_view_can_save_a_POST_request(self):
+        self.client.post(self.url)
+        self.assertEqual(Parametr.objects.count(), 0)
+
+    def test_parametr_delete_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url)
+        self.assertRedirects(response, self.redirect_url)
