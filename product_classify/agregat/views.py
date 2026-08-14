@@ -61,7 +61,7 @@ class AgregatParametrCreateView(
     def get_success_url(self):
         agregat_id = self.kwargs.get("agregat_id")
         return reverse_lazy(
-            "agregat:agregat_detail",
+            "agregat:detail",
             kwargs={
                 "agregat_id": agregat_id,
             },
@@ -99,7 +99,7 @@ class AgregatParametrDeleteView(
     def get_success_url(self):
         agregat_id = self.kwargs.get("agregat_id")
         return reverse_lazy(
-            "agregat:agregat_detail",
+            "agregat:detail",
             kwargs={
                 "agregat_id": agregat_id,
             },
@@ -129,7 +129,7 @@ def change_agregat_num(
     form = ChangeAgregatNumForm(request.POST or None, agr=agregat)
     if form.is_valid():
         return redirect(
-            "agregat:agregat_detail",
+            "agregat:detail",
             agregat_id,
         )
     context = {
