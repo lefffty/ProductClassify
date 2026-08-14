@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
 from django.urls import reverse_lazy
+from django.db.models import Q
 from django.views.generic import (
     ListView,
     DetailView,
@@ -109,12 +110,14 @@ class AgregatParametrDeleteView(
     def form_valid(self, form):
         agregat_id = self.kwargs.get("agregat_id")
         instance = self.get_object()
+        num = instance.num
         instance.delete()
 
-        for par_agr in Agregat.objects.filter(agr=agregat_id):
-            if par_agr.num > instance.num:
-                par_agr.num = par_agr.num - 1
-                par_agr.save()
+        for par_agr in Agregat.objects.filter(
+            Q(agr=agregat_id) & Q(num__gt=num)
+        ):
+            par_agr.num = par_agr.num - 1
+            par_agr.save()
                 
         return super().form_valid(form)
 

@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from faker import Faker
+from http import HTTPStatus
 
 from classes.constants import ParamIds
 from classes.models import ClassStruct
@@ -262,3 +263,87 @@ class ChangeNumViewTest(TestCase):
     def test_same_params_validation_error_is_shown_on_page(self):
         response = self.client.post(self.url, data=self.same_params_data)
         self.assertContains(response, AgregatErrors.SAME_PARAMS)
+
+
+class AgregatParametrDeleteViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.agr_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
+        cls.par_ei = Ei.objects.first()
+
+        cls.par1 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_type,
+            par_ei=cls.par_ei
+        )
+        cls.par2 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_type,
+            par_ei=cls.par_ei
+        )
+        cls.par3 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_type,
+            par_ei=cls.par_ei
+        )
+        cls.agr = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.agr_type,
+            par_ei=cls.par_ei
+        )
+
+        cls.pairs = Agregat.objects.bulk_create((
+            Agregat(agr=cls.agr, par=cls.par1, num=1),
+            Agregat(agr=cls.agr, par=cls.par2, num=2),
+            Agregat(agr=cls.agr, par=cls.par3, num=3),
+        ))
+        cls.redirect_url = reverse("agregat:detail", kwargs={
+            "agregat_id": cls.agr.pk
+        })
+
+    def _get_url(self, agr_pk: int, par_pk: int):
+        return reverse("agregat:delete", kwargs={
+            "agregat_id": agr_pk,
+            "param_id": par_pk
+        })
+
+    def test_agregat_parametr_sdelete_view_uses_template(self):
+        response = self.client.get(self._get_url(self.agr.pk, self.par1.pk))
+        self.assertTemplateUsed(response, "agregat/agregat.html")
+
+    def test_agregat_parametr_delete_view_can_save_a_POST_request(self):
+        self.assertEqual(Agregat.objects.filter(agr=self.agr).count(), 3)
+        self.client.post(self._get_url(self.agr.pk, self.par1.pk))
+        self.assertEqual(Agregat.objects.filter(agr=self.agr).count(), 2)
+
+    def test_agregat_parametr_delete_view_correctly_recalculates_num_fields_if_we_delete_first_par(self):
+        self.client.post(self._get_url(self.agr.pk, self.par1.pk))
+        pair1 = Agregat.objects.first()
+        self.assertEqual(pair1.num, 1)
+        pair2 = Agregat.objects.last()
+        self.assertEqual(pair2.num, 2)
+
+    def test_agregat_parametr_delete_view_correctly_recalculates_num_fields_if_we_delete_par_in_the_middle(self):
+        self.client.post(self._get_url(self.agr.pk, self.par2.pk))
+        pair1 = Agregat.objects.first()
+        self.assertEqual(pair1.num, 1)
+        pair2 = Agregat.objects.last()
+        self.assertEqual(pair2.num, 2)
+
+    def test_agregat_parametr_delete_view_correctly_recalculates_num_fields_if_we_delete_last_par(self):
+        self.client.post(self._get_url(self.agr.pk, self.par3.pk))
+        pair1 = Agregat.objects.first()
+        self.assertEqual(pair1.num, 1)
+        pair2 = Agregat.objects.last()
+        self.assertEqual(pair2.num, 2)
+
+    def test_agregat_parametr_delete_view_redirect_after_POST_request(self):
+        response = self.client.post(self._get_url(self.agr.pk, self.par1.pk))
+        self.assertRedirects(response, self.redirect_url)
