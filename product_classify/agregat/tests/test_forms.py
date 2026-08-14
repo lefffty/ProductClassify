@@ -241,49 +241,49 @@ class ChangeAgregatNumFormTest(TestCase):
         )
 
     def test_agr_param_1_queryset_is_related_to_given_agregat(self):
-        """Проверяет, что поле agr_param_1 содержит только записи Agregat, относящиеся к переданному агрегату."""
+        """Проверяет, что поле par_1 содержит только записи Agregat, относящиеся к переданному агрегату."""
         form_data = {
-            "agr_param_1": self.agr_pair1,
-            "agr_param_2": self.agr_pair2,
+            "par_1": self.agr_pair1,
+            "par_2": self.agr_pair2,
         }
         form = ChangeAgregatNumForm(agr=self.agregat)
         self.assertIn(
-            form_data["agr_param_1"].par.pk,
-            form.fields["agr_param_1"].queryset.values_list("par__pk", flat=True),
+            form_data["par_1"].par.pk,
+            form.fields["par_1"].queryset.values_list("par__pk", flat=True),
         )
 
     def test_agr_param_2_queryset_is_related_to_given_agregat(self):
-        """Проверяет, что поле agr_param_2 содержит только записи Agregat, относящиеся к переданному агрегату."""
+        """Проверяет, что поле par_2 содержит только записи Agregat, относящиеся к переданному агрегату."""
         form_data = {
-            "agr_param_1": self.agr_pair1,
-            "agr_param_2": self.agr_pair2,
+            "par_1": self.agr_pair1,
+            "par_2": self.agr_pair2,
         }
         form = ChangeAgregatNumForm(agr=self.agregat)
         self.assertIn(
-            form_data["agr_param_2"].par.pk,
-            form.fields["agr_param_2"].queryset.values_list("par__pk", flat=True),
+            form_data["par_2"].par.pk,
+            form.fields["par_2"].queryset.values_list("par__pk", flat=True),
         )
 
     def test_agr_param_queryset_empty_if_agr_is_none(self):
         """Проверяет, что при передаче agr=None queryset полей пуст."""
         form = ChangeAgregatNumForm(agr=None)
-        self.assertFalse(form.fields["agr_param_1"].queryset.exists())
-        self.assertFalse(form.fields["agr_param_2"].queryset.exists())
+        self.assertFalse(form.fields["par_1"].queryset.exists())
+        self.assertFalse(form.fields["par_2"].queryset.exists())
 
     def test_agr_param_1_field_is_required(self):
-        """Проверяет, что поле agr_param_1 обязательно для заполнения."""
+        """Проверяет, что поле par_1 обязательно для заполнения."""
         form_data = {
-            "agr_param_1": None,
-            "agr_param_2": self.agr_pair2,
+            "par_1": None,
+            "par_2": self.agr_pair2,
         }
         form = ChangeAgregatNumForm(agr=self.agregat, data=form_data)
         self.assertFalse(form.is_valid())
 
     def test_agr_param_2_field_is_required(self):
-        """Проверяет, что поле agr_param_2 обязательно для заполнения."""
+        """Проверяет, что поле par_2 обязательно для заполнения."""
         form_data = {
-            "agr_param_1": self.agr_pair1,
-            "agr_param_2": None,
+            "par_1": self.agr_pair1,
+            "par_2": None,
         }
         form = ChangeAgregatNumForm(agr=self.agregat, data=form_data)
         self.assertFalse(form.is_valid())
@@ -291,8 +291,8 @@ class ChangeAgregatNumFormTest(TestCase):
     def test_non_related_to_given_agregat_agr_param_1_is_invalid(self):
         """Проверяет, что выбор объекта Agregat, не связанного с переданным агрегатом, вызывает ошибку валидации."""
         form_data = {
-            "agr_param_1": self.invalid_par,
-            "agr_param_2": self.agr_pair2,
+            "par_1": self.invalid_par,
+            "par_2": self.agr_pair2,
         }
         form = ChangeAgregatNumForm(agr=self.agregat, data=form_data)
         self.assertFalse(form.is_valid())
@@ -300,8 +300,8 @@ class ChangeAgregatNumFormTest(TestCase):
     def test_non_related_to_given_agregat_agr_param_2_is_invalid(self):
         """Проверяет, что выбор объекта Agregat, не связанного с переданным агрегатом, вызывает ошибку валидации."""
         form_data = {
-            "agr_param_1": self.agr_pair1,
-            "agr_param_2": self.invalid_par,
+            "par_1": self.agr_pair1,
+            "par_2": self.invalid_par,
         }
         form = ChangeAgregatNumForm(agr=self.agregat, data=form_data)
         self.assertFalse(form.is_valid())
@@ -309,8 +309,8 @@ class ChangeAgregatNumFormTest(TestCase):
     def test_standard_form_data_is_valid(self):
         """Проверяет, что форма с двумя корректными записями Agregat из одного агрегата проходит валидацию."""
         form_data = {
-            "agr_param_1": self.agr_pair1,
-            "agr_param_2": self.agr_pair2,
+            "par_1": self.agr_pair1,
+            "par_2": self.agr_pair2,
         }
         form = ChangeAgregatNumForm(agr=self.agregat, data=form_data)
         self.assertTrue(form.is_valid())
@@ -318,8 +318,8 @@ class ChangeAgregatNumFormTest(TestCase):
     def test_equal_pairs_raises_validation_error(self):
         """Проверяет, что выбор двух одинаковых записей Agregat вызывает ошибку валидации."""
         form_data = {
-            "agr_param_1": self.agr_pair1,
-            "agr_param_2": self.agr_pair1,
+            "par_1": self.agr_pair1,
+            "par_2": self.agr_pair1,
         }
         form = ChangeAgregatNumForm(agr=self.agregat, data=form_data)
         self.assertFalse(form.is_valid())
@@ -327,8 +327,8 @@ class ChangeAgregatNumFormTest(TestCase):
     def test_num_values_are_changed_after_saving_form(self):
         """Проверяет, что после валидации формы значения num в выбранных записях меняются местами в БД."""
         form_data = {
-            "agr_param_1": self.agr_pair1,
-            "agr_param_2": self.agr_pair2,
+            "par_1": self.agr_pair1,
+            "par_2": self.agr_pair2,
         }
         self.assertEqual(self.agr_pair1.num, 1)
         self.assertEqual(self.agr_pair2.num, 2)
@@ -345,21 +345,21 @@ class ChangeAgregatNumFormTest(TestCase):
     def test_clean_raises_error_if_param_from_different_agregat(self):
         """Проверяет, что выбор записи, принадлежащей другому агрегату, вызывает ошибку валидации (проверка queryset)."""
         form_data = {
-            "agr_param_1": self.agr_pair3,
-            "agr_param_2": self.agr_pair2,
+            "par_1": self.agr_pair3,
+            "par_2": self.agr_pair2,
         }
         form = ChangeAgregatNumForm(agr=self.agregat, data=form_data)
 
         self.assertFalse(form.is_valid())
-        self.assertIn("agr_param_1", form.errors)
+        self.assertIn("par_1", form.errors)
 
     def test_form_does_not_save_objects_if_invalid(self):
         """Проверяет, что при невалидной форме изменения в БД не сохраняются."""
         original_num1 = self.agr_pair1.num
         original_num2 = self.agr_pair2.num
         form_data = {
-            "agr_param_1": self.agr_pair1,
-            "agr_param_2": self.agr_pair1,
+            "par_1": self.agr_pair1,
+            "par_2": self.agr_pair1,
         }
         form = ChangeAgregatNumForm(agr=self.agregat, data=form_data)
         self.assertFalse(form.is_valid())

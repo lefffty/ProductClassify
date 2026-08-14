@@ -61,46 +61,49 @@ class ChangeAgregatNumForm(Form):
     def __init__(self, *args, **kwargs):
         agr = kwargs.pop("agr", None)
         super().__init__(*args, **kwargs)
-        self.fields["agr_param_1"] = ModelChoiceField(
+        self.fields["par_1"] = ModelChoiceField(
             queryset=Agregat.objects.filter(agr=agr),
             label="Параметр 1",
             required=True,
+            error_messages={
+                "required": AgregatErrors.EMPTY_FIRST_PARAM
+            }
         )
-        self.fields["agr_param_2"] = ModelChoiceField(
+        self.fields["par_2"] = ModelChoiceField(
             queryset=Agregat.objects.filter(agr=agr),
             label="Параметр 2",
             required=True,
+            error_messages={
+                "required": AgregatErrors.EMPTY_SECOND_PARAM
+            }
         )
 
     def clean(self):
         cleaned_data = super().clean()
-        agr_param_1: Agregat = cleaned_data.get("agr_param_1")
 
-        if not agr_param_1:
-            raise ValidationError(AgregatErrors.EMPTY_FIRST_PARAM)
+        par_1: Agregat = cleaned_data.get("par_1")
+        par_2: Agregat = cleaned_data.get("par_2")
 
-        agr_param_2: Agregat = cleaned_data.get("agr_param_2")
+        if not (par_1 and par_2):
+            return cleaned_data
 
-        if not agr_param_2:
-            raise ValidationError(AgregatErrors.EMPTY_SECOND_PARAM)
-
-        if agr_param_1 == agr_param_2:
+        if par_1 == par_2:
             raise ValidationError(AgregatErrors.SAME_PARAMS)
 
         with transaction.atomic():
-            old_num_1 = agr_param_1.num
-            old_num_2 = agr_param_2.num
+            old_num_1 = par_1.num
+            old_num_2 = par_2.num
 
             temp_num_1 = AgregatConsts.MAX_NUM_VALUE
             temp_num_2 = AgregatConsts.MAX_NUM_VALUE - 1
-            agr_param_1.num = temp_num_1
-            agr_param_2.num = temp_num_2
-            agr_param_1.save(update_fields=["num"])
-            agr_param_2.save(update_fields=["num"])
+            par_1.num = temp_num_1
+            par_2.num = temp_num_2
+            par_1.save(update_fields=["num"])
+            par_2.save(update_fields=["num"])
 
-            agr_param_1.num = old_num_2
-            agr_param_2.num = old_num_1
-            agr_param_1.save(update_fields=["num"])
-            agr_param_2.save(update_fields=["num"])
+            par_1.num = old_num_2
+            par_2.num = old_num_1
+            par_1.save(update_fields=["num"])
+            par_2.save(update_fields=["num"])
 
         return cleaned_data

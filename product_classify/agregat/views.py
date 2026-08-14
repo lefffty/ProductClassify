@@ -115,6 +115,7 @@ class AgregatParametrDeleteView(
             if par_agr.num > instance.num:
                 par_agr.num = par_agr.num - 1
                 par_agr.save()
+                
         return super().form_valid(form)
 
 

@@ -27,6 +27,13 @@
     {% endif %}
 
     {% endfor %}
+    {% if form.non_field_errors %}
+        <div class="errorlist nonfield">
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
     <button type="submit">Изменить</button>
 </form>
 {% endblock %}

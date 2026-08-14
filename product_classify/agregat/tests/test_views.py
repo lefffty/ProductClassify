@@ -7,8 +7,10 @@ from classes.constants import ParamIds
 from classes.models import ClassStruct
 from parametr.models import Parametr
 from parametr.constants import ParametrConsts
-from agregat.models import Agregat
 from ei.models import Ei
+
+from agregat.errors import AgregatErrors
+from agregat.models import Agregat
 
 
 class AgregatListViewTest(TestCase):
@@ -167,3 +169,96 @@ class AgregatParametrDetailViewTest(TestCase):
         self.assertContains(response, self.agr.name)
         self.assertContains(response, self.par1.name)
         self.assertContains(response, self.par2.name)
+
+
+class ChangeNumViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.agr_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
+        cls.par_ei = Ei.objects.first()
+
+        cls.par1 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_type,
+            par_ei=cls.par_ei
+        )
+        cls.par2 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_type,
+            par_ei=cls.par_ei
+        )
+        cls.agr = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.agr_type,
+            par_ei=cls.par_ei
+        )
+
+        cls.pairs = Agregat.objects.bulk_create((
+            Agregat(agr=cls.agr, par=cls.par1, num=1),
+            Agregat(agr=cls.agr, par=cls.par2, num=2)
+        ))
+
+        cls.valid_data = {
+            "par_1": cls.pairs[0].pk,
+            "par_2": cls.pairs[1].pk
+        }
+        cls.empty_p1_data = {
+            "par_1": "",
+            "par_2": cls.pairs[1].pk
+        }
+        cls.empty_p2_data = {
+            "par_1": cls.pairs[0].pk,
+            "par_2": ""
+        }
+        cls.same_params_data = {
+            "par_1": cls.pairs[0].pk,
+            "par_2": cls.pairs[0].pk
+        }
+
+        cls.url = reverse("agregat:change_num", kwargs={"agregat_id": cls.agr.pk})
+        cls.redirect_url = reverse("agregat:detail", kwargs={"agregat_id": cls.agr.pk})
+
+    def test_change_num_view_uses_change_agr_num_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "agregat/change_agr_num.html")
+
+    def test_change_num_view_has_fastener_classes_in_context(self):
+        response = self.client.get(self.url)
+        self.assertIn("fastener_classes", response.context)
+
+    def test_change_num_view_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_change_num_view_has_instance_in_context(self):
+        response = self.client.get(self.url)
+        self.assertIn("instance", response.context)
+
+    def test_change_num_view_can_save_POST_request(self):
+        self.client.post(self.url, data=self.valid_data)
+        self.pairs[0].refresh_from_db()
+        self.pairs[1].refresh_from_db()
+        self.assertEqual(self.pairs[0].num, 2)
+        self.assertEqual(self.pairs[1].num, 1)
+
+    def test_change_num_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url, data=self.valid_data)
+        self.assertRedirects(response, self.redirect_url)
+
+    def test_empty_first_param_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.empty_p1_data)
+        self.assertContains(response, AgregatErrors.EMPTY_FIRST_PARAM)
+
+    def test_empty_second_param_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.empty_p2_data)
+        self.assertContains(response, AgregatErrors.EMPTY_SECOND_PARAM)
+
+    def test_same_params_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.same_params_data)
+        self.assertContains(response, AgregatErrors.SAME_PARAMS)
