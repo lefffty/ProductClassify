@@ -181,7 +181,7 @@ class ProductUpdateView(
     def get_success_url(self):
         prod_id = self.kwargs.get("prod_id")
         return reverse_lazy(
-            "products:product_detail",
+            "products:detail",
             kwargs={
                 "product_id": prod_id,
             },
@@ -217,7 +217,7 @@ class ProductParamSuccessURL(
     def get_success_url(self):
         prod_id = self.kwargs.get("prod_id")
         return reverse_lazy(
-            "products:product_detail",
+            "products:detail",
             kwargs={
                 "product_id": prod_id,
             },

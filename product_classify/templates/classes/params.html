@@ -24,7 +24,7 @@
                 {% if param.parametr.parametr_type.id == 27 or param.parametr.parametr_type.id == 28 %}
                 <p>
                     <button class="submit-btn">
-                        <a href="{% url "classes:edit_param_class" class.id param.parametr.id %}">
+                        <a href="{% url "classes:edit_param" class.id param.parametr.id %}">
                             Редактировать параметр класса
                         </a>
                     </button>
@@ -32,7 +32,7 @@
                 {% endif %}
                 <p>
                     <button class="submit-btn">
-                        <a href="{% url "classes:delete_param_class" class.id param.parametr.id %}">
+                        <a href="{% url "classes:delete_param" class.id param.parametr.id %}">
                             Удалить параметр класса
                         </a>
                     </button>
@@ -41,12 +41,12 @@
                 {% endfor %}
                 <p>
                     <button class="submit-btn">
-                        <a href="{% url "classes:add_param_class" class.id %}">
+                        <a href="{% url "classes:add_param" class.id %}">
                             Добавить параметр класса
                         </a>
                     </button>
                     <button class="submit-btn">
-                        <a href="{% url "classes:change_parclass_num" class.id %}">
+                        <a href="{% url "classes:change_num" class.id %}">
                             Изменить номера параметров
                         </a>
                     </button>

@@ -6,28 +6,28 @@ app_name = "ei"
 
 urlpatterns = [
     path(
-        "ei/",
+        "list",
         views.EiListView.as_view(),
-        name="ei_list",
+        name="list",
     ),
     path(
-        "ei/add/",
+        "add/",
         views.EiCreateView.as_view(),
-        name="add_ei",
+        name="add",
     ),
     path(
-        "ei/<int:ei_id>/",
+        "<int:ei_id>/",
         views.EiDetailView.as_view(),
-        name="ei_detail",
+        name="detail",
     ),
     path(
-        "ei/<int:ei_id>/edit/",
+        "<int:ei_id>/edit/",
         views.EiUpdateView.as_view(),
-        name="edit_ei",
+        name="edit",
     ),
     path(
-        "ei/<int:ei_id>/delete/",
+        "<int:ei_id>/delete/",
         views.EiDeleteView.as_view(),
-        name="delete_ei",
+        name="delete",
     ),
 ]

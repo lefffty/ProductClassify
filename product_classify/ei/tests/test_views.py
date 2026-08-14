@@ -11,7 +11,7 @@ from ei.constants import EiConsts
 class EiListViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.url = reverse("ei:ei_list")
+        cls.url = reverse("ei:list")
 
     def test_ei_list_view_uses_ei_list_template(self):
         response = self.client.get(self.url)
@@ -30,7 +30,7 @@ class EiDetailViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.instance = Ei.objects.first()
-        cls.url = reverse("ei:ei_detail", args=[cls.instance.pk])
+        cls.url = reverse("ei:detail", args=[cls.instance.pk])
 
     def test_ei_detail_view_uses_ei_detail_template(self):
         response = self.client.get(self.url)
@@ -57,8 +57,8 @@ class EiCreateViewTest(TestCase):
     def setUpTestData(cls):
         cls.fake = Faker()
         cls.main_class = Ei.objects.first()
-        cls.url = reverse("ei:add_ei")
-        cls.redirect_url = reverse("ei:ei_list")
+        cls.url = reverse("ei:add")
+        cls.redirect_url = reverse("ei:list")
 
         cls.data = {
             "name": cls.fake.name()[:EiConsts.NAME_MAX_LENGTH],
@@ -94,8 +94,8 @@ class EiDeleteViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.ei_id = Ei.objects.last().pk
-        cls.url = reverse("ei:delete_ei", args=[cls.ei_id])
-        cls.redirect_url = reverse("ei:ei_list")
+        cls.url = reverse("ei:delete", args=[cls.ei_id])
+        cls.redirect_url = reverse("ei:list")
 
     def test_ei_delete_view_uses_ei_detail_template(self):
         response = self.client.get(self.url)
@@ -116,8 +116,8 @@ class EiUpdateViewTest(TestCase):
     def setUpTestData(cls):
         cls.ei = Ei.objects.last()
         cls.ei_id = cls.ei.pk
-        cls.url = reverse("ei:edit_ei", args=[cls.ei_id])
-        cls.redirect_url = reverse("ei:ei_detail", args=[cls.ei_id])
+        cls.url = reverse("ei:edit", args=[cls.ei_id])
+        cls.redirect_url = reverse("ei:detail", args=[cls.ei_id])
         cls.fake = Faker()
 
         cls.data = {

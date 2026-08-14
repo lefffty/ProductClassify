@@ -70,7 +70,7 @@ class EnumsDeleteView(
         class_id = self.kwargs.get("class_id")
         enum_pk = ClassStruct.objects.get(pk=class_id).main_class.pk
         return reverse_lazy(
-            "enums:enums_list",
+            "enums:list",
             kwargs={
                 "class_id": enum_pk,
             },
@@ -91,7 +91,7 @@ class EnumsUpdateView(
         class_id = self.kwargs.get("class_id")
         pk = self.get_object().pk
         return reverse_lazy(
-            "enums:enums_detail",
+            "enums:detail",
             kwargs={
                 "class_id": class_id,
                 "enum_id": pk,

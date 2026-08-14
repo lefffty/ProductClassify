@@ -31,8 +31,8 @@ class EnumsListViewTest(TestCase):
         cls.enum_id1 = cls.int_enum.pk
         cls.enum_id2 = cls.string_enum.pk
 
-        cls.url1 = reverse("enums:enums_list", kwargs={"class_id": cls.enum_id1})
-        cls.url2 = reverse("enums:enums_list", kwargs={"class_id": cls.enum_id2})
+        cls.url1 = reverse("enums:list", kwargs={"class_id": cls.enum_id1})
+        cls.url2 = reverse("enums:list", kwargs={"class_id": cls.enum_id2})
 
         cls.enum1 = Enums.objects.create(
             enum=cls.int_enum_subclass,
@@ -90,7 +90,7 @@ class EnumsDetailViewTest(TestCase):
             int_value=randint(1, 100),
             image=None
         )
-        cls.url = reverse("enums:enums_detail", args=[cls.int_enum_subclass.pk, cls.enum.pk])
+        cls.url = reverse("enums:detail", args=[cls.int_enum_subclass.pk, cls.enum.pk])
 
     def test_enums_detail_view_uses_detail_template(self):
         response = self.client.get(self.url)
@@ -144,7 +144,7 @@ class EnumsCreateViewTest(TestCase):
             base_ei=None,
         )
 
-        cls.url = reverse("enums:add_enum")
+        cls.url = reverse("enums:add")
         cls.redirect_url = reverse("classes:index")
 
         cls.int_enum_valid_data = {
@@ -377,8 +377,8 @@ class EnumsDeleteViewTest(TestCase):
             image=None,
         )
 
-        cls.url = reverse("enums:delete_enum", kwargs={"enum_id": cls.int_enum_instance.pk, "class_id": cls.int_enum_subclass.pk})
-        cls.redirect_url = reverse("enums:enums_list", kwargs={"class_id": cls.int_enum.pk})
+        cls.url = reverse("enums:delete", kwargs={"enum_id": cls.int_enum_instance.pk, "class_id": cls.int_enum_subclass.pk})
+        cls.redirect_url = reverse("enums:list", kwargs={"class_id": cls.int_enum.pk})
 
     def test_enums_delete_view_uses_enum_template(self):
         response = self.client.get(
@@ -429,11 +429,11 @@ class EnumsUpdateViewTest(TestCase):
             image=None,
         )
 
-        cls.url = reverse("enums:edit_enum", kwargs={
+        cls.url = reverse("enums:edit", kwargs={
             "class_id": cls.instance.enum.pk,
             "enum_id": cls.instance.pk
         })
-        cls.redirect_url = reverse("enums:enums_detail", kwargs={
+        cls.redirect_url = reverse("enums:detail", kwargs={
             "class_id": cls.instance.enum.pk,
             "enum_id": cls.instance.pk,
         })

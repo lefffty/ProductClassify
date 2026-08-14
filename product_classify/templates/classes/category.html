@@ -29,17 +29,17 @@
             </a>
           </p>
           <p>
-            <a href="{% url "classes:edit_class" class.id %}">
+            <a href="{% url "classes:edit" class.id %}">
               Редактировать класс
             </a>
           </p>
             <p>
-            <a href="{% url "classes:delete_class" class.id %}">
+            <a href="{% url "classes:delete" class.id %}">
               Удалить класс
             </a>
           </p>
             <p>
-            <a href="{% url "classes:class_params_list" class.id %}">
+            <a href="{% url "classes:params_list" class.id %}">
               Список параметров класса
             </a>
           </p>
@@ -49,22 +49,22 @@
 <div>
   <div>
     <p>
-      <a href="{% url "classes:delete_class" main_class.id %}">
+      <a href="{% url "classes:delete" main_class.id %}">
         УДАЛИТЬ КЛАСС
       </a>
     </p>
     <p>
-      <a href="{% url "classes:edit_class" main_class.id %}">
+      <a href="{% url "classes:edit" main_class.id %}">
         РЕДАКТИРОВАТЬ КЛАСС
       </a>
     </p>
     <p>
-      <a href={% url "classes:add_param_class" main_class.id %}>
+      <a href={% url "classes:add_param" main_class.id %}>
         ДОБАВИТЬ ПАРАМЕТР К КЛАССУ
       </a>
     </p>
     <p>
-      <a href="{% url "classes:class_params_list" main_class.id %}">
+      <a href="{% url "classes:params_list" main_class.id %}">
         ПРОСМОТР ПАРАМЕТРОВ КЛАССА
       </a>
     </p>

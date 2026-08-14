@@ -119,7 +119,7 @@ class ClassUpdateView(
         )
 
 
-def delete_class(
+def delete(
     request: HttpRequest,
     class_id: int,
 ) -> HttpResponse:
@@ -185,12 +185,12 @@ class ClassParamCreateView(
 
     def get_success_url(self):
         return reverse_lazy(
-            "classes:class_params_list",
+            "classes:params_list",
             kwargs={"class_id": self.kwargs.get("class_id")},
         )
 
 
-def add_param_class(
+def add_param(
     request: HttpRequest,
     class_id: int,
 ) -> HttpResponse:
@@ -205,7 +205,7 @@ def add_param_class(
         if form.is_valid():
             form.save(commit=True)
             return redirect(
-                "classes:class_params_list",
+                "classes:params_list",
                 class_id,
             )
     else:
@@ -222,7 +222,7 @@ def add_param_class(
     )
 
 
-def edit_param_class(
+def edit_param(
     request: HttpRequest,
     class_id: int,
     param_id: int,
@@ -240,7 +240,7 @@ def edit_param_class(
     )
     if form.is_valid():
         form.save(commit=True)
-        return redirect("classes:class_params_list", class_id)
+        return redirect("classes:params_list", class_id)
     context = {
         "instance": instance,
         "form": form,
@@ -253,7 +253,7 @@ def edit_param_class(
     )
 
 
-def delete_param_class(
+def delete_param(
     request: HttpRequest,
     class_id: int,
     param_id: int,
@@ -267,7 +267,7 @@ def delete_param_class(
     )
     if request.method == "POST":
         instance.delete()
-        return redirect("classes:class_params_list", class_id)
+        return redirect("classes:params_list", class_id)
     context = {
         "instance": instance,
         "fastener_classes": fastener_classes,
@@ -279,7 +279,7 @@ def delete_param_class(
     )
 
 
-def change_parclass_num(
+def change_num(
     request: HttpRequest,
     class_id: int,
 ) -> HttpResponse:
@@ -297,7 +297,7 @@ def change_parclass_num(
             instance_1.save()
             instance_2.save()
             return redirect(
-                "classes:class_params_list",
+                "classes:params_list",
                 class_id,
             )
     else:
@@ -309,7 +309,7 @@ def change_parclass_num(
     }
     return render(
         request,
-        "classes/change_parclass_num.html",
+        "classes/change_num.html",
         context,
     )
 
@@ -322,7 +322,7 @@ class ChangeNumView(
     """
     queryset = ParClass.objects.all()
     form_class = ChangeParClassNumForm
-    template_name = "classes/change_parclass_num.html"
+    template_name = "classes/change_num.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -342,7 +342,7 @@ class ChangeNumView(
     def get_success_url(self):
         class_id = self.kwargs.get("class_id")
         return reverse_lazy(
-            "classes:class_params_list",
+            "classes:params_list",
             kwargs={
                 "class_id": class_id,
             },

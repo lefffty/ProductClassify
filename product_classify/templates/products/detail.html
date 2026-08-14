@@ -31,7 +31,7 @@
     <li>
         <div class="responsive-container">
             {% if param.enum_val.enum.main_class.id == 16 %}
-            <a href="{% url "enums:enums_detail" param.enum_val.enum.main_class.id param.enum_val.id %}">
+            <a href="{% url "enums:detail" param.enum_val.enum.main_class.id param.enum_val.id %}">
                 <img src="{{ param.enum_val.image.url }}" alt="Изображение перечисления" height="150" width="400">
             </a>
             {% else %}
@@ -40,12 +40,12 @@
             </p>
             {% endif %}
             <button class="responsive-button" height="30" width="30">
-                <a href="{% url "products:edit_param_from_product" product.id param.par.id %}">
+                <a href="{% url "products:edit_param" product.id param.par.id %}">
                     Редактировать параметр
                 </a>
             </button>
             <button class="responsive-button" height="30" width="30">
-                <a href="{% url "products:delete_param_from_product" product.id param.par.id %}">
+                <a href="{% url "products:delete_param" product.id param.par.id %}">
                     Удалить параметр
                 </a>
             </button>
@@ -55,17 +55,17 @@
 </ul>
 <p>
     <button class="submit-btn">
-        <a href="{% url "products:edit_product" product.id %}">
+        <a href="{% url "products:edit" product.id %}">
             Редактировать изделие
         </a>
     </button>
     <button class="submit-btn">
-        <a href="{% url "products:delete_product" product.id %}">
+        <a href="{% url "products:delete" product.id %}">
             Удалить изделие
         </a>
     </button>
     <button class="submit-btn">
-        <a href="{% url "products:add_param_to_product" product.id %}">
+        <a href="{% url "products:add_param" product.id %}">
             Добавить параметр
         </a>
     </button>

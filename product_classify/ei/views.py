@@ -30,7 +30,7 @@ class EiDetailView(CommonContextMixin, DetailView):
 class EiCreateUpdateDeleteMixin:
     template_name = "ei/ei.html"
     model = Ei
-    success_url = reverse_lazy("ei:ei_list")
+    success_url = reverse_lazy("ei:list")
 
 
 class EiCreateView(
@@ -61,7 +61,7 @@ class EiUpdateView(
     def get_success_url(self):
         pk = self.get_object().pk
         return reverse_lazy(
-            "ei:ei_detail",
+            "ei:detail",
             kwargs={
                 "ei_id": pk,
             },

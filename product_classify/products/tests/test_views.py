@@ -61,7 +61,7 @@ class ProductDetailViewTest(TestCase):
             enum_val=None,
         )
 
-        cls.url = reverse("products:product_detail", args=[cls.prod.pk])
+        cls.url = reverse("products:detail", args=[cls.prod.pk])
 
     def test_product_detail_view_uses_detail_template(self):
         response = self.client.get(self.url)
@@ -122,7 +122,7 @@ class ProductCreateViewTest(TestCase):
             "image": ""
         }
 
-        cls.url = reverse("products:add_product")
+        cls.url = reverse("products:add")
         cls.redirect_url = reverse("classes:index")
 
     def test_product_create_view_uses_product_template(self):
@@ -199,8 +199,8 @@ class ProductUpdateViewTest(TestCase):
             "image": ""
         }
 
-        cls.url = reverse("products:edit_product", args=[cls.prod.pk])
-        cls.redirect_url = reverse("products:product_detail", args=[cls.prod.pk])
+        cls.url = reverse("products:edit", args=[cls.prod.pk])
+        cls.redirect_url = reverse("products:detail", args=[cls.prod.pk])
 
     def _create_test_image(extension='jpg'):
         image = Image.new('RGB', (100, 100), color='red')
@@ -259,7 +259,7 @@ class ProductDeleteViewTest(TestCase):
             class_field=cls.nuts_class,
         )
 
-        cls.url = reverse("products:delete_product", args=[cls.instance.pk])
+        cls.url = reverse("products:delete", args=[cls.instance.pk])
         cls.redirect_url = reverse("products:class_products", kwargs={
             "main_class_id": cls.nuts_class.main_class.pk,
             "class_id": cls.nuts_class.pk,

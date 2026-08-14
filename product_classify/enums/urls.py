@@ -6,32 +6,32 @@ app_name = "enums"
 
 urlpatterns = [
     path(
-        "enums/<int:class_id>/",
+        "<int:class_id>/",
         views.EnumsListView.as_view(),
-        name="enums_list",
+        name="list",
     ),
     path(
-        "enums/<int:class_id>/<int:enum_id>/",
+        "<int:class_id>/<int:enum_id>/",
         views.EnumsDetailView.as_view(),
-        name="enums_detail",
+        name="detail",
     ),
     path(
-        "enums/add/",
+        "add/",
         views.EnumsCreateView.as_view(),
-        name="add_enum",
+        name="add",
     ),
     path(
-        "enums/<int:class_id>/<int:enum_id>/edit/",
+        "<int:class_id>/<int:enum_id>/edit/",
         views.EnumsUpdateView.as_view(),
-        name="edit_enum",
+        name="edit",
     ),
     path(
-        "enums/<int:class_id>/<int:enum_id>/delete/",
+        "<int:class_id>/<int:enum_id>/delete/",
         views.EnumsDeleteView.as_view(),
-        name="delete_enum",
+        name="delete",
     ),
     path(
-        "enums/change_enum/num/",
+        "change_enum/num/",
         views.change_num,
         name="change_num",
     ),

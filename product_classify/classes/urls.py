@@ -28,36 +28,36 @@ urlpatterns = [
     path(
         "<int:class_id>/edit/",
         views.ClassUpdateView.as_view(),
-        name="edit_class",
+        name="edit",
     ),
     path(
         "<int:class_id>/delete/",
-        views.delete_class,
-        name="delete_class",
+        views.delete,
+        name="delete",
     ),
     path(
         "<int:class_id>/params/",
         views.ClassParamsListView.as_view(),
-        name="class_params_list",
+        name="params_list",
     ),
     path(
         "<int:class_id>/params/add/",
         views.ClassParamCreateView.as_view(),
-        name="add_param_class",
+        name="add_param",
     ),
     path(
         "<int:class_id>/params/<int:param_id>/edit/",
-        views.edit_param_class,
-        name="edit_param_class",
+        views.edit_param,
+        name="edit_param",
     ),
     path(
         "<int:class_id>/params/<int:param_id>/delete/",
-        views.delete_param_class,
-        name="delete_param_class",
+        views.delete_param,
+        name="delete_param",
     ),
     path(
-        "change_parclass_num/<int:class_id>/",
-        views.change_parclass_num,
-        name="change_parclass_num",
+        "change_num/<int:class_id>/",
+        views.change_num,
+        name="change_num",
     ),
 ]

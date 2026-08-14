@@ -321,26 +321,26 @@ class ClassUpdateViewTest(TestCase):
 
     def test_class_update_view_uses_enum_class_template_for_enum_class(self):
         response = self.client.get(
-            path=reverse("classes:edit_class", args=[self.enum_class.pk]),
+            path=reverse("classes:edit", args=[self.enum_class.pk]),
         )
         self.assertTemplateUsed(response, "classes/enum_class.html")
 
     def test_class_update_view_uses_prod_class_template_for_prod_class(self):
         response = self.client.get(
-            path=reverse("classes:edit_class", args=[self.prod_class.pk]),
+            path=reverse("classes:edit", args=[self.prod_class.pk]),
         )
         self.assertTemplateUsed(response, "classes/prod_class.html")
 
     def test_class_update_view_renders_enum_class_form_for_enum_class(self):
         response = self.client.get(
-            path=reverse("classes:edit_class", args=[self.enum_class.pk]),
+            path=reverse("classes:edit", args=[self.enum_class.pk]),
         )
         self.assertIn("form", response.context)
         self.assertIsInstance(response.context["form"], EnumClassForm)
 
     def test_class_update_view_renders_prod_class_form_for_prod_class(self):
         response = self.client.get(
-            path=reverse("classes:edit_class", args=[self.prod_class.pk]),
+            path=reverse("classes:edit", args=[self.prod_class.pk]),
         )
         self.assertIn("form", response.context)
         self.assertIsInstance(response.context["form"], ProdClassForm)
@@ -348,7 +348,7 @@ class ClassUpdateViewTest(TestCase):
     def test_class_update_view_can_save_a_POST_request_for_prod_class(self):
         count_before = ClassStruct.objects.count()
         self.client.post(
-            path=reverse("classes:edit_class", args=[self.prod_class.pk]),
+            path=reverse("classes:edit", args=[self.prod_class.pk]),
             data=self.prod_class_edit_data
         )
         self.assertEqual(ClassStruct.objects.count(), count_before)
@@ -361,7 +361,7 @@ class ClassUpdateViewTest(TestCase):
     def test_class_update_view_can_save_a_POST_request_for_enum_class(self):
         count_before = ClassStruct.objects.count()
         response = self.client.post(
-            path=reverse("classes:edit_class", args=[self.enum_class.pk]),
+            path=reverse("classes:edit", args=[self.enum_class.pk]),
             data=self.enum_class_edit_data
         )
         self.assertEqual(ClassStruct.objects.count(), count_before)
@@ -372,7 +372,7 @@ class ClassUpdateViewTest(TestCase):
 
     def test_class_update_view_redirects_after_correct_POST_request_for_prod_class(self):
         response = self.client.post(
-            path=reverse("classes:edit_class", args=[self.prod_class.pk]),
+            path=reverse("classes:edit", args=[self.prod_class.pk]),
             data=self.prod_class_edit_data
         )
         redirect_url = reverse("classes:category_classes", args=[self.prod_class.main_class.pk])
@@ -380,7 +380,7 @@ class ClassUpdateViewTest(TestCase):
 
     def test_class_update_view_redirects_after_correct_POST_request_for_enum_class(self):
         response = self.client.post(
-            path=reverse("classes:edit_class", args=[self.enum_class.pk]),
+            path=reverse("classes:edit", args=[self.enum_class.pk]),
             data=self.enum_class_edit_data
         )
         redirect_url = reverse("classes:category_classes", args=[self.enum_class.main_class.pk])
@@ -388,14 +388,14 @@ class ClassUpdateViewTest(TestCase):
 
     def test_detected_classificator_cycle_validation_error_is_shown_on_page_for_prod_class(self):
         response = self.client.post(
-            path=reverse("classes:edit_class", args=[self.prod_class.pk]),
+            path=reverse("classes:edit", args=[self.prod_class.pk]),
             data=self.invalid_prod_class_edit_data
         )
         self.assertContains(response, escape(ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR))
 
     def test_detected_classificator_cycle_validation_error_is_shown_on_page_for_enum_class(self):
         response = self.client.post(
-            path=reverse("classes:edit_class", args=[self.enum_class.pk]),
+            path=reverse("classes:edit", args=[self.enum_class.pk]),
             data=self.invalid_enum_class_edit_data
         )
         self.assertContains(response, escape(ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR))
@@ -413,7 +413,7 @@ class DeleteClassViewTest(TestCase):
             main_class=cls.nuts_class
         )
         cls.class_id = cls.nuts_subclass.pk
-        cls.url = reverse("classes:delete_class", args=[cls.class_id])
+        cls.url = reverse("classes:delete", args=[cls.class_id])
         cls.redirect_url = reverse("classes:category_classes", args=[cls.nuts_class.pk])
 
     def test_delete_class_view_uses_enum_class_template(self):
