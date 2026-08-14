@@ -18,16 +18,16 @@ urlpatterns = [
     path(
         "<int:agregat_id>/add/",
         views.AgregatParametrCreateView.as_view(),
-        name="add_parametr_to_agregat",
+        name="add",
     ),
     path(
         "<int:agregat_id>/param/<int:param_id>/delete/",
         views.AgregatParametrDeleteView.as_view(),
-        name="delete_parametr_from_agregat",
+        name="delete",
     ),
     path(
         "<int:agregat_id>/change_num/",
-        views.change_agregat_num,
-        name="change_agregat_num",
+        views.change_num,
+        name="change_num",
     ),
 ]

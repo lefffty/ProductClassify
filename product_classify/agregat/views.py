@@ -117,7 +117,7 @@ class AgregatParametrDeleteView(
         return super().form_valid(form)
 
 
-def change_agregat_num(
+def change_num(
     request: HttpRequest,
     agregat_id: int,
 ) -> HttpResponse:
