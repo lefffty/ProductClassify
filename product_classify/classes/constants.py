@@ -47,3 +47,10 @@ class ProductsConsts(IntEnum):
 
 ENUMS_IDS = [item.value for item in EnumsIds]
 PARAMS_IDS = [item.value for item in ParamIds]
+NUMERIC_PARAMS = [ParamIds.DOUBLE.value, ParamIds.INT.value]
+ENUM_PARAMS = [
+    EnumsIds.STRING.value,
+    EnumsIds.IMAGE.value,
+    EnumsIds.INT.value,
+    EnumsIds.DOUBLE.value
+]

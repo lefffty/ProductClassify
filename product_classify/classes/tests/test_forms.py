@@ -744,10 +744,9 @@ class ParClassFormTest(TestCase):
         }
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
-        self.assertIn("__all__", form.errors)
         self.assertEqual(
-            form.errors["__all__"][0],
-            "Поле 'Класс изделия' обязательно для заполнения.",
+            form.errors["class_field"],
+            ["Поле 'Класс изделия' обязательно для заполнения."],
         )
 
     def test_parametr_field_is_required(self):
@@ -760,9 +759,8 @@ class ParClassFormTest(TestCase):
         }
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
-        self.assertIn("__all__", form.errors)
         self.assertEqual(
-            form.errors["__all__"][0], "Поле 'Параметр' обязательно для заполнения."
+            form.errors["parametr"], ["Поле 'Параметр' обязательно для заполнения."]
         )
 
     def test_min_value_is_optional(self):

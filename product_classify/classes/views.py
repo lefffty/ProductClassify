@@ -190,38 +190,6 @@ class ClassParamCreateView(
         )
 
 
-def add_param(
-    request: HttpRequest,
-    class_id: int,
-) -> HttpResponse:
-    """Представление для добавления параметра класса
-    """
-    fastener_classes = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
-    _class = ClassStruct.objects.get(
-        pk=class_id,
-    )
-    if request.method == "POST":
-        form = ParClassForm(request.POST)
-        if form.is_valid():
-            form.save(commit=True)
-            return redirect(
-                "classes:params_list",
-                class_id,
-            )
-    else:
-        form = ParClassForm(class_field=_class)
-    context = {
-        "instance": _class,
-        "fastener_classes": fastener_classes,
-        "form": form,
-    }
-    return render(
-        request,
-        "classes/param_class.html",
-        context,
-    )
-
-
 def edit_param(
     request: HttpRequest,
     class_id: int,

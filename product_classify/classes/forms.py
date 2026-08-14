@@ -12,7 +12,7 @@ from ei.models import Ei
 from parametr.models import Parametr
 
 from classes.models import ClassStruct, ParClass
-from classes.constants import ProdClassConsts, ParClassConsts, EnumClassConsts, EnumsIds, ParamIds
+from classes.constants import ProdClassConsts, ParClassConsts, EnumClassConsts, EnumsIds, ParamIds, NUMERIC_PARAMS, ENUM_PARAMS
 from classes.errors import ClassStructErrors, ParClassErrors, ChangeParClassErrors
 
 
@@ -149,11 +149,17 @@ class ParClassForm(ModelForm):
         label="Класс изделия",
         queryset=ClassStruct.objects.none(),
         required=True,
+        error_messages={
+            "required": ParClassErrors.EMPTY_CLASS_FIELD
+        }
     )
     parametr = ModelChoiceField(
         label="Параметр",
         queryset=Parametr.objects.none(),
         required=True,
+        error_messages={
+            "required": ParClassErrors.EMPTY_PAR_FIELD
+        }
     )
     min_value = FloatField(
         label="Минимальное значение параметра класса",
@@ -190,30 +196,34 @@ class ParClassForm(ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         class_field = cleaned_data.get("class_field")
-        parametr = cleaned_data.get("parametr")
 
         # проверяем, что поле class_field заполнено
         if not class_field:
-            raise ValidationError(ParClassErrors.EMPTY_CLASS_FIELD)
+            return cleaned_data
+
+        parametr = cleaned_data.get("parametr")
 
         # проверяем, что поле parametr заполнено
         if not parametr:
-            raise ValidationError(ParClassErrors.EMPTY_PAR_FIELD)
+            return cleaned_data
 
-        param_tp = parametr.parametr_type.id
+        param_tp = parametr.parametr_type.pk
+
         min_val = cleaned_data.get("min_value")
         max_val = cleaned_data.get("max_value")
 
-        # если параметр является перечислением
-        if param_tp in ClassStruct.enum_classes().values_list("id", flat=True) and (
-            min_val is not None or max_val is not None
-        ):
-            raise ValidationError(ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(parametr.name))
-        # если параметр является численным и минимальное значение больше максимального значения параметра
-        elif param_tp in ClassStruct.objects.filter(
-            main_class__exact=ParamIds.NUMERIC
-        ).values_list("id", flat=True) and (min_val and max_val and min_val > max_val):
-            raise ValidationError(ParClassErrors.MIN_GE_MAX)
+        # если параметр является перечислением и значения max_value или min_value не None,
+        # то выбрасываем исключение с сообщением об этой ошибке 
+        if param_tp in ENUM_PARAMS:
+            if min_val or max_val:
+                raise ValidationError(ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(parametr.name))
+        # если параметр является численным и минимальное значение больше максимального значения параметра,
+        # то выбрасываем исключение с сообщением об этой ошибке
+        elif param_tp in NUMERIC_PARAMS:
+            if min_val and max_val and min_val > max_val:
+                raise ValidationError(ParClassErrors.MIN_GE_MAX)
+        else:
+            raise ValidationError(ParClassErrors.AGREGAT_PAR_TYPE)
 
         # проверяем, что редактируем объект и задаем значение поля num
         if not self.instance.pk:

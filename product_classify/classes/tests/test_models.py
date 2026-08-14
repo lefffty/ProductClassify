@@ -226,7 +226,7 @@ class ParClassModelTest(TestCase):
         with self.assertRaises(ValidationError) as ve:
             parclass.full_clean()
         expected_error_msg = (
-            "Для параметра 'Enum Parametr' типа 'Перечисление' или 'Агрегат' не допускается указывать "
+            "Для параметра 'Enum Parametr' типа 'Перечисление' не допускается указывать "
             "минимальное и максимальное значения. "
             "Оставьте поля min_value и max_value пустыми."
         )

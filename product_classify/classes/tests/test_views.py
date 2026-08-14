@@ -6,14 +6,20 @@ from http import HTTPStatus
 from parameterized import parameterized
 from faker import Faker
 from unittest.mock import patch
+from random import randint
+
+from parametr.models import Parametr
+from parametr.constants import ParametrConsts
 
 from ei.models import Ei
 from ei.constants import KILOGRAM_ID
 
-from classes.models import ClassStruct
+from classes.models import ClassStruct, ParClass
 from classes.forms import ProdClassForm, EnumClassForm
-from classes.errors import ClassStructErrors
-from classes.constants import ProdClassConsts, EnumClassConsts, ProductsConsts, EnumsIds
+from classes.errors import ClassStructErrors, ParClassErrors
+from classes.constants import (
+    ProdClassConsts, EnumClassConsts, ProductsConsts, EnumsIds, ParamIds
+)
 
 
 class MainPageTemplateViewTest(TestCase):
@@ -176,7 +182,6 @@ class ProdClassCreateViewTest(TestCase):
             }
         )
         self.assertContains(response, escape(ClassStructErrors.EMPTY_NAME_ERROR))
-
 
 
 class EnumClassCreateViewTest(TestCase):    
@@ -444,4 +449,146 @@ class DeleteClassViewTest(TestCase):
             self.client.post(path=self.url)
             mock_delete_class_and_descendants.assert_called_once()
             mock_delete_class_and_descendants.assert_called_with(self.class_id)
-    
+
+
+class ClassParamCreateViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.base_ei = Ei.objects.first()
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.nuts_subclass = ClassStruct.objects.create(
+            name=cls.fake.name()[:ProdClassConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=cls.base_ei,
+            main_class=cls.nuts_class,
+        )
+        cls.int_param_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.int_enum_type = ClassStruct.objects.get(pk=EnumsIds.INT)
+        cls.agregat_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
+
+        cls.par1 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_param_type,
+            par_ei=cls.base_ei
+        )
+        cls.par2 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_enum_type,
+            par_ei=cls.base_ei
+        )
+        cls.par3 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.agregat_type,
+            par_ei=None
+        )
+
+        cls.valid_enum_type_data = {
+            "class_field": cls.nuts_subclass.pk,
+            "parametr": cls.par2.pk,
+            "min_value": "",
+            "max_value": "",
+        }
+        cls.valid_numeric_type_data = {
+            "class_field": cls.nuts_subclass.pk,
+            "parametr": cls.par1.pk,
+            "min_value": randint(1, 100),
+            "max_value": randint(101, 1000),            
+        }
+        cls.empty_class_field_data = {
+            "class_field": "",
+            "parametr": cls.par2.pk,
+            "min_value": "",
+            "max_value": "",
+        }
+        cls.empty_parametr_field_data = {
+            "class_field": cls.nuts_subclass.pk,
+            "parametr": "",
+            "min_value": "",
+            "max_value": "",
+        }
+        cls.agregat_type_data = {
+            "class_field": cls.nuts_subclass.pk,
+            "parametr": cls.par3.pk,
+            "min_value": "",
+            "max_value": "",
+        }
+        cls.mn_or_mx_specified_data = {
+            "class_field": cls.nuts_subclass.pk,
+            "parametr": cls.par2.pk,
+            "min_value": randint(1, 100),
+            "max_value": "",
+        }
+        cls.mn_gt_mx_data = {
+            "class_field": cls.nuts_subclass.pk,
+            "parametr": cls.par1.pk,
+            "min_value": randint(101, 1000),
+            "max_value": randint(1, 100),
+        }
+
+        cls.url = reverse("classes:add_param", args=[cls.nuts_subclass.pk])
+        cls.redirect_url = reverse("classes:params_list", args=[cls.nuts_subclass.pk])
+
+    def test_class_param_create_view_test_uses_par_class_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "classes/param_class.html")
+
+    def test_class_param_create_view_test_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_class_param_create_view_test_has_instance_in_context(self):
+        response = self.client.get(self.url)
+        self.assertIn("instance", response.context)
+
+    def test_class_param_create_view_can_save_a_POST_enum_request(self):
+        self.client.post(self.url, data=self.valid_enum_type_data)
+        pair = ParClass.objects.first()
+        self.assertEqual(pair.class_field.pk, self.valid_enum_type_data["class_field"])
+        self.assertEqual(pair.parametr.pk, self.valid_enum_type_data["parametr"])
+        self.assertIsNone(pair.min_value)
+        self.assertIsNone(pair.max_value)
+
+    def test_class_param_create_view_correctly_calculates_num_field(self):
+        self.client.post(self.url, data=self.valid_numeric_type_data)
+        self.client.post(self.url, data=self.valid_enum_type_data)
+        p1 = ParClass.objects.first()
+        p2 = ParClass.objects.last()
+        self.assertEqual(p1.class_field, p2.class_field)
+        self.assertEqual(p1.num, 1)
+        self.assertEqual(p2.num, 2)
+
+    def test_class_param_create_view_can_save_a_POST_numeric_request(self):
+        self.client.post(self.url, data=self.valid_numeric_type_data)
+        pair = ParClass.objects.first()
+        self.assertEqual(pair.class_field.pk, self.valid_numeric_type_data["class_field"])
+        self.assertEqual(pair.parametr.pk, self.valid_numeric_type_data["parametr"])
+        self.assertEqual(pair.min_value, self.valid_numeric_type_data["min_value"])
+        self.assertEqual(pair.max_value, self.valid_numeric_type_data["max_value"])
+
+    def test_class_param_create_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url, data=self.valid_numeric_type_data)
+        self.assertRedirects(response, self.redirect_url)
+
+    def test_empty_class_field_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, self.empty_class_field_data)
+        self.assertContains(response, escape(ParClassErrors.EMPTY_CLASS_FIELD))
+
+    def test_empty_parametr_field_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, self.empty_parametr_field_data)
+        self.assertContains(response, escape(ParClassErrors.EMPTY_PAR_FIELD))
+
+    def test_min_value_or_max_value_was_specified_for_enum_parametr_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.mn_or_mx_specified_data)
+        self.assertContains(
+            response,
+            escape(ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(self.par2.name))
+        )
+
+    def test_min_value_is_gt_max_value_for_numeric_param_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.mn_gt_mx_data)
+        self.assertContains(response, escape(ParClassErrors.MIN_GE_MAX))
