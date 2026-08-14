@@ -62,7 +62,7 @@ class ParametrUpdateView(
     def get_success_url(self):
         pk = self.get_object().pk
         return reverse_lazy(
-            "parametr:parametr_detail",
+            "parametr:detail",
             kwargs={
                 "parametr_id": pk,
             },

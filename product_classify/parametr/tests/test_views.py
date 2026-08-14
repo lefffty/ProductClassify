@@ -186,3 +186,55 @@ class ParametrCreateViewTest(TestCase):
     def test_agregat_enum_validation_error_is_shown_on_page(self):
         response = self.client.post(self.url, self.invalid_agr_data)
         self.assertContains(response, escape(ParametrErrors.AGREGAT))
+
+
+class ParametrUpdateViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.par_ei = Ei.objects.first()
+
+        old_name = cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH]
+        old_short_name = cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH]
+
+        cls.instance = Parametr.objects.create(
+            name=old_name,
+            short_name=old_short_name,
+            parametr_type=cls.int_type,
+            par_ei=cls.par_ei
+        )
+
+        new_name = cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH]
+        short_new_name = cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH]
+
+        cls.update_data = {
+            "name": new_name,
+            "short_name": short_new_name,
+            "parametr_type": cls.int_type.pk,
+            "par_ei": cls.par_ei.pk
+        }
+
+        cls.url = reverse("parametr:edit", args=[cls.instance.pk])
+        cls.redirect_url = reverse("parametr:detail", args=[cls.instance.pk])
+
+    def test_parametr_update_view_uses_parametr_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "parametr/parametr.html")
+
+    def test_parametr_update_view_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_parametr_update_view_can_save_a_POST_request(self):
+        self.client.post(self.url, data=self.update_data)
+        parametr = Parametr.objects.last()
+        self.assertEqual(parametr.name, self.update_data["name"])
+        self.assertEqual(parametr.short_name, self.update_data["short_name"])
+        self.assertEqual(parametr.par_ei.pk, self.update_data["par_ei"])
+        self.assertEqual(parametr.parametr_type.pk, self.update_data["parametr_type"])
+
+    def test_parametr_update_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url, data=self.update_data)
+        self.assertRedirects(response, self.redirect_url)
