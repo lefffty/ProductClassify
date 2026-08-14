@@ -18,7 +18,7 @@ class Parametr(models.Model):
         verbose_name="Сокращенное название параметра",
         max_length=ParametrConsts.SHORT_NAME_MAX_LENGTH,
         null=False,
-        blank=True,
+        blank=False,
     )
     parametr_type = models.ForeignKey(
         ClassStruct,

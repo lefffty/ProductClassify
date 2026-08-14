@@ -54,7 +54,22 @@ class ParametrForm(ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+
+        name = cleaned_data.get("name")
+
+        if not name:
+            raise ValidationError(ParametrErrors.EMPTY_NAME)
+
+        short_name = cleaned_data.get("short_name")
+
+        if not short_name:
+            raise ValidationError(ParametrErrors.EMPTY_SHORT_NAME)
+
         parametr_tp = cleaned_data.get("parametr_type")
+
+        if not parametr_tp:
+            raise ValidationError(ParametrErrors.EMPTY_PAR_TYPE)
+
         par_ei = cleaned_data.get("par_ei")
 
         str_enum = ClassStruct.objects.get(pk=EnumsIds.STRING)

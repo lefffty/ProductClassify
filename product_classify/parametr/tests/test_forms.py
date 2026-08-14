@@ -73,7 +73,7 @@ class ParametrFormTest(TestCase):
         self.assertTrue(form.is_valid())
 
     def test_short_name_is_optional_accepts_empty_string(self):
-        """Проверяет, что поле short_name может быть пустой строкой и форма проходит валидацию."""
+        """Проверяет, что поле short_name не может быть пустой строкой и форма не проходит валидацию."""
         form_data = {
             "parametr_type": self.int_type,
             "par_ei": self.par_ei,
@@ -81,10 +81,10 @@ class ParametrFormTest(TestCase):
             "short_name": "",
         }
         form = ParametrForm(data=form_data)
-        self.assertTrue(form.is_valid())
+        self.assertFalse(form.is_valid())
 
     def test_short_name_is_optional_accepts_none(self):
-        """Проверяет, что поле short_name может быть равно None и форма проходит валидацию."""
+        """Проверяет, что поле short_name не может быть равно None и не форма проходит валидацию."""
         form_data = {
             "parametr_type": self.int_type,
             "par_ei": self.par_ei,
@@ -92,7 +92,7 @@ class ParametrFormTest(TestCase):
             "short_name": None,
         }
         form = ParametrForm(data=form_data)
-        self.assertTrue(form.is_valid())
+        self.assertFalse(form.is_valid())
 
     def test_string_enum_parametr_par_ei_is_none_does_not_raise_validation_error(self):
         """Проверяет, что для строкового перечисления отсутствие par_ei не вызывает ошибку валидации."""
@@ -623,10 +623,10 @@ class ParametrFormTest(TestCase):
             "parametr_type": self.int_type,
             "par_ei": None,
             "name": self.NAME,
-            "short_name": "",
+            "short_name": self.SHORT_NAME,
         }
         form = ParametrForm(data=form_data)
         self.assertTrue(form.is_valid())
         obj = form.save()
         self.assertIsNotNone(obj.pk)
-        self.assertEqual(obj.short_name, "")
+        self.assertEqual(obj.short_name, self.SHORT_NAME)
