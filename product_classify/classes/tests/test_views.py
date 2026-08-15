@@ -21,7 +21,7 @@ from classes.models import ClassStruct, ParClass
 from classes.forms import ProdClassForm, EnumClassForm
 from classes.errors import ClassStructErrors, ParClassErrors, ChangeParClassErrors
 from classes.constants import (
-    ProdClassConsts, EnumClassConsts, ProductsConsts, EnumsIds, ParamIds
+    ProdClassConsts, EnumClassConsts, ProductsConsts, EnumsIds, ParamIds, NUMERIC_PARAMS
 )
 
 
@@ -813,3 +813,83 @@ class ChangeNumViewTest(TestCase):
     def test_equal_fields_validation_error_is_shown_on_page(self):
         response = self.client.post(self.url, data=self.equal_fields_data)
         self.assertContains(response, escape(ChangeParClassErrors.EQUAL_PAR))
+
+
+class ClassParamsListViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.base_ei = Ei.objects.first()
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.nuts_subclass = ClassStruct.objects.create(
+            name=cls.fake.name()[:ProdClassConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=cls.base_ei,
+            main_class=cls.nuts_class,
+        )
+        cls.int_param_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.int_enum_type = ClassStruct.objects.get(pk=EnumsIds.INT)
+        cls.par1 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_param_type,
+            par_ei=cls.base_ei
+        )
+        cls.par2 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_param_type,
+            par_ei=cls.base_ei
+        )
+        cls.par3 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_enum_type,
+            par_ei=cls.base_ei
+        )
+
+        cls.parclass1 = ParClass.objects.create(
+            class_field=cls.nuts_subclass,
+            parametr=cls.par1,
+            min_value=1,
+            max_value=10,
+            num=1
+        )
+        cls.parclass2 = ParClass.objects.create(
+            class_field=cls.nuts_subclass,
+            parametr=cls.par2,
+            min_value=1,
+            max_value=10,
+            num=2
+        )
+        cls.parclass3 = ParClass.objects.create(
+            class_field=cls.nuts_subclass,
+            parametr=cls.par3,
+            min_value=None,
+            max_value=None,
+            num=3
+        )
+
+        cls.url = reverse("classes:params_list", args=[cls.nuts_subclass.pk])
+
+    def test_class_params_list_view_uses_params_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "classes/params.html")
+
+    def test_class_params_list_view_has_params_in_context(self):
+        response = self.client.get(self.url)
+        self.assertIn("params", response.context)
+
+    def test_class_params_list_view_has_class_in_context(self):
+        response = self.client.get(self.url)
+        self.assertIn("class", response.context)
+
+    def test_class_params_list_view_corrrectly_renders_information(self):
+        response = self.client.get(self.url)
+        for parclass in (self.parclass1, self.parclass2):
+            self.assertContains(response, parclass.parametr.name)
+            self.assertContains(response, parclass.parametr.par_ei.short_name)
+            if parclass.parametr.parametr_type.pk in NUMERIC_PARAMS:
+                self.assertContains(response, parclass.min_value)
+                self.assertContains(response, parclass.max_value)
