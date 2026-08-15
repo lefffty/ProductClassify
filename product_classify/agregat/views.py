@@ -3,6 +3,7 @@ from django.http import HttpRequest, HttpResponse
 from django.urls import reverse_lazy
 from django.db.models import Q
 from django.views.generic import (
+    FormView,
     ListView,
     DetailView,
     DeleteView,
@@ -120,6 +121,34 @@ class AgregatParametrDeleteView(
             par_agr.save()
                 
         return super().form_valid(form)
+
+
+class ChangeAgregatNumView(
+    CommonContextMixin,
+    FormView
+):
+    model = Agregat
+    template_name = "agregat/change_agr_num.html"
+    form_class = ChangeAgregatNumForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["instance"] = Parametr.objects.get(pk=self.kwargs.get("agregat_id"))
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        agregat = Parametr.objects.get(pk=self.kwargs.get("agregat_id"))
+        kwargs["agr"] = agregat
+        return kwargs
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "agregat:detail",
+            kwargs={
+                "agregat_id": self.kwargs.get("agregat_id")
+            }
+        )
 
 
 def change_num(
