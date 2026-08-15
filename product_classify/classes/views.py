@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse, Http404
 from django.urls import reverse_lazy
-from django.db import connection
 from django.views.generic import (
+    FormView,
     ListView,
     UpdateView,
     CreateView,
@@ -235,71 +235,23 @@ class ClassParamDeleteView(
         )
 
 
-def change_num(
-    request: HttpRequest,
-    class_id: int,
-) -> HttpResponse:
-    """Представление для изменения номера параметра класса
-    """
-    fastener_classes = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
-    _class = ClassStruct.objects.get(pk=class_id)
-    if request.method == "POST":
-        form = ChangeParClassNumForm(request.POST, class_id=class_id)
-        if form.is_valid():
-            instance_1 = form.cleaned_data["class_field_1"]
-            instance_2 = form.cleaned_data["class_field_2"]
-            instance_1.num = instance_2.num
-            instance_2.num = instance_1.num
-            instance_1.save()
-            instance_2.save()
-            return redirect(
-                "classes:params_list",
-                class_id,
-            )
-    else:
-        form = ChangeParClassNumForm(class_id=class_id)
-    context = {
-        "fastener_classes": fastener_classes,
-        "instance": _class,
-        "form": form,
-    }
-    return render(
-        request,
-        "classes/change_num.html",
-        context,
-    )
-
-
-class ChangeNumView(
+class ChangeParClassNumView(
     CommonContextMixin,
-    UpdateView,
+    FormView
 ):
-    """Представление для изменения номера параметра класса
-    """
-    queryset = ParClass.objects.all()
-    form_class = ChangeParClassNumForm
+    model = ParClass
     template_name = "classes/change_num.html"
+    form_class = ChangeParClassNumForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        class_id = self.kwargs.get("class_id")
-        _class = ClassStruct.objects.get(pk=class_id)
-        context["instance"] = _class
+        context["instance"] = ClassStruct.objects.get(pk=self.kwargs.get("class_id"))
         return context
 
-    def form_valid(self, form):
-        instance_1 = form.cleaned_data["class_field_1"]
-        instance_2 = form.cleaned_data["class_field_2"]
-        instance_1.num = instance_2.num
-        instance_2.num = instance_1.num
-        instance_1.save()
-        instance_2.save()
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["class_id"] = self.kwargs.get("class_id")
+        return kwargs
 
-    def get_success_url(self):
-        class_id = self.kwargs.get("class_id")
-        return reverse_lazy(
-            "classes:params_list",
-            kwargs={
-                "class_id": class_id,
-            },
-        )
+    def form_valid(self, form):
+        return redirect("classes:params_list", class_id=self.kwargs.get("class_id"))

@@ -5,6 +5,7 @@ from django.forms import (
     CharField,
     Form,
 )
+from django.db import transaction
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 
@@ -252,30 +253,52 @@ class ChangeParClassNumForm(Form):
     def __init__(self, *args, **kwargs):
         class_id = kwargs.pop("class_id", None)
         super().__init__(*args, **kwargs)
-        self.fields["class_field_1"] = ModelChoiceField(
+        self.fields["cls_1"] = ModelChoiceField(
             queryset=ParClass.objects.filter(class_field__id=class_id),
             label="Класс изделия 1",
+            error_messages={
+                "required": ChangeParClassErrors.EMPTY_FIRST_PAR,
+            }
         )
-        self.fields["class_field_2"] = ModelChoiceField(
+        self.fields["cls_2"] = ModelChoiceField(
             queryset=ParClass.objects.filter(class_field__id=class_id),
             label="Класс изделия 2",
+            error_messages={
+                "required": ChangeParClassErrors.EMPTY_SECOND_PAR,
+            }
         )
 
     def clean(self):
         cleaned_data = super().clean()
-        class_field_1 = cleaned_data.get("class_field_1")
+
+        cls_1: ParClass = cleaned_data.get("cls_1")
 
         # проверяем, что поле для первого параметра класса заполнено
-        if not class_field_1:
-            raise ValidationError(ChangeParClassErrors.EMPTY_FIRST_PAR)
+        if not cls_1:
+            return cleaned_data
 
         # проверяем, что поле для второго параметра класса заполнено
-        class_field_2 = cleaned_data.get("class_field_2")
-        if not class_field_2:
-            raise ValidationError(ChangeParClassErrors.EMPTY_SECOND_PAR)
+        cls_2: ParClass = cleaned_data.get("cls_2")
 
-        # проверяем, что оба параметра относятся к одному классу
-        if class_field_1 == class_field_2:
+        if not cls_2:
+            return cleaned_data
+
+        # проверяем, что параметры разные
+        if cls_1 == cls_2:
             raise ValidationError(ChangeParClassErrors.EQUAL_PAR)
+
+        with transaction.atomic():
+            old_num_1 = cls_1.num
+            old_num_2 = cls_2.num
+
+            cls_1.num = ParClassConsts.MAX_NUM_VALUE
+            cls_2.num = ParClassConsts.MAX_NUM_VALUE - 1
+            cls_1.save(update_fields=["num"])
+            cls_2.save(update_fields=["num"])
+
+            cls_1.num = old_num_2
+            cls_2.num = old_num_1
+            cls_1.save(update_fields=["num"])
+            cls_2.save(update_fields=["num"])
         
         return cleaned_data

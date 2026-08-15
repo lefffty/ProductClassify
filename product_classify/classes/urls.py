@@ -57,7 +57,7 @@ urlpatterns = [
     ),
     path(
         "change_num/<int:class_id>/",
-        views.change_num,
+        views.ChangeParClassNumView.as_view(),
         name="change_num",
     ),
 ]

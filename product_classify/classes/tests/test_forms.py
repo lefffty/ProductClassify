@@ -1245,38 +1245,38 @@ class ChangeParClassNumFormTest(TestCase):
         )
 
     def test_class_field_1_is_required(self):
-        """Проверяет, что поле class_field_1 обязательно для заполнения."""
+        """Проверяет, что поле cls_1 обязательно для заполнения."""
         form_data = {
-            "class_field_1": None,
-            "class_field_2": self.parclass_2,
+            "cls_1": None,
+            "cls_2": self.parclass_2,
         }
         form = ChangeParClassNumForm(
             data=form_data, class_id=self.nuts_product_class.pk
         )
         self.assertFalse(form.is_valid())
         self.assertEqual(
-            form.errors["__all__"][0], "Поле class_field_1 не может быть пустым"
+            form.errors["cls_1"], ["Поле cls_1 не может быть пустым"]
         )
 
-    def test_class_field_2_is_required(self):
-        """Проверяет, что поле class_field_2 обязательно для заполнения."""
+    def test_cls_2_is_required(self):
+        """Проверяет, что поле cls_2 обязательно для заполнения."""
         form_data = {
-            "class_field_1": self.parclass_1,
-            "class_field_2": None,
+            "cls_1": self.parclass_1,
+            "cls_2": None,
         }
         form = ChangeParClassNumForm(
             data=form_data, class_id=self.nuts_product_class.pk
         )
         self.assertFalse(form.is_valid())
         self.assertEqual(
-            form.errors["__all__"][0], "Поле class_field_2 не может быть пустым"
+            form.errors["cls_2"], ["Поле cls_2 не может быть пустым"]
         )
 
     def test_clean_raises_validation_error_if_objects_are_equal(self):
         """Проверяет, что при выборе двух одинаковых объектов ParClass выбрасывается ValidationError с соответствующим сообщением."""
         form_data = {
-            "class_field_1": self.parclass_1,
-            "class_field_2": self.parclass_1,
+            "cls_1": self.parclass_1,
+            "cls_2": self.parclass_1,
         }
         form = ChangeParClassNumForm(
             data=form_data, class_id=self.nuts_product_class.pk
@@ -1286,8 +1286,8 @@ class ChangeParClassNumFormTest(TestCase):
     def test_error_message_for_duplicate_objects(self):
         """Проверяет, что при выборе одинаковых объектов сообщение об ошибке соответствует ожидаемому."""
         form_data = {
-            "class_field_1": self.parclass_1,
-            "class_field_2": self.parclass_1,
+            "cls_1": self.parclass_1,
+            "cls_2": self.parclass_1,
         }
         form = ChangeParClassNumForm(
             data=form_data, class_id=self.nuts_product_class.pk
@@ -1299,8 +1299,8 @@ class ChangeParClassNumFormTest(TestCase):
     def test_clean_does_not_raise_error_if_objects_are_different(self):
         """Проверяет, что при выборе двух разных объектов ParClass форма проходит валидацию."""
         form_data = {
-            "class_field_1": self.parclass_1,
-            "class_field_2": self.parclass_2,
+            "cls_1": self.parclass_1.pk,
+            "cls_2": self.parclass_2.pk,
         }
         form = ChangeParClassNumForm(
             data=form_data, class_id=self.nuts_product_class.pk
@@ -1310,29 +1310,19 @@ class ChangeParClassNumFormTest(TestCase):
     def test_queryset_is_empty_if_class_id_is_none(self):
         """Проверяет, что при передаче class_id=None queryset полей пуст."""
         form = ChangeParClassNumForm()
-        self.assertEqual(len(form.fields["class_field_1"].queryset), 0)
-        self.assertEqual(len(form.fields["class_field_2"].queryset), 0)
+        self.assertEqual(len(form.fields["cls_1"].queryset), 0)
+        self.assertEqual(len(form.fields["cls_2"].queryset), 0)
 
     def test_num_values_were_successfully_swapped(self):
         """Проверяет, что после валидации формы значения num у двух выбранных объектов ParClass успешно меняются местами."""
         form_data = {
-            "class_field_1": self.parclass_1,
-            "class_field_2": self.parclass_2,
+            "cls_1": self.parclass_1.pk,
+            "cls_2": self.parclass_2.pk,
         }
         form = ChangeParClassNumForm(
             data=form_data, class_id=self.nuts_product_class.pk
         )
         self.assertTrue(form.is_valid())
-
-        updated_parclass_1 = form.cleaned_data["class_field_1"]
-        updated_parclass_2 = form.cleaned_data["class_field_2"]
-
-        updated_parclass_1.num, updated_parclass_2.num = (
-            updated_parclass_2.num,
-            updated_parclass_1.num,
-        )
-        updated_parclass_1.save(update_fields=["num"])
-        updated_parclass_2.save(update_fields=["num"])
 
         self.parclass_1.refresh_from_db()
         self.parclass_2.refresh_from_db()

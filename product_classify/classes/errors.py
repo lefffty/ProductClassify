@@ -20,6 +20,6 @@ class ParClassErrors:
 
 
 class ChangeParClassErrors(StrEnum):
-    EMPTY_FIRST_PAR = "Поле class_field_1 не может быть пустым"
-    EMPTY_SECOND_PAR = "Поле class_field_2 не может быть пустым"
+    EMPTY_FIRST_PAR = "Поле cls_1 не может быть пустым"
+    EMPTY_SECOND_PAR = "Поле cls_2 не может быть пустым"
     EQUAL_PAR = "Классы изделия не могут быть одинаковыми!"

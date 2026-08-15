@@ -21,6 +21,7 @@ class ParClassConsts(IntEnum):
     NUM_MIN_VALUE = 1
     MIN_VALUE_LOWER_BOUND = 0.0
     MAX_VALUE_LOWER_BOUND = 0.0
+    MAX_NUM_VALUE = 32767
 
 
 class EnumsIds(IntEnum):

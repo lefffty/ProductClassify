@@ -19,7 +19,7 @@ from ei.constants import KILOGRAM_ID
 
 from classes.models import ClassStruct, ParClass
 from classes.forms import ProdClassForm, EnumClassForm
-from classes.errors import ClassStructErrors, ParClassErrors
+from classes.errors import ClassStructErrors, ParClassErrors, ChangeParClassErrors
 from classes.constants import (
     ProdClassConsts, EnumClassConsts, ProductsConsts, EnumsIds, ParamIds
 )
@@ -719,3 +719,97 @@ class ClassParamDeleteViewTest(TestCase):
     def test_class_param_delete_view_redirects_after_POST_request(self):
         response = self.client.post(self.url)
         self.assertRedirects(response, self.redirect_url)
+
+
+class ChangeNumViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.base_ei = Ei.objects.first()
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.nuts_subclass = ClassStruct.objects.create(
+            name=cls.fake.name()[:ProdClassConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=cls.base_ei,
+            main_class=cls.nuts_class,
+        )
+        cls.int_param_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.par1 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_param_type,
+            par_ei=cls.base_ei
+        )
+        cls.par2 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_param_type,
+            par_ei=cls.base_ei
+        )
+
+        cls.parclass1 = ParClass.objects.create(
+            class_field=cls.nuts_subclass,
+            parametr=cls.par1,
+            min_value=1,
+            max_value=10,
+            num=1
+        )
+        cls.parclass2 = ParClass.objects.create(
+            class_field=cls.nuts_subclass,
+            parametr=cls.par2,
+            min_value=1,
+            max_value=10,
+            num=2
+        )
+
+        cls.valid_data = {
+            "cls_1": cls.parclass1.pk,
+            "cls_2": cls.parclass2.pk
+        }
+        cls.empty_first_data = {
+            "cls_1": "",
+            "cls_2": cls.parclass2.pk
+        }
+        cls.empty_second_data = {
+            "cls_1": cls.parclass1.pk,
+            "cls_2": ""
+        }
+        cls.equal_fields_data = {
+            "cls_1": cls.parclass1.pk,
+            "cls_2": cls.parclass1.pk
+        }
+
+        cls.url = reverse("classes:change_num", args=[cls.nuts_subclass.pk])
+        cls.redirect_url = reverse("classes:params_list", args=[cls.nuts_subclass.pk])
+
+    def test_change_num_view_uses_change_num_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "classes/change_num.html")
+
+    def test_change_num_view_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_change_num_view_can_save_a_POST_request(self):
+        self.client.post(self.url, data=self.valid_data)
+        self.parclass1.refresh_from_db()
+        self.parclass2.refresh_from_db()
+        self.assertEqual(self.parclass1.num, 2)
+        self.assertEqual(self.parclass2.num, 1)
+
+    def test_change_num_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url, data=self.valid_data)
+        self.assertRedirects(response, self.redirect_url)
+
+    def test_empty_first_field_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.empty_first_data)
+        self.assertContains(response, escape(ChangeParClassErrors.EMPTY_FIRST_PAR))
+
+    def test_empty_second_field_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.empty_second_data)
+        self.assertContains(response, escape(ChangeParClassErrors.EMPTY_SECOND_PAR))
+
+    def test_equal_fields_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.equal_fields_data)
+        self.assertContains(response, escape(ChangeParClassErrors.EQUAL_PAR))
