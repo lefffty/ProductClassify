@@ -534,23 +534,12 @@ class ChangeNumViewTest(TestCase):
         self.assertIn("fastener_classes", response.context)
 
     def test_change_num_view_can_save_a_POST_request(self):
-        from enums.forms import ChangeNumForm
-
-        form = ChangeNumForm(data={
-            "enum_1": self.instance1.pk,
-            "enum_2": self.instance2.pk,
-        })
-
-        self.assertTrue(form.is_valid(), form.errors)
-
         self.client.post(self.url, data={
             "enum_1": self.instance1.pk,
             "enum_2": self.instance2.pk,
         })
-
         self.instance1.refresh_from_db()
         self.instance2.refresh_from_db()
-        
         self.assertEqual(self.instance1.num, 2)
         self.assertEqual(self.instance2.num, 1)
 

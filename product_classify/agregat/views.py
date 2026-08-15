@@ -1,5 +1,3 @@
-from django.shortcuts import render, redirect
-from django.http import HttpRequest, HttpResponse
 from django.urls import reverse_lazy
 from django.db.models import Q
 from django.views.generic import (
@@ -11,8 +9,7 @@ from django.views.generic import (
 )
 
 from parametr.models import Parametr
-from classes.models import ClassStruct
-from classes.constants import ParamIds, ProductsConsts
+from classes.constants import ParamIds
 from core.mixins import CommonContextMixin
 
 from agregat.models import Agregat
@@ -149,30 +146,3 @@ class ChangeAgregatNumView(
                 "agregat_id": self.kwargs.get("agregat_id")
             }
         )
-
-
-def change_num(
-    request: HttpRequest,
-    agregat_id: int,
-) -> HttpResponse:
-    """
-    Изменение номера параметра в агрегат
-    """
-    fastener_classes = ClassStruct.objects.filter(main_class__exact=ProductsConsts.FASTENER_ID)
-    agregat = Parametr.objects.get(pk=agregat_id)
-    form = ChangeAgregatNumForm(request.POST or None, agr=agregat)
-    if form.is_valid():
-        return redirect(
-            "agregat:detail",
-            agregat_id,
-        )
-    context = {
-        "instance": agregat,
-        "form": form,
-        "fastener_classes": fastener_classes,
-    }
-    return render(
-        request,
-        "agregat/change_agr_num.html",
-        context,
-    )

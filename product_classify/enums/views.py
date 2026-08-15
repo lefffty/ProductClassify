@@ -1,7 +1,6 @@
-from django.shortcuts import render, redirect
-from django.http import HttpRequest, HttpResponse
 from django.urls import reverse_lazy
 from django.views.generic import (
+    FormView,
     ListView,
     DetailView,
     DeleteView,
@@ -11,7 +10,6 @@ from django.views.generic import (
 
 from core.mixins import CommonContextMixin
 from classes.models import ClassStruct
-from classes.constants import ProductsConsts
 
 from enums.models import Enums
 from enums.forms import EnumsForm, ChangeNumForm
@@ -99,25 +97,12 @@ class EnumsUpdateView(
         )
 
 
-def change_num(
-    request: HttpRequest,
-) -> HttpResponse:
-    """
-    Изменение номера перечисления
-    """
-    fastener_classes = ClassStruct.objects.filter(main_class__exact=ProductsConsts.FASTENER_ID)
-    form = ChangeNumForm(request.POST or None)
-    if form.is_valid():
-        form.clean()
-        return redirect(
-            "classes:index",
-        )
-    context = {
-        "form": form,
-        "fastener_classes": fastener_classes,
-    }
-    return render(
-        request,
-        "enums/change_num.html",
-        context,
-    )
+class ChangeEnumsNumView(
+    CommonContextMixin,
+    FormView
+):
+    template_name = "enums/change_num.html"
+    form_class = ChangeNumForm
+
+    def get_success_url(self):
+        return reverse_lazy("classes:index")

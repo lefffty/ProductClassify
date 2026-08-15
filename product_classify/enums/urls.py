@@ -32,7 +32,7 @@ urlpatterns = [
     ),
     path(
         "change_enum/num/",
-        views.change_num,
+        views.ChangeEnumsNumView.as_view(),
         name="change_num",
     ),
 ]
