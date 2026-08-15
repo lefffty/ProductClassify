@@ -6,6 +6,7 @@ from django.views.generic import (
     ListView,
     UpdateView,
     CreateView,
+    DeleteView,
     TemplateView,
 )
 
@@ -214,30 +215,24 @@ class ClassParamUpdateView(
         )
 
 
-def delete_param(
-    request: HttpRequest,
-    class_id: int,
-    param_id: int,
-) -> HttpResponse:
-    """Представление для удаления параметра класса
-    """
-    fastener_classes = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
-    instance = ParClass.objects.get(
-        class_field=class_id,
-        parametr=param_id,
-    )
-    if request.method == "POST":
-        instance.delete()
-        return redirect("classes:params_list", class_id)
-    context = {
-        "instance": instance,
-        "fastener_classes": fastener_classes,
-    }
-    return render(
-        request,
-        "classes/param_class.html",
-        context,
-    )
+class ClassParamDeleteView(
+    CommonContextMixin,
+    DeleteView
+):
+    model = ParClass
+    template_name = "classes/param_class.html"
+
+    def get_object(self):
+        return ParClass.objects.get(
+            class_field=self.kwargs.get("class_id"),
+            parametr=self.kwargs.get("param_id"),
+        )
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "classes:params_list",
+            args=[self.kwargs.get("class_id")]
+        )
 
 
 def change_num(

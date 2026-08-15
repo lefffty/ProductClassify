@@ -4,7 +4,6 @@ from django.db.models import QuerySet, Q, F
 from django.forms import ValidationError
 
 from ei.models import Ei
-
 from core.queries import ClassStructQueries
 
 from classes.constants import (
@@ -210,6 +209,11 @@ class ParClass(models.Model):
                 raise ValidationError({
                     "min_value": ParClassErrors.MIN_GE_MAX,
                 })
+
+    def delete(self, *args, **kwargs):
+        from products.models import ParProd        
+        ParProd.objects.filter(par=self.parametr).delete()
+        super().delete(*args, **kwargs)
 
     def __str__(self):
         return f"{self.class_field.name} - {self.parametr.name}"

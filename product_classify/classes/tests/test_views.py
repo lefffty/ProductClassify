@@ -11,6 +11,9 @@ from random import randint
 from parametr.models import Parametr
 from parametr.constants import ParametrConsts
 
+from products.models import Prod
+from products.models import ParProd
+
 from ei.models import Ei
 from ei.constants import KILOGRAM_ID
 
@@ -651,4 +654,68 @@ class ClassParamUpdateViewTest(TestCase):
 
     def test_class_param_update_view_redirects_after_POST_request(self):
         response = self.client.post(self.url, data=self.valid_data)
+        self.assertRedirects(response, self.redirect_url)
+
+
+class ClassParamDeleteViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.base_ei = Ei.objects.first()
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.nuts_subclass = ClassStruct.objects.create(
+            name=cls.fake.name()[:ProdClassConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=cls.base_ei,
+            main_class=cls.nuts_class,
+        )
+        cls.int_param_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.par1 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_param_type,
+            par_ei=cls.base_ei
+        )
+        cls.product = Prod.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            class_field=cls.nuts_subclass,
+            image=None,
+        )
+
+        cls.parclass1 = ParClass.objects.create(
+            class_field=cls.nuts_subclass,
+            parametr=cls.par1,
+            min_value=1,
+            max_value=10,
+            num=1
+        )
+        cls.parprod = ParProd.objects.create(
+            prod=cls.product,
+            par=cls.par1,
+            int_value=5,
+            double_value=None,
+            enum_val=None,
+        )
+
+        cls.url = reverse("classes:delete_param", args=[cls.nuts_subclass.pk, cls.par1.pk])
+        cls.redirect_url = reverse("classes:params_list", args=[cls.nuts_subclass.pk])
+
+    def test_class_param_delete_view_uses_param_class_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "classes/param_class.html")
+
+    def test_class_param_delete_view_can_save_a_POST_request(self):
+        self.assertEqual(ParClass.objects.count(), 1)
+        self.client.post(self.url)
+        self.assertEqual(ParClass.objects.count(), 0)
+
+    def test_class_param_delete_view_cascadingly_delete_parprod_records(self):
+        self.assertEqual(ParProd.objects.count(), 1)
+        self.client.post(self.url)
+        self.assertEqual(ParProd.objects.count(), 0)
+
+    def test_class_param_delete_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url)
         self.assertRedirects(response, self.redirect_url)

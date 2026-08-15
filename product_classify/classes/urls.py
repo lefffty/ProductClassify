@@ -52,7 +52,7 @@ urlpatterns = [
     ),
     path(
         "<int:class_id>/params/<int:param_id>/delete/",
-        views.delete_param,
+        views.ClassParamDeleteView.as_view(),
         name="delete_param",
     ),
     path(
