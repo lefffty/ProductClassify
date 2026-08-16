@@ -17,7 +17,13 @@ from enums.models import Enums
 
 from products.models import Parametr, ParProd, Prod
 from products.constants import ProdConsts
-from products.errors import *
+from products.errors import (
+    ProdErrors,
+    EnumsParErrors,
+    IntParErrors,
+    DoubleParErrors,
+    CommonParProdErrors
+)
 
 
 class ProdForm(ModelForm):
@@ -129,17 +135,17 @@ class ParProdForm(ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        # вытаскиваем из формы изделие и параметр
+        # получаем из формы поля изделия и параметра
         prod = cleaned_data.get("prod")
         par = cleaned_data.get("par")
 
-        # если поле для изделия пустое 
+        # если поле для изделия пустое, то выбрасываем исключение
         if not prod:
-            raise ValidationError(CommonParProdErrors.EMPTY_PROD_FIELD)
+            return cleaned_data
 
-        # если поле для параметра пустое
+        # если поле для параметра пустое, то выбрасываем исключение
         if not par:
-            raise ValidationError(CommonParProdErrors.EMPTY_PAR_FIELD)
+            return cleaned_data
 
         # находим идентификатор родительского класса изделия
         cls_id = prod.class_field.id
@@ -182,8 +188,8 @@ class ParProdForm(ModelForm):
                     raise ValidationError(IntParErrors.INT_FIELD_EMPTY)
 
                 # если значение целочисленного параметра не входит в заданный диапазон
-                if cleaned_data[int_key] < mn_value or cleaned_data[int_key] > mx_value:
-                    raise ValidationError(IntParErrors.INVALID_RANGE.format(mn_value, mx_value))
+                if not mn_value <= cleaned_data[int_key] <= mx_value:
+                    raise ValidationError(IntParErrors.INVALID_RANGE.format(int(mn_value), int(mx_value)))
                 
             # если параметр является вещественным
             else:
@@ -209,6 +215,7 @@ class ParProdForm(ModelForm):
             # то проверяем, что в форме не указаны значения int_value или double_value
             int_value = cleaned_data.get("int_value")
             double_value = cleaned_data.get("double_value")
+            enum_val = cleaned_data.get("enum_val")
 
             # проверяем, указано ли значение int_value для параметра-перечисления
             if int_value:
@@ -219,7 +226,7 @@ class ParProdForm(ModelForm):
                 raise ValidationError(EnumsParErrors.DOUBLE_FIELD_SPECIFIED)
 
             # проверяем, указано ли значение enum_value для параметра-перечисления
-            if not cleaned_data["enum_val"]:
+            if not enum_val:
                 raise ValidationError(EnumsParErrors.ENUM_FIELD_EMPTY)
 
         return cleaned_data
@@ -254,7 +261,7 @@ class SearchForm(Form):
                 )
             elif (
                 par_class.parametr.parametr_type.id
-                in ClassStruct.enum_classes.all().values_list("id", flat=True)
+                in ClassStruct.enum_classes().values_list("id", flat=True)
                 and ParProd.objects.filter(par=par_class.parametr).exists()
             ):
                 self.fields[par_class.parametr.name] = ModelChoiceField(

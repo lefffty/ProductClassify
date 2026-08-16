@@ -3,13 +3,11 @@ from django.test import TestCase
 from django.db.models import QuerySet
 from django.db import IntegrityError
 
-from unittest.mock import patch
-
 from parametr.models import Parametr
 from ei.models import Ei
 
 from classes.models import ClassStruct, ParClass
-from classes.constants import ProductsConsts, ParamIds, EnumsIds
+from classes.constants import ProductsConsts, ParamIds, EnumsIds, TYPE_IDS, ENUM_PARAMS
 
 
 class ClassStructModelTest(TestCase):
@@ -105,14 +103,13 @@ class ClassStructModelTest(TestCase):
 
     def test_parametr_types_contains_expected_ids(self):
         parametr_types = ClassStruct.parametr_types()
-        expected_ids = {15, 16, 18, 19, 27, 28, 30}
         actual_ids = set(parametr_types.values_list("id", flat=True))
-        msg = self.get_expected_ids_error_message(expected_ids, actual_ids)
+        msg = self.get_expected_ids_error_message(TYPE_IDS, actual_ids)
         length_msg = self.get_expected_length_error_message(
-            len(expected_ids), len(actual_ids)
+            len(TYPE_IDS), len(actual_ids)
         )
-        self.assertEqual(len(actual_ids), len(expected_ids), length_msg)
-        self.assertSetEqual(actual_ids, expected_ids, msg)
+        self.assertEqual(len(actual_ids), len(TYPE_IDS), length_msg)
+        self.assertSetEqual(actual_ids, set(TYPE_IDS), msg)
 
     def test_enum_classes_returns_queryset_and_valid_class(self):
         enum_classes = ClassStruct.enum_classes()
@@ -125,14 +122,13 @@ class ClassStructModelTest(TestCase):
 
     def test_enum_classes_contains_expected_ids(self):
         enum_classes = ClassStruct.enum_classes()
-        expected_ids = {15, 16, 18, 19}
         actual_ids = set(enum_classes.values_list("id", flat=True))
         length_msg = self.get_expected_length_error_message(
-            len(expected_ids), len(actual_ids)
+            len(ENUM_PARAMS), len(actual_ids)
         )
-        msg = self.get_expected_ids_error_message(expected_ids, actual_ids)
-        self.assertEqual(len(actual_ids), len(expected_ids), length_msg)
-        self.assertSetEqual(actual_ids, expected_ids, msg)
+        msg = self.get_expected_ids_error_message(ENUM_PARAMS, actual_ids)
+        self.assertEqual(len(actual_ids), len(ENUM_PARAMS), length_msg)
+        self.assertSetEqual(actual_ids, set(ENUM_PARAMS), msg)
 
     def test_all_enum_classes_returns_queryset_and_valid_class(self):
         all_enum_classes = ClassStruct.all_enum_classes()

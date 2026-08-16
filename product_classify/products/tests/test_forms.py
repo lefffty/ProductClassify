@@ -12,6 +12,7 @@ from enums.models import Enums
 
 from products.models import Prod, ParProd
 from products.forms import ProdForm, ParProdForm
+from products.errors import IntParErrors, DoubleParErrors
 
 
 def create_image(extension: str = "jpg"):
@@ -535,12 +536,14 @@ class ParProdFormTest(TestCase):
             "enum_val": None,
         }
         form = ParProdForm(data)
-        expected_error_msg = f"Целочисленное значение не входит в границы диапазона(<{self.PARCLASS_INT_MIN_VALUE}, {self.PARCLASS_INT_MAX_VALUE}>)"
 
         self.assertFalse(form.is_valid())
         self.assertEqual(
             form.errors["__all__"][0],
-            expected_error_msg,
+            IntParErrors.INVALID_RANGE.format(
+                int(self.PARCLASS_INT_MIN_VALUE),
+                int(self.PARCLASS_INT_MAX_VALUE)
+            ),
         )
 
     def test_form_raises_validation_error_if_int_value_is_not_none_for_double_parametr(self):
@@ -614,12 +617,14 @@ class ParProdFormTest(TestCase):
             "enum_val": None,
         }
         form = ParProdForm(data)
-        expected_error_msg = f"Вещественное значение не входит в границы диапазона(<{self.PARCLASS_DOUBLE_MIN_VALUE}, {self.PARCLASS_DOUBLE_MAX_VALUE}>)"
 
         self.assertFalse(form.is_valid())
         self.assertEqual(
             form.errors["__all__"][0],
-            expected_error_msg,
+            DoubleParErrors.INVALID_RANGE.format(
+                self.PARCLASS_DOUBLE_MIN_VALUE,
+                self.PARCLASS_DOUBLE_MAX_VALUE
+            ),
         )
 
     def test_form_raises_validation_error_if_double_value_was_specified_for_int_enum_parametr(self):

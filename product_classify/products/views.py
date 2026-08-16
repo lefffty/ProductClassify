@@ -20,7 +20,7 @@ from classes.models import (
     ClassStruct,
     ParClass,
 )
-from classes.constants import ProductsConsts
+from classes.constants import ProductsConsts, ENUM_PARAMS, NUMERIC_PARAMS
 from core.mixins import CommonContextMixin
 
 from products.forms import (
@@ -65,20 +65,20 @@ def class_products(
         for par_class in ParClass.objects.filter(
             class_field__exact=class_id,
         ):
-            if (
-                par_class.parametr.name in data
-                and data[par_class.parametr.name] is not None
-            ):
-                if par_class.parametr.parametr_type.id in [15, 16, 18, 19]:
+            param_name = par_class.parametr
+            if param_name in data and data[param_name]:
+                
+                if par_class.parametr.parametr_type.id in ENUM_PARAMS:
                     filter_queries.append(
                         Q(par=par_class.parametr)
-                        & Q(enum_val__exact=data[par_class.parametr.name])
+                        & Q(enum_val__exact=data[param_name])
                     )
-                elif par_class.parametr.parametr_type.id in [27, 28]:
-                    mn_val = data[par_class.parametr.name][0]
-                    mx_val = data[par_class.parametr.name][1]
 
-                    if mn_val is not None and mx_val is not None:
+                elif par_class.parametr.parametr_type.id in NUMERIC_PARAMS:
+                    mn_val = data[param_name][0]
+                    mx_val = data[param_name][1]
+
+                    if mn_val and mx_val:
                         try:
                             if par_class.parametr.parametr_type.id == 27:
                                 mn_val = float(mn_val)
