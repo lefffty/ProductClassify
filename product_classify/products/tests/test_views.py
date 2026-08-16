@@ -662,3 +662,143 @@ class ProductParamDeleteViewTest(TestCase):
     def test_product_param_delete_view_redirects_after_POST_request(self):
         response = self.client.post(self.url)
         self.assertRedirects(response, self.redirect_url)
+
+
+class ProductParamUpdateViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.base_ei = Ei.objects.first()
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.int_enum_par = ClassStruct.objects.get(pk=EnumsIds.INT)
+        cls.int_type_par = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.nuts_subclass = ClassStruct.objects.create(
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=cls.base_ei,
+            main_class=cls.nuts_class,
+        )
+        cls.int_enum_class = ClassStruct.objects.create(
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=cls.base_ei,
+            main_class=cls.int_enum_par
+        )
+        cls.product = Prod.objects.create(
+            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            class_field=cls.nuts_subclass,
+            image=None
+        )
+        cls.par1 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_enum_par,
+            par_ei=cls.base_ei,
+        )
+        cls.par2 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_type_par,
+            par_ei=cls.base_ei,
+        )
+        cls.enum1 = Enums.objects.create(
+            enum=cls.int_enum_class,
+            num=1,
+            name=None,
+            short_name=None,
+            int_value=5,
+            double_value=None,
+            image=None
+        )
+        cls.enum2 = Enums.objects.create(
+            enum=cls.int_enum_class,
+            num=2,
+            name=None,
+            short_name=None,
+            int_value=10,
+            double_value=None,
+            image=None
+        )
+        cls.parclass1 = ParClass.objects.create(
+            class_field=cls.nuts_subclass,
+            parametr=cls.par1,
+            min_value=None,
+            max_value=None,
+            num=1
+        )
+        cls.parclass2 = ParClass.objects.create(
+            class_field=cls.nuts_subclass,
+            parametr=cls.par2,
+            min_value=1,
+            max_value=100,
+            num=1
+        )
+        cls.parprod1 = ParProd.objects.create(
+            prod=cls.product,
+            par=cls.par1,
+            int_value=None,
+            double_value=None,
+            enum_val=cls.enum1  
+        )
+        cls.parprod2 = ParProd.objects.create(
+            prod=cls.product,
+            par=cls.par2,
+            int_value=50,
+            double_value=None,
+            enum_val=None,
+        )
+
+        cls.enum_update_data = {
+            "par": cls.par1.pk,
+            "prod": cls.product.pk,
+            "int_value": "",
+            "double_value": "",
+            "enum_val": cls.enum2.pk,
+        }
+        cls.numeric_update_data = {
+            "par": cls.par2.pk,
+            "prod": cls.product.pk,
+            "int_value": 50,
+            "double_value": "",
+            "enum_val": "",
+        }
+
+        cls.url1 = reverse("products:edit_param", args=[cls.product.pk, cls.par1.pk])
+        cls.url2 = reverse("products:edit_param", args=[cls.product.pk, cls.par2.pk])
+        cls.redirect_url = reverse("products:detail", args=[cls.product.pk])
+
+    def test_product_param_update_view_uses_prodparam_template(self):
+        response = self.client.get(self.url1)
+        self.assertTemplateUsed(response, "products/prodparam.html")
+
+    def test_product_param_update_view_renders_form(self):
+        response = self.client.get(self.url1)
+        self.assertIn("form", response.context)
+
+    def test_product_param_update_view_has_instance_in_context(self):
+        response = self.client.get(self.url1)
+        self.assertIn("instance", response.context)
+
+    def test_product_param_update_view_can_save_a_POST_request_for_enum_parametr(self):
+        self.client.post(self.url1, data=self.enum_update_data)
+        instance = ParProd.objects.first()
+        self.assertEqual(instance.par.pk, self.enum_update_data["par"])
+        self.assertEqual(instance.prod.pk, self.enum_update_data["prod"])
+        self.assertEqual(instance.enum_val.pk, self.enum_update_data["enum_val"])
+        self.assertIsNone(instance.int_value)
+        self.assertIsNone(instance.double_value)
+
+    def test_product_param_update_view_can_save_a_POST_request_for_numeric_parametr(self):
+        self.client.post(self.url2, data=self.numeric_update_data)
+        instance = ParProd.objects.last()
+        self.assertEqual(instance.par.pk, self.numeric_update_data["par"])
+        self.assertEqual(instance.prod.pk, self.numeric_update_data["prod"])
+        self.assertEqual(instance.int_value, self.numeric_update_data["int_value"])
+        self.assertIsNone(instance.enum_val)
+        self.assertIsNone(instance.double_value)
+
+    def test_product_param_update_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url1, data=self.enum_update_data)
+        self.assertRedirects(response, self.redirect_url)
