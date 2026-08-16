@@ -592,3 +592,73 @@ class ProductParamCreateViewTest(TestCase):
             ),
             response.context["form"].non_field_errors()
         )
+
+
+class ProductParamDeleteViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.base_ei = Ei.objects.first()
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.int_enum_par = ClassStruct.objects.get(pk=EnumsIds.INT)
+        cls.nuts_subclass = ClassStruct.objects.create(
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=cls.base_ei,
+            main_class=cls.nuts_class,
+        )
+        cls.int_enum_class = ClassStruct.objects.create(
+            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=cls.base_ei,
+            main_class=cls.int_enum_par
+        )
+        cls.product = Prod.objects.create(
+            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            class_field=cls.nuts_subclass,
+            image=None
+        )
+        cls.par1 = Parametr.objects.create(
+            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            parametr_type=cls.int_enum_par,
+            par_ei=cls.base_ei,
+        )
+        cls.enum1 = Enums.objects.create(
+            enum=cls.int_enum_class,
+            num=1,
+            name=None,
+            short_name=None,
+            int_value=5,
+            double_value=None,
+            image=None
+        )
+        cls.parprod = ParProd.objects.create(
+            prod=cls.product,
+            par=cls.par1,
+            int_value=None,
+            double_value=None,
+            enum_val=cls.enum1  
+        )
+
+        cls.url = reverse("products:delete_param", args=[cls.product.pk, cls.par1.pk])
+        cls.redirect_url = reverse("products:detail", args=[cls.product.pk])
+
+    def test_product_param_delete_view_uses_prodparam_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "products/prodparam.html")
+
+    def test_product_param_delete_view_has_instance_in_context(self):
+        response = self.client.get(self.url)
+        self.assertIn("instance", response.context)
+
+    def test_product_param_delete_view_can_save_a_POST_request(self):
+        self.assertEqual(ParProd.objects.count(), 1)
+        self.client.post(self.url)
+        self.assertEqual(ParProd.objects.count(), 0)
+
+    def test_product_param_delete_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url)
+        self.assertRedirects(response, self.redirect_url)
