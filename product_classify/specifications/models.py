@@ -19,7 +19,7 @@ class ProdComponent(models.Model):
     num = models.SmallIntegerField(
         verbose_name="Позиция дочернего изделия к родительскому"
     )
-    quantity = models.IntegerField(
+    quantity = models.FloatField(
         verbose_name="Количество дочернего изделия"
     )
 
@@ -29,3 +29,34 @@ class ProdComponent(models.Model):
 
     def __str__(self):
         return f"{self.parent_prod.name} - {self.component.name}"
+
+
+class SpecificationLogs(models.Model):
+    pair = models.ForeignKey(
+        ProdComponent,
+        models.DO_NOTHING,
+        blank=False,
+        null=False,
+        verbose_name="Пара <Родительское изделие - Дочернее изделие>"
+    )
+    updated_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата и время внесения изменения",
+    )
+    old_quantity = models.FloatField(
+        blank=False,
+        null=False,
+        verbose_name="Старое количество изделия"
+    )
+    new_quantity = models.FloatField(
+        blank=False,
+        null=False,
+        verbose_name="Новое количество изделия"
+    )
+
+    class Meta:
+        verbose_name = "Запись в истории изменений спецификации изделия"
+        verbose_name_plural = "Запись в истории изменений спецификации изделия"
+
+    def __str__(self):
+        return f"Количество изделия {self.pair.component.name} изменилось с {self.old_quantity} на {self.new_quantity}"
