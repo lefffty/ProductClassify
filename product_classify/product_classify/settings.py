@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "enums.apps.EnumsConfig",
     "parametr.apps.ParametrConfig",
     "agregat.apps.AgregatConfig",
+    "specifications.apps.SpecificationsConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
