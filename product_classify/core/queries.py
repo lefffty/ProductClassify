@@ -216,7 +216,7 @@ class DatabaseFunctions:
     """
 
     DROP_CHECK_CYCLE = "DROP FUNCTION check_class_struct_cycles(integer, integer);"
-    DROP_DELETE_CLASS_AND_DESCENDANTS = ""
-    DROP_FIND_GR_GR = ""
-    DROP_GET_TERMINAL_CLASSES = ""
-    DROP_ADD_PARAMETR_TO_CLASS = ""
+    DROP_DELETE_CLASS_AND_DESCENDANTS = "DROP FUNCTION delete_class_and_descendants(integer);"
+    DROP_FIND_GR_GR = "DROP FUNCTION find_gr_gr(integer);"
+    DROP_GET_TERMINAL_CLASSES = "DROP FUNCTION get_terminal_classes(integer);"
+    DROP_ADD_PARAMETR_TO_CLASS = "DROP FUNCTION add_parametr_to_class(integer, integer, double precision, double precision);"
