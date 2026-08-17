@@ -13,6 +13,7 @@ class ProdAdmin(admin.ModelAdmin):
         "short_name",
         "class_field",
         "display_image",
+        "cost",
     )
     fieldsets = (
         (
@@ -23,6 +24,8 @@ class ProdAdmin(admin.ModelAdmin):
                     "short_name",
                     "class_field",
                     "image",
+                    "cost",
+                    "modification",
                 )
             },
         ),

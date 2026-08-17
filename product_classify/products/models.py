@@ -35,6 +35,17 @@ class Prod(models.Model):
         null=False,
         upload_to="product_images/",
     )
+    cost = models.FloatField(
+        blank=True,
+        null=True,
+        verbose_name="Стоимость изделия"
+    )
+    modification = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         verbose_name = "Изделие"
