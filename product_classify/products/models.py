@@ -5,6 +5,7 @@ from classes.models import ClassStruct, ParClass
 from classes.constants import ParamIds,EnumsIds
 from parametr.models import Parametr
 from enums.models import Enums
+from ei.models import Ei
 
 from products.constants import ProdConsts
 
@@ -44,6 +45,12 @@ class Prod(models.Model):
         "self",
         on_delete=models.SET_NULL,
         blank=True,
+        null=True,
+    )
+    ei = models.ForeignKey(
+        Ei,
+        on_delete=models.SET_NULL,
+        blank=False,
         null=True,
     )
 

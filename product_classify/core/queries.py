@@ -3,6 +3,11 @@ class ClassStructQueries:
     GET_TERMINAL_CLASSES = "SELECT * FROM get_terminal_classes(%s);"
     DELETE_CLASS_AND_DESCENDANTS = "SELECT * FROM delete_class_and_descendants(%s);"
     CHECK_CYCLE = "SELECT * FROM check_class_struct_cycles(%s, %s);"
+    IS_PARENT_PROD = "SELECT * FROM is_parent_prod(%s);"
+    TOTAL_COST_RATIO = "SELECT * FROM total_cost_ratio(%s, %s);"
+    GET_CHANGE_LOG = "SELECT * FROM get_changelog(%s);"
+    CREATE_SPECIFICATION = "SELECT * FROM create_specification(%s, %s, %s);"
+    PRODUCT_SPECIFICATION = "SELECT * FROM product_specification(%s);"
 
 
 class DatabaseFunctions:
@@ -214,9 +219,268 @@ class DatabaseFunctions:
             END;
         $$;
     """
+    IS_PARENT_PROD = """
+        CREATE OR REPLACE FUNCTION is_parent_prod(product_id integer) RETURNS INTEGER
+            LANGUAGE plpgsql
+        AS
+        $$
+        BEGIN
+            IF EXISTS(SELECT 1 FROM specifications_prodcomponent sp WHERE sp.parent_prod_id = PRODUCT_ID) THEN
+                RETURN 1;
+            ELSE
+                RETURN 0;
+            END IF;
+        END;
+        $$;
+    """
+    TOTAL_COST_RATIO = """
+        CREATE OR REPLACE FUNCTION total_cost_ratio(root_prod integer, num_of_products double precision)
+            RETURNS TABLE(
+                parent_id bigint,
+                parent_prod_name character varying,
+                child_id bigint,
+                child_prod_name character varying,
+                quantity double precision,
+                ei_short_name character varying,
+                total_cost double precision,
+                level integer
+            )
+            LANGUAGE plpgsql
+        as
+        $$
+        BEGIN
+            RETURN QUERY
+                WITH RECURSIVE r AS (
+                    SELECT
+                        pc.id AS pair_id,
+                        pc.parent_prod_id AS parent_id,
+                        pc.component_id AS child_id,
+                        pc.num AS prod_num,
+                        pc.quantity AS quantity,
+                        1 AS level
+                    FROM specifications_prodcomponent pc
+                    WHERE pc.parent_prod_id = ROOT_PROD
+
+                    UNION
+
+                    SELECT
+                        pc2.id AS pair_id,
+                        pc2.parent_prod_id AS parent_id,
+                        pc2.component_id AS child_id,
+                        pc2.num AS prod_num,
+                        pc2.quantity AS quantity,
+                        r.LEVEL + 1 AS level
+                    FROM specifications_prodcomponent pc2
+                            JOIN r ON pc2.parent_prod_id = r.child_id
+                    WHERE pc2.num = r.prod_num
+                ),
+                grouped_r as (
+                SELECT
+                    r.parent_id AS gr_parent_id,
+                    r.child_id AS gr_child_id,
+                    r.level AS gr_level,
+                    AVG(r.quantity) as gr_quantity
+                FROM r
+                GROUP BY r.parent_id, r.child_id, r.level
+                )
+                SELECT
+                    parent_prod.id AS parent_id,
+                    parent_prod."name" AS parent_prod_name,
+                    child_prod.id AS child_id,
+                    child_prod."name" AS child_prod_name,
+                    grouped_r.gr_quantity AS quantity,
+                    e.short_name AS ei_short_name,
+                    ROUND((child_prod.cost * grouped_r.gr_quantity * NUM_OF_PRODUCTS)::NUMERIC, 2)::DOUBLE PRECISION AS total_cost,
+                    grouped_r.gr_level AS level
+                FROM grouped_r
+                JOIN products_prod parent_prod ON grouped_r.gr_parent_id = parent_prod.id
+                JOIN products_prod child_prod ON grouped_r.gr_child_id = child_prod.id
+                JOIN ei_ei e ON child_prod.ei_id = e.id
+                ORDER BY grouped_r.gr_level;
+        END;
+        $$;
+    """
+    GET_CHANGE_LOG = """
+        CREATE OR REPLACE FUNCTION get_changelog(target_product_id integer)
+            returns table(
+                log_id bigint,
+                parent_id bigint,
+                comp_id bigint,
+                updated_at timestamp with time zone,
+                log_string text
+            )
+            language plpgsql
+        as
+        $$
+        BEGIN
+            RETURN QUERY
+                WITH RECURSIVE component_tree AS (
+                    SELECT
+                        id AS pair_id,
+                        parent_prod_id,
+                        component_id,
+                        quantity,
+                        1 as level,
+                        num,
+                        ARRAY[parent_prod_id] as path,
+                        parent_prod_id::text || '->' || component_id::text as relation_path
+                    FROM specifications_prodcomponent
+                    WHERE parent_prod_id = TARGET_PRODUCT_ID
+
+                    UNION ALL
+
+                    SELECT
+                        pc.id,
+                        pc.parent_prod_id,
+                        pc.component_id,
+                        pc.quantity,
+                        ct.level + 1 as level,
+                        ct.num,
+                        ct.path || pc.parent_prod_id,
+                        ct.relation_path || '->' || pc.component_id::text
+                    FROM component_tree ct
+                    INNER JOIN specifications_prodcomponent pc ON pc.parent_prod_id = ct.component_id
+                    WHERE NOT (pc.component_id = ANY(ct.path)) AND ct.num  = pc.num
+                ), pairs AS (
+                    SELECT
+                        pair_id
+                    FROM component_tree
+                    GROUP BY pair_id
+                )
+                SELECT
+                    sl.id,
+                    pc.parent_prod_id,
+                    pc.component_id,
+                    sl.updated_at,
+                    'Количество изделия "' || p2.name || '" для изделия "' || p3.name || '" изменилось с ' || sl.old_quantity || ' на ' || sl.new_quantity
+                FROM specifications_specificationlogs sl
+                JOIN specifications_prodcomponent pc ON sl.pair_id = pc.id
+                JOIN products_prod p2 ON pc.component_id = p2.id
+                JOIN products_prod p3 ON pc.parent_prod_id = p3.id
+                WHERE sl.pair_id IN (SELECT pair_id FROM pairs);
+        END;
+        $$;
+    """
+    CREATE_SPECIFICATION = """
+        CREATE OR REPLACE FUNCTION create_specification(base_product_id integer, modified_product_name character varying, modified_product_short_name character varying) returns bigint
+            language plpgsql
+        as
+        $$
+        DECLARE
+            MOD_CLASS_ID bigint;
+            MOD_COST DOUBLE PRECISION;
+            MOD_EI bigint;
+            MOD_POSITION INTEGER;
+            MOD_IMAGE VARCHAR;
+            COMPONENT_REC RECORD;
+            new_prod_id bigint;
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM products_prod WHERE id = BASE_PRODUCT_ID) THEN
+                RAISE EXCEPTION 'Error product_id: %', BASE_PRODUCT_ID;
+            END IF;
+
+            SELECT count(*) + 1 INTO MOD_POSITION
+            FROM products_prod
+            WHERE modification_id = BASE_PRODUCT_ID;
+
+            SELECT class_field_id, IMAGE, COST, ei_id
+            INTO MOD_CLASS_ID, MOD_IMAGE, MOD_COST, MOD_EI
+            FROM products_prod
+            WHERE id = BASE_PRODUCT_ID;
+
+            INSERT INTO products_prod
+            VALUES (default, MODIFIED_PRODUCT_SHORT_NAME, MODIFIED_PRODUCT_NAME, MOD_IMAGE, MOD_CLASS_ID, MOD_COST, BASE_PRODUCT_ID, MOD_EI)
+            RETURNING id INTO new_prod_id;
+
+            FOR COMPONENT_REC IN
+                WITH RECURSIVE component_tree AS (
+                    SELECT
+                        new_prod_id as parent_prod,
+                        component_id,
+                        quantity,
+                        1 as level,
+                        ARRAY[parent_prod_id] as path,
+                        parent_prod_id::text || '->' || component_id::text as relation_path
+                    FROM specifications_prodcomponent
+                    WHERE parent_prod_id = BASE_PRODUCT_ID
+
+                    UNION ALL
+
+                    SELECT
+                        pc.parent_prod_id as parent_prod,
+                        pc.component_id,
+                        pc.quantity,
+                        ct.level + 1 as level,
+                        ct.path || pc.parent_prod_id,
+                        ct.relation_path || '->' || pc.component_id::text
+                    FROM component_tree ct
+                            INNER JOIN specifications_prodcomponent pc ON pc.parent_prod_id = ct.component_id
+                    WHERE NOT (pc.component_id = ANY(ct.path))
+                )
+                SELECT
+                    level,
+                    parent_prod,
+                    component_id,
+                    SUM(quantity) / COUNT(*) as quantity
+                FROM component_tree
+                GROUP BY parent_prod, component_id, level
+                ORDER BY level, parent_prod, component_id
+                LOOP
+                    INSERT INTO specifications_prodcomponent
+                    VALUES (default, MOD_POSITION, COMPONENT_REC.quantity, COMPONENT_REC.component_id, COMPONENT_REC.parent_prod);
+                END LOOP;
+            RETURN new_prod_id;
+        END;
+        $$;
+    """
+    PRODUCT_SPECIFICATION = """
+        CREATE OR REPLACE FUNCTION product_specification(root_prod integer)
+            returns TABLE(
+                pair_id bigint,
+                parent_id bigint,
+                child_id bigint,
+                prod_num smallint,
+                quantity double precision
+            )
+            language plpgsql
+        as
+        $$
+        BEGIN
+            RETURN QUERY
+                WITH RECURSIVE r AS (
+                    SELECT
+                        pc.id AS pair_id,
+                        pc.parent_prod_id AS parent_id,
+                        pc.component_id AS child_id,
+                        pc.num as prod_num,
+                        pc.quantity AS quantity
+                    FROM specifications_prodcomponent pc
+                    WHERE pc.parent_prod_id = ROOT_PROD
+
+                    UNION
+
+                    SELECT
+                        pc2.id AS pair_id,
+                        pc2.parent_prod_id AS parent_id,
+                        pc2.component_id AS child_id,
+                        pc2.num as prod_num,
+                        pc2.quantity AS quantity
+                    FROM specifications_prodcomponent pc2
+                            JOIN r ON pc2.parent_prod_id = r.child_id
+                    WHERE pc2.num = r.prod_num
+                )
+                SELECT * FROM r;
+        END;
+        $$;
+    """
 
     DROP_CHECK_CYCLE = "DROP FUNCTION check_class_struct_cycles(integer, integer);"
     DROP_DELETE_CLASS_AND_DESCENDANTS = "DROP FUNCTION delete_class_and_descendants(integer);"
     DROP_FIND_GR_GR = "DROP FUNCTION find_gr_gr(integer);"
     DROP_GET_TERMINAL_CLASSES = "DROP FUNCTION get_terminal_classes(integer);"
     DROP_ADD_PARAMETR_TO_CLASS = "DROP FUNCTION add_parametr_to_class(integer, integer, double precision, double precision);"
+    DROP_IS_PARENT_PROD = "DROP FUNCTION is_parent_prod(integer);"
+    DROP_TOTAL_COST_RATIO = "DROP FUNCTION total_cost_ratio(root_prod integer, num_of_products double precision);"
+    DROP_GET_CHANGE_LOG = "DROP FUNCTION get_changelog(target_product_id integer);"
+    DROP_CREATE_SPECIFICATION = "DROP FUNCTION create_specification(base_product_id integer, modified_product_name character varying, modified_product_short_name character varying);"
+    DROP_PRODUCT_SPECIFICATION = "DROP FUNCTION product_specification(root_prod integer);"
