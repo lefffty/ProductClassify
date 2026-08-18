@@ -3,12 +3,17 @@ from django.test import TestCase
 from django.db import IntegrityError
 from django.core.files.uploadedfile import SimpleUploadedFile
 
+from faker import Faker
+
 from ei.models import Ei
 from enums.models import Enums
 from parametr.models import Parametr
 from classes.models import ClassStruct, ParClass
 from classes.constants import ParamIds, ProductsConsts, EnumsIds
 
+from specifications.models import ProdComponent
+
+from products.constants import ProdConsts
 from products.models import Prod, ParProd
 
 
@@ -21,63 +26,89 @@ class ProdModelTest(TestCase):
             base_ei=None,
             main_class=None,
         )
-
-    def test_create_with_minimal_requirements(self):
-        image = SimpleUploadedFile(
+        cls.image = SimpleUploadedFile(
             "test.jpg",
             b"content",
             content_type="image/jpeg",
         )
+
+    def test_create_with_minimal_requirements(self):
         prod = Prod.objects.create(
             name="test",
             short_name="test",
             class_field=self.main_class,
-            image=image,
+            image=self.image,
         )
         self.assertIsNotNone(prod.pk)
 
     def test_string_representation(self):
-        image = SimpleUploadedFile(
-            "test.jpg",
-            b"content",
-            content_type="image/jpeg",
-        )
         prod = Prod(
             name="test",
             short_name="test",
             class_field=self.main_class,
-            image=image,
+            image=self.image,
         )
         self.assertEqual(str(prod), "test")
 
     def test_image_field_path(self):
-        image = SimpleUploadedFile(
-            "test.jpg",
-            b"content",
-            content_type="image/jpeg",
-        )
         prod = Prod.objects.create(
             name="test",
             short_name="test",
             class_field=self.main_class,
-            image=image,
+            image=self.image,
         )
         self.assertTrue(prod.image.name.startswith("product_images/"))
 
     def test_class_field_relation(self):
-        image = SimpleUploadedFile(
-            "test.jpg",
-            b"content",
-            content_type="image/jpeg",
-        )
         prod = Prod.objects.create(
             name="test",
             short_name="test",
             class_field=self.main_class,
-            image=image,
+            image=self.image,
         )
         self.assertEqual(prod.class_field, self.main_class)
         self.assertIn(prod, self.main_class.class_products.all())
+
+    def test_create_modification(self):
+        fake = Faker()
+        ei = Ei.objects.first()
+        prod_name = fake.name()[:ProdConsts.NAME_MAX_LENGTH]
+        prod_short_name = fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
+        prod = Prod.objects.create(
+            name=prod_name,
+            short_name=prod_short_name,
+            class_field=self.main_class,
+            image=self.image,
+            cost=800,
+            ei=ei,
+            modification=None
+        )
+        component_prod = Prod.objects.create(
+            name=fake.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            class_field=self.main_class,
+            image=self.image,
+            cost=800,
+            ei=ei,
+            modification=None
+        )
+        ProdComponent.objects.create(
+            parent_prod=prod,
+            component=component_prod,
+            num=1,
+            quantity=400,
+        )
+        mod_name = fake.name()[:ProdConsts.NAME_MAX_LENGTH]
+        mod_short_name = fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
+        data = Prod.create_modification(prod.pk, mod_name, mod_short_name)
+        modification = Prod.objects.get(pk=data.modification_id)
+        self.assertEqual(modification.modification.pk, prod.pk)
+        self.assertEqual(modification.image, prod.image)
+        self.assertEqual(modification.cost, prod.cost)
+        self.assertEqual(modification.ei, prod.ei)
+        self.assertEqual(modification.name, mod_name)
+        self.assertEqual(modification.short_name, mod_short_name)
+        self.assertEqual(ProdComponent.objects.filter(parent_prod=modification.pk).count(), 1)
 
 
 class ParProdModelTest(TestCase):

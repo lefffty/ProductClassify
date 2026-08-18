@@ -3,11 +3,20 @@ class ClassStructQueries:
     GET_TERMINAL_CLASSES = "SELECT * FROM get_terminal_classes(%s);"
     DELETE_CLASS_AND_DESCENDANTS = "SELECT * FROM delete_class_and_descendants(%s);"
     CHECK_CYCLE = "SELECT * FROM check_class_struct_cycles(%s, %s);"
+
+
+class ProdQueries:
+    CREATE_MODIFICATION = "SELECT * FROM create_modification(%s, %s, %s);"
+
+
+class ProdComponentQueries:
     IS_PARENT_PROD = "SELECT * FROM is_parent_prod(%s);"
     TOTAL_COST_RATIO = "SELECT * FROM total_cost_ratio(%s, %s);"
-    GET_CHANGE_LOG = "SELECT * FROM get_changelog(%s);"
-    CREATE_SPECIFICATION = "SELECT * FROM create_specification(%s, %s, %s);"
     PRODUCT_SPECIFICATION = "SELECT * FROM product_specification(%s);"
+
+
+class SpecificationLogsQueries:
+    GET_CHANGE_LOG = "SELECT * FROM get_changelog(%s);"
 
 
 class DatabaseFunctions:
@@ -361,8 +370,8 @@ class DatabaseFunctions:
         END;
         $$;
     """
-    CREATE_SPECIFICATION = """
-        CREATE OR REPLACE FUNCTION create_specification(base_product_id integer, modified_product_name character varying, modified_product_short_name character varying) returns bigint
+    CREATE_MODIFICATION = """
+        CREATE OR REPLACE FUNCTION create_modification(base_product_id integer, modified_product_name character varying, modified_product_short_name character varying) returns bigint
             language plpgsql
         as
         $$
@@ -388,8 +397,8 @@ class DatabaseFunctions:
             FROM products_prod
             WHERE id = BASE_PRODUCT_ID;
 
-            INSERT INTO products_prod
-            VALUES (default, MODIFIED_PRODUCT_SHORT_NAME, MODIFIED_PRODUCT_NAME, MOD_IMAGE, MOD_CLASS_ID, MOD_COST, BASE_PRODUCT_ID, MOD_EI)
+            INSERT INTO products_prod(id, name, short_name, image, class_field_id, cost, modification_id, ei_id)
+            VALUES (default, MODIFIED_PRODUCT_NAME, MODIFIED_PRODUCT_SHORT_NAME, MOD_IMAGE, MOD_CLASS_ID, MOD_COST, BASE_PRODUCT_ID, MOD_EI)
             RETURNING id INTO new_prod_id;
 
             FOR COMPONENT_REC IN
@@ -482,5 +491,5 @@ class DatabaseFunctions:
     DROP_IS_PARENT_PROD = "DROP FUNCTION is_parent_prod(integer);"
     DROP_TOTAL_COST_RATIO = "DROP FUNCTION total_cost_ratio(root_prod integer, num_of_products double precision);"
     DROP_GET_CHANGE_LOG = "DROP FUNCTION get_changelog(target_product_id integer);"
-    DROP_CREATE_SPECIFICATION = "DROP FUNCTION create_specification(base_product_id integer, modified_product_name character varying, modified_product_short_name character varying);"
+    DROP_CREATE_MODIFICATION = "DROP FUNCTION create_modification(base_product_id integer, modified_product_name character varying, modified_product_short_name character varying);"
     DROP_PRODUCT_SPECIFICATION = "DROP FUNCTION product_specification(root_prod integer);"

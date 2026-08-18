@@ -1,8 +1,46 @@
 from django.db import models, connection
 
-from core.queries import DatabaseFunctions
+from collections import namedtuple
+from typing import List
+
+from core.queries import ProdComponentQueries, SpecificationLogsQueries
 
 from products.models import Prod
+
+
+TotalCostRatioResult = namedtuple(
+    "TotalCostRatioResult",
+    field_names=[
+        "parent_id",
+        "parent_prod_name",
+        "child_id",
+        "child_prod_name",
+        "quantity",
+        "ei_short_name",
+        "total_cost",
+        "level"
+    ],
+)
+SpecificationRecordResult = namedtuple(
+    "SpecificationRecordResult",
+    field_names=[
+        "pair_id",
+        "parent_id",
+        "child_id",
+        "prod_num",
+        "quantity",
+    ]
+)
+SpecificationLogResult = namedtuple(
+    "SpecificationLogResult",
+    field_names=[
+        "log_id",
+        "parent_id",
+        "comp_id",
+        "updated_at",
+        "log_string",
+    ]
+)
 
 
 class ProdComponent(models.Model):
@@ -33,34 +71,34 @@ class ProdComponent(models.Model):
         return f"{self.parent_prod.name} - {self.component.name}"
 
     @classmethod
-    def is_parent_prod(cls, product_id: int):
+    def is_parent_prod(cls, product_id: int) -> int:
         with connection.cursor() as cursor:
             cursor.execute(
-                DatabaseFunctions.IS_PARENT_PROD,
+                ProdComponentQueries.IS_PARENT_PROD,
                 params=[product_id]
             )
             is_parent = cursor.fetchone()[0]
         return is_parent
 
     @classmethod
-    def total_cost_ratio(cls, product_id: int, number_of_products: int):
+    def total_cost_ratio(cls, product_id: int, number_of_products: int) -> List[TotalCostRatioResult]:
         with connection.cursor() as cursor:
             cursor.execute(
-                DatabaseFunctions.TOTAL_COST_RATIO,
+                ProdComponentQueries.TOTAL_COST_RATIO,
                 params=[product_id, number_of_products]
             )
-            results = cursor.fetchall()
-        return results
+            rows = cursor.fetchall()
+        return [TotalCostRatioResult(*row) for row in rows]
 
     @classmethod
-    def product_specification(cls, product_id: int):
+    def product_specification(cls, product_id: int) -> List[SpecificationRecordResult]:
         with connection.cursor() as cursor:
             cursor.execute(
-                DatabaseFunctions.PRODUCT_SPECIFICATION,
+                ProdComponentQueries.PRODUCT_SPECIFICATION,
                 params=[product_id]
             )
-            results = cursor.fetchall()
-        return results
+            rows = cursor.fetchall()
+        return [SpecificationRecordResult(*row) for row in rows]
 
 
 class SpecificationLogs(models.Model):
@@ -94,11 +132,11 @@ class SpecificationLogs(models.Model):
         return f"Количество изделия {self.pair.component.name} изменилось с {self.old_quantity} на {self.new_quantity}"
 
     @classmethod
-    def get_changelog(cls, product_id: int):
+    def get_changelog(cls, product_id: int) -> List[SpecificationLogResult]:
         with connection.cursor() as cursor:
             cursor.execute(
-                DatabaseFunctions.GET_CHANGE_LOG,
+                SpecificationLogsQueries.GET_CHANGE_LOG,
                 params=[product_id]
             )
-            results = cursor.fetchall()
-        return results
+            rows = cursor.fetchall()
+        return [SpecificationLogResult(*row) for row in rows]

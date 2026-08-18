@@ -1,14 +1,22 @@
 from django.core.exceptions import ValidationError
 from django.db import models, connection
 
+from collections import namedtuple
+
 from classes.models import ClassStruct, ParClass
 from classes.constants import ParamIds,EnumsIds
 from parametr.models import Parametr
-from core.queries import DatabaseFunctions
+from core.queries import ProdQueries
 from enums.models import Enums
 from ei.models import Ei
-
 from products.constants import ProdConsts
+
+ModificationResult = namedtuple(
+    "ModificationResult",
+    field_names=[
+        "modification_id"
+    ]
+)
 
 
 class Prod(models.Model):
@@ -63,14 +71,15 @@ class Prod(models.Model):
         return self.name
 
     @classmethod
-    def create_modification(self, product_id: int, name: str, short_name: str):
+    def create_modification(self, product_id: int, name: str, short_name: str) -> ModificationResult:
         with connection.cursor() as cursor:
+            params = [product_id, name, short_name]
             cursor.execute(
-                DatabaseFunctions.CREATE_SPECIFICATION,
-                params=[product_id, name, short_name]
+                ProdQueries.CREATE_MODIFICATION,
+                params=params
             )
-            modification_id = cursor.fetchall()[0]
-        return modification_id
+            row = cursor.fetchall()[0]
+        return ModificationResult(*row)
 
 
 class ParProd(models.Model):

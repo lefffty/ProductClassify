@@ -25,8 +25,8 @@ class Migration(migrations.Migration):
             reverse_sql=DatabaseFunctions.DROP_GET_CHANGE_LOG,
         ),
         migrations.RunSQL(
-            sql=DatabaseFunctions.CREATE_SPECIFICATION,
-            reverse_sql=DatabaseFunctions.DROP_CREATE_SPECIFICATION,
+            sql=DatabaseFunctions.CREATE_MODIFICATION,
+            reverse_sql=DatabaseFunctions.DROP_CREATE_MODIFICATION,
         ),
         migrations.RunSQL(
             sql=DatabaseFunctions.PRODUCT_SPECIFICATION,
