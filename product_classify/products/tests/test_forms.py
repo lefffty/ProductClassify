@@ -4,15 +4,17 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from PIL import Image
 from io import BytesIO
+from faker import Faker
 
 from classes.models import ClassStruct, ParClass
 from classes.constants import ProductsConsts, EnumsIds, ParamIds
 from parametr.models import Parametr
 from enums.models import Enums
 
+from products.constants import ProdConsts
 from products.models import Prod, ParProd
-from products.forms import ProdForm, ParProdForm
-from products.errors import IntParErrors, DoubleParErrors
+from products.forms import ProdForm, ParProdForm, ModificationForm
+from products.errors import IntParErrors, DoubleParErrors, ProdErrors
 
 
 def create_image(extension: str = "jpg"):
@@ -785,4 +787,31 @@ class ParProdFormTest(TestCase):
         self.assertEqual(
             form.errors["par"],
             expected_error_msg
+        )
+
+
+class ModificationFormTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.fake = Faker()
+
+        cls.valid_data = {
+            "name": cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
+            "short_name": cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
+        }
+        cls.empty_name_data = {
+            "name": "",
+            "short_name": cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
+        }
+
+    def test_modification_form_is_valid(self):
+        form = ModificationForm(self.valid_data)
+        self.assertTrue(form.is_valid())
+
+    def test_empty_name_raises_validation_error(self):
+        form = ModificationForm(self.empty_name_data)
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            form.errors["name"],
+            [ProdErrors.EMPTY_NAME_FIELD]
         )

@@ -1,6 +1,4 @@
-from django.shortcuts import (
-    render,
-)
+from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.http import (
     HttpRequest,
@@ -8,6 +6,7 @@ from django.http import (
 )
 from django.db.models import Q
 from django.views.generic import (
+    FormView,
     DetailView,
     CreateView,
     UpdateView,
@@ -27,6 +26,7 @@ from products.forms import (
     ProdForm,
     ParProdForm,
     SearchForm,
+    ModificationForm,
 )
 from products.models import (
     Prod,
@@ -274,3 +274,26 @@ class ProductParamCreateView(
         product = Prod.objects.get(pk=prod_id)
         context["instance"] = product
         return context
+
+
+class ModificationCreateView(
+    CommonContextMixin,
+    FormView
+):
+    template_name = "products/modification.html"
+    form_class = ModificationForm
+
+    def form_valid(self, form: ModificationForm):
+        cleaned_data = form.cleaned_data
+        name = cleaned_data.get("name")
+        short_name = cleaned_data.get("short_name")
+        modification = Prod.create_modification(
+            self.kwargs.get("product_id"),
+            name,
+            short_name
+        )
+        modification_id = modification.modification_id
+        return redirect(
+            "products:detail",
+            product_id=modification_id
+        )

@@ -44,4 +44,9 @@ urlpatterns = [
         views.ProductParamCreateView.as_view(),
         name="add_param",
     ),
+    path(
+        "<int:product_id>/create_modification/",
+        views.ModificationCreateView.as_view(),
+        name="create_modification",
+    ),
 ]

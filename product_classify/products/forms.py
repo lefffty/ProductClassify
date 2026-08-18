@@ -271,3 +271,19 @@ class SearchForm(Form):
                     label=par_class.parametr.name,
                     required=False,
                 )
+
+
+class ModificationForm(Form):
+    name = CharField(
+        label="Название модификации",
+        max_length=ProdConsts.NAME_MAX_LENGTH,
+        required=True,
+        error_messages={
+            "required": ProdErrors.EMPTY_NAME_FIELD
+        },
+    )
+    short_name = CharField(
+        label="Сокращенное название модификации",
+        max_length=ProdConsts.SHORT_NAME_MAX_LENGTH,
+        required=False,
+    )

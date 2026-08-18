@@ -17,6 +17,8 @@ from enums.models import Enums
 
 from ei.models import Ei
 
+from specifications.models import ProdComponent
+
 from products.constants import ProdConsts
 from products.models import Prod, ParProd
 from products.errors import ProdErrors, CommonParProdErrors, EnumsParErrors, IntParErrors, DoubleParErrors
@@ -802,3 +804,99 @@ class ProductParamUpdateViewTest(TestCase):
     def test_product_param_update_view_redirects_after_POST_request(self):
         response = self.client.post(self.url1, data=self.enum_update_data)
         self.assertRedirects(response, self.redirect_url)
+
+
+class ModificationCreateViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        fake = Faker()
+
+        nuts_name = fake.name()[:ClassStructConsts.NAME_MAX_LENGTH]
+        nuts_short_name = fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
+        cls.ei = Ei.objects.first()
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.nuts_subclass = ClassStruct.objects.create(
+            name=nuts_name,
+            short_name=nuts_short_name,
+            main_class=cls.nuts_class,
+            base_ei=cls.ei,
+        )
+        cls.image = SimpleUploadedFile(
+            "test.jpg",
+            b"content",
+            content_type="image/jpeg",
+        )
+        prod_name = fake.name()[:ProdConsts.NAME_MAX_LENGTH]
+        prod_short_name = fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
+        cls.prod = Prod.objects.create(
+            name=prod_name,
+            short_name=prod_short_name,
+            class_field=cls.nuts_subclass,
+            image=cls.image,
+            cost=800,
+            ei=cls.ei,
+            modification=None
+        )
+        cls.component_prod = Prod.objects.create(
+            name=fake.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            class_field=cls.nuts_subclass,
+            image=cls.image,
+            cost=800,
+            ei=cls.ei,
+            modification=None
+        )
+        cls.prodcomponent = ProdComponent.objects.create(
+            parent_prod=cls.prod,
+            component=cls.component_prod,
+            num=1,
+            quantity=400,
+        )
+
+        mod_name = fake.name()[:ProdConsts.NAME_MAX_LENGTH]
+        mod_short_name = fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
+
+        cls.valid_data = {
+            "name": mod_name,
+            "short_name": mod_short_name,
+        }
+        cls.invalid_data = {
+            "name": "",
+            "short_name": mod_short_name,
+        }
+
+        cls.url = reverse("products:create_modification", args=[cls.prod.pk])
+
+    def test_create_modification_view_uses_modification_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "products/modification.html")
+
+    def test_create_modification_view_has_fastener_classes_in_context(self):
+        response = self.client.get(self.url)
+        self.assertIn("fastener_classes", response.context)
+
+    def test_create_modification_view_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_create_modification_view_can_save_a_POST_request(self):
+        self.client.post(self.url, data=self.valid_data)
+        prod = Prod.objects.last()
+        self.assertEqual(prod.name, self.valid_data["name"])
+        self.assertEqual(prod.short_name, self.valid_data["short_name"])
+        self.assertEqual(prod.cost, self.prod.cost)
+        self.assertEqual(prod.image, self.prod.image)
+        self.assertEqual(prod.ei, self.prod.ei)
+        self.assertEqual(prod.modification.pk, self.prod.pk)
+        self.assertEqual(prod.class_field, self.prod.class_field)
+        self.assertEqual(ProdComponent.objects.filter(parent_prod=prod.pk).count(), 1)
+
+    def test_create_modification_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url, data=self.valid_data)
+        modification = Prod.objects.last()
+        redirect_url = reverse("products:detail", args=[modification.pk])
+        self.assertRedirects(response, redirect_url)
+
+    def test_empty_name_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.invalid_data)
+        self.assertContains(response, ProdErrors.EMPTY_NAME_FIELD)
