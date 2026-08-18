@@ -79,6 +79,9 @@
             Рассчитать норму расхода
         </button>
     </form>
+    <form action="{% url 'specifications:changelog' product.id %}" method="get" style="display: inline;">
+        <button type="submit" class="btn btn-primary">Скачать журнал изменений</button>
+    </form>
 </p>
 </div>
 </div>

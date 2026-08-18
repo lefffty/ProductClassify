@@ -196,7 +196,7 @@ def create_change_log_pdf(results: List[SpecificationLogResult]) -> BytesIO:
 
     doc = SimpleDocTemplate(
         buffer,
-        pagesize=A4,
+        pagesize=landscape(A4),
         rightMargin=ChangeLogConsts.LEFT_MARGIN,
         leftMargin=ChangeLogConsts.LEFT_MARGIN,
         topMargin=ChangeLogConsts.TOP_MARGIN,
@@ -235,8 +235,8 @@ def create_change_log_pdf(results: List[SpecificationLogResult]) -> BytesIO:
     for result in results:
         processed_row = list(result)
 
-        for i, _ in enumerate(processed_row):
-            if i == 3:
+        for i, value in enumerate(processed_row):
+            if isinstance(value, str) and value.strip():
                 processed_row[i] = to_paragraph(processed_row[i])
 
         story.append(processed_row)
@@ -254,7 +254,7 @@ def create_change_log_pdf(results: List[SpecificationLogResult]) -> BytesIO:
 
         ('ALIGN', (0, 1), (0, -1), 'CENTER'),
         ('ALIGN', (1, 1), (1, -1), 'LEFT'),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTNAME', (0, 1), (-1, -1), font_name),
         ('FONTSIZE', (0, 1), (-1, -1), 9),
         ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
         ('TOPPADDING', (0, 1), (-1, -1), 8),

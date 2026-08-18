@@ -31,21 +31,21 @@ class TotalCostRatioConsts:
 
 
 class ChangeLogConsts:
-    RIGHT_MARGIN = 40
-    LEFT_MARGIN = 40
-    TOP_MARGIN = 40
-    BOTTOM_MARGIN = 40
+    RIGHT_MARGIN = 30
+    LEFT_MARGIN = 30
+    TOP_MARGIN = 30
+    BOTTOM_MARGIN = 30
     NORMAL_FONTSIZE = 8
     NORMAL_LEADING = 10
     TITLE_FONTSIZE = 20
     TITLE_ALIGNMENT = 1
     TITLE_SPACEAFTER = 20
     COL_WIDTHS = [
-        80,
-        80,
-        80,
-        80,
-        340
+        60,
+        60,
+        60,
+        180,
+        430
     ]
     DATE_FONTSIZE = 8
     DATE_ALIGNMENT = 2
