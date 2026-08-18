@@ -81,11 +81,11 @@ class ProdComponent(models.Model):
         return is_parent
 
     @classmethod
-    def total_cost_ratio(cls, product_id: int, number_of_products: int) -> List[TotalCostRatioResult]:
+    def total_cost_ratio(cls, product_id: int, quantity: int) -> List[TotalCostRatioResult]:
         with connection.cursor() as cursor:
             cursor.execute(
                 ProdComponentQueries.TOTAL_COST_RATIO,
-                params=[product_id, number_of_products]
+                params=[product_id, quantity]
             )
             rows = cursor.fetchall()
         return [TotalCostRatioResult(*row) for row in rows]

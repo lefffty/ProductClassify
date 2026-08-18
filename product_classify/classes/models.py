@@ -127,7 +127,7 @@ class ClassStruct(models.Model):
         return data
 
     @classmethod
-    def check_class_struct_cycles(self, cls_id: int, main_cls_id: int):
+    def check_class_struct_cycles(self, cls_id: int, main_cls_id: int) -> int:
         with connection.cursor() as cursor:
             cursor.execute(
                 ClassStructQueries.CHECK_CYCLE,

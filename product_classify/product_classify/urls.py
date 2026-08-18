@@ -28,6 +28,7 @@ urlpatterns = [
     path("parametrs/", include("parametr.urls")),
     path("agregat/", include("agregat.urls")),
     path("enums/", include("enums.urls")),
+    path("specifications/", include("specifications.urls")),
 ]
 
 if settings.DEBUG:

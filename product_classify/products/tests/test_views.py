@@ -8,7 +8,7 @@ from PIL import Image
 from io import BytesIO
 
 from classes.models import ClassStruct, ParClass
-from classes.constants import ProductsConsts, ClassStructConsts, ParamIds, EnumsIds
+from classes.constants import ProductsConsts, ClassStructConsts, ParamIds, EnumsIds, ProdClassConsts
 
 from parametr.models import Parametr
 from parametr.constants import ParametrConsts
@@ -29,8 +29,14 @@ class ProductDetailViewTest(TestCase):
     def setUpTestData(cls):
         cls.fake = Faker()
 
-        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.ei = Ei.objects.first()
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.nuts_subclass = ClassStruct.objects.create(
+            name=cls.fake.name()[:ProdClassConsts.NAME_MAX_LENGTH],
+            short_name=cls.fake.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.nuts_class,
+            base_ei=cls.ei
+        )
         cls.int_params = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.prod_class = ClassStruct.objects.create(
             name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
