@@ -1,50 +1,89 @@
 {% extends "base.html" %}
 
 {% block title %}
-Подробное описание агрегата
+    {{ agregat.name }}
 {% endblock title %}
 
 {% block content %}
-<div>
-    <div>
-        <div class="form-container rounded-box">
-            <h1>
-                <a href="{% url "agregat:list" %}">
-                    Агрегаты
-                </a>
-            </h1>
-            <p>Название агрегата: {{ agregat.name }}</p>
-            <p>
-                Параметры, относящиеся к агрегату: 
-            </p>
-            {% for parametr in agr_parametrs %}
-                <ul>
-                    <p>
-                        <li>
-                            {{ parametr.par.name }}
-                        </li>
-                        <button class="submit-btn">
-                            <a href="{% url "agregat:delete" agregat.id parametr.par.id %}">
-                                Удалить параметр агрегата
-                            </a>    
-                        </button>
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="h3 mb-2">
+                        <i class="bi bi-diagram-3"></i> {{ agregat.name }}
+                    </h1>
+                    <p class="text-muted mb-0">
+                        <span class="badge bg-light text-dark me-2">ID: {{ agregat.id }}</span>
+                        <span class="badge bg-secondary">{{ agregat.parametr_type.name|default:"Агрегат" }}</span>
                     </p>
-                </ul>
-            {% endfor %}
-            <hr>
-            <p>
-                <button class="submit-btn">
-                    <a href="{% url "agregat:add" agregat.id %}">
-                        Добавить параметр к агрегату
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'agregat:change_num' agregat.id %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left-right"></i> Изменить номера
                     </a>
-                </button>
-                <button class="submit-btn">
-                    <a href="{% url "agregat:change_num" agregat.id %}">
-                        Изменить номера параметров
-                    </a>
-                </button>
-            </p>
+                </div>
+            </div>
         </div>
+    </div>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-list-ul"></i> Параметры агрегата
+            </h5>
+            <a href="{% url 'agregat:add' agregat.id %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle"></i> Добавить параметр
+            </a>
+        </div>
+        <div class="card-body p-0">
+            {% if agr_parametrs %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>№</th>
+                                <th>Параметр</th>
+                                <th scope="col" class="text-nowrap" style="width: 25%;">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for parametr in agr_parametrs %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <strong>{{ parametr.par.name }}</strong>
+                                    {% if parametr.par.short_name %}
+                                        <span class="text-muted">({{ parametr.par.short_name }})</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'agregat:delete' agregat.id parametr.par.id %}"
+                                           class="btn btn-outline-danger"
+                                           title="Удалить параметр">
+                                            Удалить параметр
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">Параметры отсутствуют</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mt-4">
+        <a href="{% url 'agregat:list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Вернуться к списку
+        </a>
     </div>
 </div>
 {% endblock content %}

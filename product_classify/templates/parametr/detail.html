@@ -1,48 +1,71 @@
 {% extends "base.html" %}
 
 {% block title %}
-Описание параметра "{{ parameter.name }}"
+    {{ parameter.name }}
 {% endblock title %}
 
 {% block content %}
-<div>
-    <div>
-        <div class="form-container rounded-box">
-            <h1>
-                <a href="{% url "parametr:list" %}">
-                    Параметры
-                </a>
-            </h1>
-            <ul>
-                <li>
-                    <p>Идентификатор параметра: {{ parameter.id }}</p>
-                </li>
-                <li>
-                    <p>Название параметра: {{ parameter.name }}</p>
-                </li>
-                <li>
-                    <p>Сокращенное название параметра: {{ parameter.short_name }}</p>
-                </li>
-                <li>
-                    <p>Тип параметра: {{ parameter.parametr_type.name }}</p>
-                </li>
-                <li>
-                    <p>Единица измерения параметра: {{ parameter.par_ei }}</p>
-                </li>
-                <p>
-                    <button class="submit-btn">
-                        <a href="{% url "parametr:edit" parameter.id %}">
-                            Редактировать параметр
-                        </a>
-                    </button>
-                    <button class="submit-btn">
-                        <a href="{% url "parametr:delete" parameter.id %}">
-                            Удалить параметр
-                        </a>
-                    </button>
-                </p>
-            </ul>
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="h3 mb-2">
+                        <i class="bi bi-sliders2"></i> {{ parameter.name }}
+                    </h1>
+                    <p class="text-muted mb-0">
+                        <span class="badge bg-light text-dark me-2">ID: {{ parameter.id }}</span>
+                        <span class="badge bg-secondary">{{ parameter.parametr_type.name|default:"Без типа" }}</span>
+                    </p>
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'parametr:edit' parameter.id %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-pencil"></i> Редактировать
+                    </a>
+                    <a href="{% url 'parametr:delete' parameter.id %}" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Удалить
+                    </a>
+                </div>
+            </div>
         </div>
+    </div>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="bi bi-info-circle"></i> Детальная информация</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3 fw-semibold">Название</dt>
+                <dd class="col-sm-9">{{ parameter.name }}</dd>
+
+                <dt class="col-sm-3 fw-semibold">Сокращение</dt>
+                <dd class="col-sm-9">{{ parameter.short_name|default:"—" }}</dd>
+
+                <dt class="col-sm-3 fw-semibold">Тип параметра</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-info text-dark">{{ parameter.parametr_type.name|default:"Не указан" }}</span>
+                </dd>
+
+                <dt class="col-sm-3 fw-semibold">Единица измерения</dt>
+                <dd class="col-sm-9">
+                    {% if parameter.par_ei %}
+                        <a href="{% url 'ei:detail' parameter.par_ei.id %}" class="text-decoration-none">
+                            {{ parameter.par_ei.name }}
+                        </a>
+                        <span class="text-muted">({{ parameter.par_ei.short_name }})</span>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'parametr:list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Вернуться к списку
+        </a>
     </div>
 </div>
 {% endblock content %}

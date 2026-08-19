@@ -1,34 +1,90 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}
-{{ enum.enum.name }}
+    {{ enum.enum.name }} — Значение перечисления
 {% endblock title %}
 
 {% block content %}
-<div>
-    <div>
-        <div class="form-container rounded-box">
-            <ul>
-                <li>
-                    Название перечисления: <a href="{% url "enums:list" enum.enum.main_class.pk %}">{{ enum.enum.name }}</a>
-                </li>
-                <li>
-                    Значение перечисления: 
-                    {% if enum.enum.main_class.id == 15 %}
-                      {{ enum.name }}
-                    {% elif enum.enum.main_class.id == 16 %}
-                      <a href="{{ enum.image. }}" target="_blank">
-                        <img src="{{ enum.image.url }}" alt="Изображение перечисления" height="150" width="400">
-                      </a>
-                    {% elif enum.enum.main_class.id == 19 %}
-                      {{ enum.int_value }}
-                    {% else %}
-                      {{ enum.double_value }}
-                    {% endif %}
-                  </li>
-            </ul>
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="h3 mb-2">
+                        <i class="bi bi-tag"></i> {{ enum.enum.name }}
+                    </h1>
+                    <p class="text-muted mb-0">
+                        <span class="badge bg-light text-dark me-2">ID: {{ enum.id }}</span>
+                        <span class="badge bg-secondary">
+                            Родительское перечисление:
+                            <a href="{% url 'enums:list' enum.enum.main_class.pk %}" class="text-white text-decoration-none">
+                                {{ enum.enum.name }}
+                            </a>
+                        </span>
+                    </p>
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'enums:edit' enum.enum.id enum.id %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-pencil"></i> Редактировать
+                    </a>
+                    <a href="{% url 'enums:delete' enum.enum.id enum.id %}" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Удалить
+                    </a>
+                </div>
+            </div>
         </div>
+    </div>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="bi bi-info-circle"></i> Детальная информация</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3 fw-semibold">Родительское перечисление</dt>
+                <dd class="col-sm-9">
+                    <a href="{% url 'enums:list' enum.enum.main_class.pk %}" class="text-decoration-none">
+                        {{ enum.enum.name }}
+                    </a>
+                    <span class="text-muted">(ID: {{ enum.enum.id }})</span>
+                </dd>
+
+                <dt class="col-sm-3 fw-semibold">Название</dt>
+                <dd class="col-sm-9">{{ enum.name|default:"—" }}</dd>
+
+                <dt class="col-sm-3 fw-semibold">Сокращение</dt>
+                <dd class="col-sm-9">{{ enum.short_name|default:"—" }}</dd>
+
+                <dt class="col-sm-3 fw-semibold">Значение</dt>
+                <dd class="col-sm-9">
+                    {% if enum.enum.main_class.id == 15 %}
+                        {{ enum.name|default:"—" }}
+                    {% elif enum.enum.main_class.id == 16 %}
+                        {% if enum.image %}
+                            <a href="{{ enum.image.url }}" target="_blank" class="d-inline-block">
+                                <img src="{{ enum.image.url }}"
+                                     alt="Изображение перечисления"
+                                     style="max-height: 150px; max-width: 400px; object-fit: cover;"
+                                     class="rounded border">
+                            </a>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    {% elif enum.enum.main_class.id == 19 %}
+                        {{ enum.int_value|default:"—" }}
+                    {% else %}
+                        {{ enum.double_value|default:"—" }}
+                    {% endif %}
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'enums:list' enum.enum.main_class.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Вернуться к списку
+        </a>
     </div>
 </div>
 {% endblock content %}
-

@@ -2,91 +2,147 @@
 {% load static %}
 
 {% block title %}
-{{ product.name }}
+    {{ product.name }}
 {% endblock title %}
 
-
 {% block content %}
-<div>
-    <div>
-        <div class="form-container rounded-box">
-<ul>
-<li>
-    <p>Идентификатор изделия: {{ product.id }}</p>
-</li>
-<li>
-    <p>Название изделия: {{ product.name }}</p>
-</li>
-<li>
-    <p>Родительский класс: <a href="{% url "products:class_products" product.class_field.main_class.id product.class_field.id %}">{{ product.class_field }}</a></p>
-</li>
-</ul>
-<hr/>
-<ul>
-    <h3>
-        Список параметров
-    </h3>
-    
-    {% for param in params %}
-    <li>
-        <div class="responsive-container">
-            {% if param.enum_val.enum.main_class.id == 16 %}
-            <a href="{% url "enums:detail" param.enum_val.enum.main_class.id param.enum_val.id %}">
-                <img src="{{ param.enum_val.image.url }}" alt="Изображение перечисления" height="150" width="400">
-            </a>
-            {% else %}
-            <p class="responsive-text">
-                {{ param.par.name }}, {{ param.value }}
-            </p>
-            {% endif %}
-            <button class="responsive-button" height="30" width="30">
-                <a href="{% url "products:edit_param" product.id param.par.id %}">
-                    Редактировать параметр
-                </a>
-            </button>
-            <button class="responsive-button" height="30" width="30">
-                <a href="{% url "products:delete_param" product.id param.par.id %}">
-                    Удалить параметр
-                </a>
-            </button>
+<div class="container py-4">
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="h3 mb-2">
+                        <i class="bi bi-box-seam"></i> {{ product.name }}
+                    </h1>
+                    <p class="text-muted mb-0">
+                        <span class="badge bg-light text-dark me-2">ID: {{ product.id }}</span>
+                        Родительский класс:
+                        <a href="{% url 'products:class_products' product.class_field.main_class.id product.class_field.id %}"
+                           class="text-decoration-none">
+                            {{ product.class_field }}
+                        </a>
+                    </p>
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'products:edit' product.id %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-pencil"></i> Редактировать
+                    </a>
+                    <a href="{% url 'products:delete' product.id %}" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Удалить
+                    </a>
+                </div>
+            </div>
         </div>
-    </li>
-    {% endfor %}
-</ul>
-<p>
-    <button class="submit-btn">
-        <a href="{% url "products:edit" product.id %}">
-            Редактировать изделие
-        </a>
-    </button>
-    <button class="submit-btn">
-        <a href="{% url "products:delete" product.id %}">
-            Удалить изделие
-        </a>
-    </button>
-    <button class="submit-btn">
-        <a href="{% url "products:add_param" product.id %}">
-            Добавить параметр
-        </a>
-    </button>
-    <a href="{% url 'products:create_modification' product.id %}" class="btn btn-primary">
-        Создать модификацию
-    </a>
-    <a href="{% url 'specifications:edit' product.id %}" class="btn btn-warning">
-        Редактировать спецификацию
-    </a>
-    <form action="{% url 'specifications:total_cost_ratio' product.id %}" method="get">
-        <label for="quantity">Введите количество изделия:</label>
-        <input type="number" name="quantity" min="1" step="1" required>
-        <button type="submit" class="btn btn-primary">
-            Рассчитать норму расхода
-        </button>
-    </form>
-    <form action="{% url 'specifications:changelog' product.id %}" method="get" style="display: inline;">
-        <button type="submit" class="btn btn-primary">Скачать журнал изменений</button>
-    </form>
-</p>
-</div>
-</div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-sliders2"></i> Параметры изделия
+            </h5>
+            <a href="{% url 'products:add_param' product.id %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle"></i> Добавить параметр
+            </a>
+        </div>
+        <div class="card-body p-0">
+            {% if params %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Параметр</th>
+                                <th>Значение</th>
+                                <th scope="col" class="text-nowrap" style="width: 1%;">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for param in params %}
+                            <tr>
+                                <td>
+                                    <strong>{{ param.par.name }}</strong>
+                                    {% if param.par.short_name %}
+                                        <span class="text-muted">({{ param.par.short_name }})</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if param.enum_val.enum.main_class.id == 16 %}
+                                        <a href="{% url 'enums:detail' param.enum_val.enum.main_class.id param.enum_val.id %}"
+                                           class="d-inline-block">
+                                            <img src="{{ param.enum_val.image.url }}"
+                                                 alt="Изображение перечисления"
+                                                 style="max-height: 60px; max-width: 150px; object-fit: cover;"
+                                                 class="rounded">
+                                        </a>
+                                    {% else %}
+                                        {{ param.value|default:"—" }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'products:edit_param' product.id param.par.id %}"
+                                           class="btn btn-outline-secondary"
+                                           title="Редактировать">
+                                            Редактировать
+                                        </a>
+                                        <a href="{% url 'products:delete_param' product.id param.par.id %}"
+                                           class="btn btn-outline-danger"
+                                           title="Удалить">
+                                            Удалить
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">Параметры отсутствуют</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="bi bi-tools"></i> Действия</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <a href="{% url 'products:create_modification' product.id %}" class="btn btn-primary">
+                    <i class="bi bi-copy"></i> Создать модификацию
+                </a>
+                <a href="{% url 'specifications:edit' product.id %}" class="btn btn-warning">
+                    <i class="bi bi-pencil-square"></i> Редактировать спецификацию
+                </a>
+                <form action="{% url 'specifications:changelog' product.id %}" method="get" style="display: inline;">
+                    <button type="submit" class="btn btn-outline-secondary">
+                        <i class="bi bi-clock-history"></i> Скачать журнал изменений
+                    </button>
+                </form>
+            </div>
+
+            <div class="border-top pt-3 mt-2">
+                <form action="{% url 'specifications:total_cost_ratio' product.id %}" method="get" class="row g-2 align-items-end">
+                    <div class="col-auto">
+                        <label for="quantity" class="form-label mb-0">Количество изделий:</label>
+                    </div>
+                    <div class="col-sm-3">
+                        <input type="number" name="quantity" id="quantity"
+                               min="1" step="1" required
+                               class="form-control form-control-sm"
+                               placeholder="Введите число">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-calculator"></i> Рассчитать норму расхода
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock content %}
