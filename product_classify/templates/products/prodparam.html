@@ -29,20 +29,17 @@
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {% if not 'delete' in request.path %}
-        <!-- Вывод всех ошибок формы -->
             {% if form.non_field_errors %}
             <div class="errorlist">
                 {{ form.non_field_errors }}
             </div>
             {% endif %}
         
-        <!-- Поля формы -->
         {% for field in form %}
         <div class="form-group">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                 {{ field }}
                 
-                <!-- Вывод ошибок для конкретного поля -->
                     {% if field.errors %}
                     <ul class="errorlist">
                         {% for error in field.errors %}
@@ -51,7 +48,6 @@
                     </ul>
                     {% endif %}
                     
-                    <!-- Вывод подсказки -->
                     {% if field.help_text %}
                     <small style="color: #666;">{{ field.help_text }}</small>
                     {% endif %}
