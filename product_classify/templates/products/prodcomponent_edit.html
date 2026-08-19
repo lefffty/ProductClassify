@@ -1,62 +1,123 @@
 {% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+    Редактирование спецификации изделия "{{ product.name }}"
+{% endblock title %}
 
 {% block content %}
-<div class="container">
-    <h1>Редактирование спецификации изделия "{{ product.name }}"</h1>
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <a href="?edit=1" class="btn btn-warning">Редактировать спецификацию</a>
-            <a href="{% url 'products:detail' product.id %}" class="btn btn-secondary">Отмена</a>
-        </div>
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="card-title h4 mb-4">
+                <i class="bi bi-pencil-square text-warning"></i> Редактирование спецификации изделия
+                <span class="text-muted fs-5">— {{ product.name }}</span>
+            </h2>
 
-        {{ formset.management_form }}
-        {% if formset.non_form_errors %}
-            <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
-        {% endif %}
+            <form method="post">
+                {% csrf_token %}
 
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Компонент</th>
-                    <th>Количество</th>
-                    <th>Удалить</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for form in formset %}
-                    <tr>
-                        <td>
-                            {{ form.id }}
-                            {{ form.component }}
-                            {{ form.component.errors }}
-                        </td>
-                        <td>
-                            {{ form.quantity }}
-                            {{ form.quantity.errors }}
-                        </td>
-                        <td>
-                            {% if form.instance.pk %}
-                                {{ form.DELETE }}
-                            {% else %}
-                                <button type="button" class="btn btn-danger btn-sm remove-row">Удалить</button>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% if form.errors %}
-                        <tr><td colspan="3" class="text-danger">{{ form.errors }}</td></tr>
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    {% if not edit_mode %}
+                        <a href="?edit=1" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Редактировать спецификацию
+                        </a>
                     {% endif %}
-                {% endfor %}
-            </tbody>
-        </table>
+                    <a href="{% url 'products:detail' product.id %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Отмена
+                    </a>
+                </div>
 
-        {% if edit_mode %}
-            <button type="submit" class="btn btn-success">Сохранить</button>
-        {% endif %}
-    </form>
+                {{ formset.management_form }}
+
+                {% if formset.non_form_errors %}
+                    <div class="alert alert-danger">
+                        {{ formset.non_form_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 40%;">Компонент</th>
+                                <th style="width: 30%;">Количество</th>
+                                <th style="width: 15%;">Удалить</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for form in formset %}
+                                <tr>
+                                    <td>
+                                        {{ form.id }}
+                                        {% if edit_mode %}
+                                            {% bootstrap_field form.component show_label=False show_help=False %}
+                                        {% else %}
+                                            <p class="mb-0">{{ form.instance.component.name|default:"—" }}</p>
+                                        {% endif %}
+                                        {{ form.component.errors }}
+                                    </td>
+                                    <td>
+                                        {% if edit_mode %}
+                                            {% bootstrap_field form.quantity show_label=False show_help=False %}
+                                        {% else %}
+                                            <p class="mb-0">{{ form.instance.quantity|default:"—" }}</p>
+                                        {% endif %}
+                                        {{ form.quantity.errors }}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if form.instance.pk and edit_mode %}
+                                            <div class="form-check d-flex justify-content-center">
+                                                {{ form.DELETE }}
+                                            </div>
+                                        {% elif not form.instance.pk and edit_mode %}
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-row">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% if form.errors %}
+                                    <tr>
+                                        <td colspan="3" class="text-danger">{{ form.errors }}</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if edit_mode %}
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-save"></i> Сохранить
+                        </button>
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
 </div>
 
 <script>
-    // Здесь можно добавить динамическое управление строками (добавление/удаление)
+    document.addEventListener('DOMContentLoaded', function() {
+        const removeButtons = document.querySelectorAll('.remove-row');
+        removeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const row = this.closest('tr');
+                if (row) {
+                    const deleteField = row.querySelector('input[name$="-DELETE"]');
+                    if (deleteField) {
+                        deleteField.checked = true;
+                        row.style.display = 'none';
+                    } else {
+                        row.remove();
+                    }
+                }
+            });
+        });
+    });
 </script>
-{% endblock %}
+{% endblock content %}
