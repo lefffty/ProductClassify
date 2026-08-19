@@ -1,61 +1,98 @@
 {% extends "base.html" %}
 
 {% block title %}
-Список значений перечислений
+    Список значений перечислений
 {% endblock title %}
 
 {% block content %}
-<div>
-    {% for enum in enums %}
-    <div>
-    <div class="form-container rounded-box">
-      <ul>
-        <li>
-          <p>Идентификатор перечисления: {{ enum.id }}</p>
-        </li>
-        <li>
-          <p>Название перечисления: {{ enum.enum.name }}</p>
-        </li>
-        <li>
-          Сокращенное название перечисления: {{ enum.short_name }}
-        </li>
-        <li>
-          Значение перечисления: 
-          {% if enum.enum.main_class.id == 15 %}
-            {{ enum.name }}
-          {% elif enum.enum.main_class.id == 16 %}
-            {{ enum.picture_value }}
-          {% elif enum.enum.main_class.id == 19 %}
-            {{ enum.int_value }}
-          {% else %}
-            {{ enum.double_value }}
-          {% endif %}
-        </li>
-        <p>
-          <p>
-            <a href="{% url "enums:detail" enum.enum.id enum.id %}">
-              Подробное описание значения перечисления
-            </a>
-          </p>
-          <p>
-            <a href="{% url "enums:edit" enum.enum.id enum.id %}">
-              Редактировать значение перечисления
-            </a>
-          </p>
-          <p>
-            <a href="{% url "enums:delete" enum.enum.id enum.id %}">
-              Удалить значение перечисления
-            </a>
-          </p>
-        </p>
-      </ul>
+<div class="container py-4">
+    <!-- Заголовок и кнопка изменения номеров -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+            <i class="bi bi-list-ul"></i> Значения перечислений
+        </h1>
+        <a href="{% url 'enums:change_num' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left-right"></i> Изменить номера
+        </a>
     </div>
-  </div>
-    {% endfor %}
-    <p>
-      <a href="{% url "enums:change_num" %}">
-        ИЗМЕНИТЬ НОМЕРА ПЕРЕЧИСЛЕНИЙ
-      </a>
-    </p>
-  </div>
+
+    <!-- Карточка со списком -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Все значения</h5>
+            <span class="badge bg-secondary">{{ enums|length }}</span>
+        </div>
+        <div class="card-body p-0">
+            {% if enums %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Родительское перечисление</th>
+                                <th>Сокращение</th>
+                                <th>Значение</th>
+                                <th scope="col" class="text-nowrap" style="width: 1%;">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enum in enums %}
+                            <tr>
+                                <td>{{ enum.id }}</td>
+                                <td><strong>{{ enum.enum.name }}</strong></td>
+                                <td>{{ enum.short_name|default:"—" }}</td>
+                                <td>
+                                    {% if enum.enum.main_class.id == 15 %}
+                                        {{ enum.name|default:"—" }}
+                                    {% elif enum.enum.main_class.id == 16 %}
+                                        {% if enum.picture_value %}
+                                            <i class="bi bi-image"></i> Изображение
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    {% elif enum.enum.main_class.id == 19 %}
+                                        {{ enum.int_value|default:"—" }}
+                                    {% else %}
+                                        {{ enum.double_value|default:"—" }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'enums:detail' enum.enum.id enum.id %}"
+                                           class="btn btn-outline-primary"
+                                           title="Подробнее">
+                                            <i class="bi bi-eye">
+                                            Подробнее
+                                            </i>
+                                        </a>
+                                        <a href="{% url 'enums:edit' enum.enum.id enum.id %}"
+                                           class="btn btn-outline-secondary"
+                                           title="Редактировать">
+                                            <i class="bi bi-pencil">
+                                            Редактировать
+                                            </i>
+                                        </a>
+                                        <a href="{% url 'enums:delete' enum.enum.id enum.id %}"
+                                           class="btn btn-outline-danger"
+                                           title="Удалить">
+                                            <i class="bi bi-trash">
+                                            Удалить
+                                            </i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                    <p class="mt-3">Значения перечислений отсутствуют</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock content %}

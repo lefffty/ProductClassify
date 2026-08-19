@@ -7,18 +7,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %} {% endblock title %}</title>
     <meta name="description" content="Описание страницы" />
-    <link rel="stylesheet" href="{% static "css/style.css" %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap/css/bootstrap.min.css' %}">
   </head>
   <body>
     <header>
       {% include "includes/header.html" %}
     </header>
 
-    <main>
-      <article>{% block content %} {% endblock content %}</article>
+    <main class="container">
+      <article>{% block content %}{% endblock %}</article>
     </main>
 
     {% include "includes/footer.html" %}
-    <script src="{% static "js/main.js" %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
   </body>
 </html>

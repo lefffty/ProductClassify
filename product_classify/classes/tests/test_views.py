@@ -44,7 +44,7 @@ class MainPageTemplateViewTest(TestCase):
 
     def test_renders_nav_bar(self):
         response = self.client.get(self.reversed_url)
-        self.assertContains(response, '<nav id="menu">')
+        self.assertContains(response, '<nav class="navbar">')
 
 
 class CategoryClassesListViewTest(TestCase):

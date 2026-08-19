@@ -1,68 +1,34 @@
 {% load static %}
-<header>
-  <div class="container">
-    <nav id="menu">
-      <a href="{% url "classes:index" %}" class="logo">
-        <img src="{% static "images/logo.jpg" %}" width="40" height="40" alt="">
-      </a>
-      <a aria-label="mobile menu" class="nav-toggle">
-      </a>
-        <ul class="menu-left">
-          <li><a href="{% url "classes:index" %}">Главная</a></li>
-          <li class="dropdown">
-            <a href="#">Классы</a>
-            <ul class="dropdown-menu">
-              {% for fastener_class in fastener_classes %}
-              <li>
-                <a href="{% url "classes:category_classes" fastener_class.id %}">
-                  {{ fastener_class.name }}
-                </a>
-              </li>
-              {% endfor %}
-            </ul>
-          </li>
-          <li>
-            <a href="{% url "ei:list" %}">
-              Единицы измерения
-            </a>
-          </li>
-          <li class="dropdown">
-            <a href="#"> Перечисления </a>
-            <ul class="dropdown-menu">
-              <li>
-                <a href="{% url "enums:list" 15 %}">
-                  Строковые перечисления
-                </a>
-              </li>
-              <li>
-                <a href="{% url "enums:list" 16 %}">
-                  Перечисления изображений
-                </a>
-              </li>
-              <li>
-                <a href="{% url "enums:list" 19 %}">
-                  Целочисленные перечисления
-                </a>
-              </li>
-              <li>
-                <a href="{% url "enums:list" 18 %}">
-                  Вещественные перечисления
-                </a>
-              </li>
-            </ul>
-          </li>
-          <li>
-            <a href="{% url "parametr:list" %}">
-              Параметры
-            </a>
-          </li>
-          <li>
-            <a href="{% url "agregat:list" %}">
-              Агрегаты
-            </a>
-          </li>
+<nav class="navbar">
+  <div class="nav-container">
+    <a href="{% url "classes:index" %}" class="nav-logo">
+      <img src="{% static "images/logo.jpg" %}" width="40" height="40" alt="Логотип">
+    </a>
+    <button class="nav-toggle" aria-label="Меню">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-menu">
+      <li><a href="{% url "classes:index" %}">Главная</a></li>
+      <li class="nav-dropdown">
+        <a href="#">Классы</a>
+        <ul class="nav-dropdown-list">
+          {% for fastener_class in fastener_classes %}
+          <li><a href="{% url "classes:category_classes" fastener_class.id %}">{{ fastener_class.name }}</a></li>
+          {% endfor %}
         </ul>
-      </nav>
-    </div>
+      </li>
+      <li><a href="{% url "ei:list" %}">Единицы измерения</a></li>
+      <li class="nav-dropdown">
+        <a href="#">Перечисления</a>
+        <ul class="nav-dropdown-list">
+          <li><a href="{% url "enums:list" 15 %}">Строковые</a></li>
+          <li><a href="{% url "enums:list" 16 %}">Изображений</a></li>
+          <li><a href="{% url "enums:list" 19 %}">Целочисленные</a></li>
+          <li><a href="{% url "enums:list" 18 %}">Вещественные</a></li>
+        </ul>
+      </li>
+      <li><a href="{% url "parametr:list" %}">Параметры</a></li>
+      <li><a href="{% url "agregat:list" %}">Агрегаты</a></li>
+    </ul>
   </div>
-</header>
+</nav>
