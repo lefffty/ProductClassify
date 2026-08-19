@@ -2,7 +2,6 @@ from django.test import TestCase
 from django.urls import reverse
 
 from faker import Faker
-from http import HTTPStatus
 
 from classes.constants import ParamIds
 from classes.models import ClassStruct

@@ -12,7 +12,14 @@ from classes.models import ClassStruct
 from classes.constants import ClassStructConsts, EnumsIds
 
 from enums.constants import EnumsConsts
-from enums.errors import *
+from enums.errors import (
+    StringEnumErrors,
+    CommonEnumErrors, 
+    ImageEnumErrors, 
+    IntEnumErrors, 
+    DoubleEnumErrors, 
+    ChangeNumErrors
+)
 from enums.models import Enums
 
 

@@ -302,6 +302,7 @@ class ParProdModelTest(TestCase):
             min_value=None,
             max_value=None,
         )
+        cls.double_val = 3.14
 
     def test_clean_raises_validation_error_if_parametr_does_not_belong_to_product_class(
         self,
@@ -568,7 +569,7 @@ class ParProdModelTest(TestCase):
             prod=self.prod,
             par=self.double_parametr,
             int_value=None,
-            double_value=3.14,
+            double_value=self.double_val,
             enum_val=None,
         )
         parprod.full_clean()
@@ -648,7 +649,7 @@ class ParProdModelTest(TestCase):
             prod=self.prod,
             par=self.double_parametr,
             int_value=None,
-            double_value=3.14,
+            double_value=self.double_val,
             enum_val=None,
         )
         expected = f"{self.prod.name} - {self.double_parametr.name} - 3.14"
@@ -719,10 +720,10 @@ class ParProdModelTest(TestCase):
             prod=self.prod,
             par=self.double_parametr,
             int_value=None,
-            double_value=3.14,
+            double_value=self.double_val,
             enum_val=None,
         )
-        self.assertEqual(parprod.value, 3.14)
+        self.assertEqual(parprod.value, self.double_val)
 
     def test_get_value_for_string_enum_value(self):
         """Проверяет, что value возвращает название для строкового перечисления."""

@@ -110,10 +110,10 @@ class Enums(models.Model):
 
     def __str__(self):
         # если данное значение перечисления является перечислением строк или изображений
-        if self.enum.main_class.id == 15 or self.enum.main_class.id == 16:
+        if self.enum.main_class.id == EnumsIds.STRING or self.enum.main_class.id == EnumsIds.IMAGE:
             return self.short_name
         # если данное значение перечисления является перечислением вещественных чисел
-        elif self.enum.main_class.id == 18:
+        elif self.enum.main_class.id == EnumsIds.DOUBLE:
             return str(self.double_value)
         # если данное значение перечисления является перечислением целых чисел
         else:

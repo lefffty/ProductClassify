@@ -19,7 +19,7 @@ from classes.models import (
     ClassStruct,
     ParClass,
 )
-from classes.constants import ProductsConsts, ENUM_PARAMS, NUMERIC_PARAMS
+from classes.constants import ProductsConsts, ENUM_PARAMS, NUMERIC_PARAMS, ParamIds
 from core.mixins import CommonContextMixin
 
 from products.forms import (
@@ -80,7 +80,7 @@ def class_products(
 
                     if mn_val and mx_val:
                         try:
-                            if par_class.parametr.parametr_type.id == 27:
+                            if par_class.parametr.parametr_type.id == ParamIds.DOUBLE:
                                 mn_val = float(mn_val)
                                 mx_val = float(mx_val)
                                 filter_queries.append(
@@ -88,7 +88,7 @@ def class_products(
                                     & Q(double_value__gte=mn_val)
                                     & Q(double_value__lte=mx_val)
                                 )
-                            elif par_class.parametr.parametr_type.id == 28:
+                            elif par_class.parametr.parametr_type.id == ParamIds.INT:
                                 mn_val = int(mn_val)
                                 mx_val = int(mx_val)
                                 filter_queries.append(

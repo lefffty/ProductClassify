@@ -92,30 +92,30 @@ class ClassUpdateView(
     """
     def get_object(self):
         class_id = self.kwargs.get("class_id")
-        _class = ClassStruct.objects.get(pk=class_id)
-        return _class
+        class_ = ClassStruct.objects.get(pk=class_id)
+        return class_
 
     def get_template_names(self):
         class_id = self.kwargs.get("class_id")
-        _class = ClassStruct.objects.get(pk=class_id)
-        if _class.main_class.pk in ENUMS_IDS:
+        class_ = ClassStruct.objects.get(pk=class_id)
+        if class_.main_class.pk in ENUMS_IDS:
             return ["classes/enum_class.html"]
         return ["classes/prod_class.html"]
 
     def get_form_class(self):
         class_id = self.kwargs.get("class_id")
-        _class = ClassStruct.objects.get(pk=class_id)
-        if _class.main_class.pk in ENUMS_IDS:
+        class_ = ClassStruct.objects.get(pk=class_id)
+        if class_.main_class.pk in ENUMS_IDS:
             return EnumClassForm
         return ProdClassForm
 
     def get_success_url(self):
         class_id = self.kwargs.get("class_id")
-        _class = ClassStruct.objects.get(pk=class_id)
+        class_ = ClassStruct.objects.get(pk=class_id)
         return reverse_lazy(
             "classes:category_classes",
             kwargs={
-                "class_id": _class.main_class.pk,
+                "class_id": class_.main_class.pk,
             },
         )
 
@@ -127,13 +127,13 @@ def delete(
     """Представление для удаления класса
     """
     fastener_classes = ClassStruct.objects.filter(main_class__pk=ProductsConsts.FASTENER_ID)
-    _class = ClassStruct.objects.get(pk=class_id)
+    class_ = ClassStruct.objects.get(pk=class_id)
     context = {
         "fastener_classes": fastener_classes,
-        "instance": _class,
+        "instance": class_,
     }
     if request.method == "POST":
-        main_class_id = _class.main_class.pk
+        main_class_id = class_.main_class.pk
         ClassStruct.delete_class_and_descendants(class_id)
         return redirect("classes:category_classes", class_id=main_class_id)
     return render(
@@ -162,10 +162,10 @@ class ClassParamsListView(
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         class_id = self.kwargs.get("class_id")
-        _class = ClassStruct.objects.get(
+        class_ = ClassStruct.objects.get(
             pk=class_id,
         )
-        context["class"] = _class
+        context["class"] = class_
         return context
 
 
@@ -180,8 +180,8 @@ class ClassParamCreateView(
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        _class = ClassStruct.objects.get(pk=self.kwargs.get("class_id"))
-        context["instance"] = _class
+        class_ = ClassStruct.objects.get(pk=self.kwargs.get("class_id"))
+        context["instance"] = class_
         return context
 
     def get_success_url(self):

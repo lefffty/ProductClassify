@@ -9,8 +9,8 @@ from django.views.generic import (
 
 from core.mixins import CommonContextMixin
 
-from .models import Ei
-from .forms import EiForm
+from ei.models import Ei
+from ei.forms import EiForm
 
 
 class EiListView(CommonContextMixin, ListView):

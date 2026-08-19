@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Ei
+from ei.models import Ei
 
 
 @admin.register(Ei)
