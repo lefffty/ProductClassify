@@ -104,9 +104,9 @@ class ProdComponent(models.Model):
 class SpecificationLogs(models.Model):
     pair = models.ForeignKey(
         ProdComponent,
-        models.DO_NOTHING,
+        models.SET_NULL,
         blank=False,
-        null=False,
+        null=True,
         verbose_name="Пара <Родительское изделие - Дочернее изделие>"
     )
     updated_at = models.DateTimeField(

@@ -50,3 +50,7 @@ class ChangeLogConsts:
     DATE_FONTSIZE = 8
     DATE_ALIGNMENT = 2
     SPACER = (1, 20)
+
+
+class FormsetConsts:
+    EXTRA = 0

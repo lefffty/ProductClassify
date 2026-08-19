@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Редактирование спецификации изделия "{{ product.name }}"</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <a href="?edit=1" class="btn btn-warning">Редактировать спецификацию</a>
+            <a href="{% url 'products:detail' product.id %}" class="btn btn-secondary">Отмена</a>
+        </div>
+
+        {{ formset.management_form }}
+        {% if formset.non_form_errors %}
+            <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
+        {% endif %}
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Компонент</th>
+                    <th>Количество</th>
+                    <th>Удалить</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in formset %}
+                    <tr>
+                        <td>
+                            {{ form.id }}
+                            {{ form.component }}
+                            {{ form.component.errors }}
+                        </td>
+                        <td>
+                            {{ form.quantity }}
+                            {{ form.quantity.errors }}
+                        </td>
+                        <td>
+                            {% if form.instance.pk %}
+                                {{ form.DELETE }}
+                            {% else %}
+                                <button type="button" class="btn btn-danger btn-sm remove-row">Удалить</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% if form.errors %}
+                        <tr><td colspan="3" class="text-danger">{{ form.errors }}</td></tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if edit_mode %}
+            <button type="submit" class="btn btn-success">Сохранить</button>
+        {% endif %}
+    </form>
+</div>
+
+<script>
+    // Здесь можно добавить динамическое управление строками (добавление/удаление)
+</script>
+{% endblock %}

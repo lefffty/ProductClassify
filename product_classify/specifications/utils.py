@@ -1,6 +1,7 @@
 import os
 
 from django.conf import settings
+from django.forms import BaseInlineFormSet
 
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -16,7 +17,12 @@ from typing import List
 from products.models import Prod
 
 from specifications.constants import TotalCostRatioConsts, ChangeLogConsts
-from specifications.models import TotalCostRatioResult, SpecificationLogResult
+from specifications.models import (
+    TotalCostRatioResult,
+    SpecificationLogResult,
+    SpecificationLogs,
+    ProdComponent
+)
 
 
 styles = getSampleStyleSheet()
@@ -292,3 +298,49 @@ def create_change_log_pdf(results: List[SpecificationLogResult]) -> BytesIO:
     buffer.seek(0)
 
     return buffer
+
+
+def save_formset_with_logging(formset: BaseInlineFormSet, product: Prod):
+    # Собираем старые объекты для форм с pk
+    old_objects = {}
+    for form in formset.initial_forms:
+        if form.instance.pk:
+            old_objects[form.instance.pk] = ProdComponent.objects.get(pk=form.instance.pk)
+
+    # Сохраняем без коммита, чтобы получить новые экземпляры
+    instances = formset.save(commit=False)
+
+    # Обрабатываем удалённые объекты (создаём лог, затем удаляем)
+    for form in formset.deleted_forms:
+        if form.instance.pk:
+            old_obj = old_objects.get(form.instance.pk)
+            if old_obj:
+                SpecificationLogs.objects.create(
+                    pair=old_obj,
+                    old_quantity=old_obj.quantity,
+                    new_quantity=0,
+                )
+            form.instance.delete()
+
+    # Сохраняем новые и изменённые экземпляры
+    for instance in instances:
+        is_new = instance.pk is None
+        instance.save()
+
+        if is_new:
+            SpecificationLogs.objects.create(
+                pair=instance,
+                old_quantity=0,
+                new_quantity=instance.quantity,
+            )
+        else:
+            old_obj = old_objects.get(instance.pk)
+            if old_obj and old_obj.quantity != instance.quantity:
+                SpecificationLogs.objects.create(
+                    pair=instance,
+                    old_quantity=old_obj.quantity,
+                    new_quantity=instance.quantity,
+                )
+
+    # Сохраняем m2m (если есть)
+    formset.save_m2m()

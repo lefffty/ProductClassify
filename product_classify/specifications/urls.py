@@ -16,4 +16,9 @@ urlpatterns = [
         views.get_product_changelog_view,
         name="changelog",
     ),
+    path(
+        "<int:product_id>/edit",
+        views.edit_specification_view,
+        name="edit",
+    ),
 ]

@@ -72,6 +72,9 @@
     <a href="{% url 'products:create_modification' product.id %}" class="btn btn-primary">
         Создать модификацию
     </a>
+    <a href="{% url 'specifications:edit' product.id %}" class="btn btn-warning">
+        Редактировать спецификацию
+    </a>
     <form action="{% url 'specifications:total_cost_ratio' product.id %}" method="get">
         <label for="quantity">Введите количество изделия:</label>
         <input type="number" name="quantity" min="1" step="1" required>
