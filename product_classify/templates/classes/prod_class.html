@@ -2,77 +2,94 @@
 {% load django_bootstrap5 %}
 
 {% block title %}
-{% if '/delete/' in request.path %}
-Удаление класса изделия
-{% elif '/edit/' in request.path %}
-Редактирование класса изделия
-{% else %}
-Добавление нового класса изделия
-{% endif %}
+    {% if '/delete/' in request.path %}
+        Удаление класса изделия
+    {% elif '/edit/' in request.path %}
+        Редактирование класса изделия
+    {% else %}
+        Добавление класса изделия
+    {% endif %}
 {% endblock title %}
 
 {% block content %}
-<div class="form-container rounded-box">
-    {% if '/delete/' in request.path %}
-    <h2>Форма удаления класса изделия {{ instance.name }}</h2>
-    {% elif '/edit/' in request.path %}
-    <h2>Форма редактирования класса изделия {{ instance.name }}</h2>
-    {% else %}
-    <h2>Форма добавления нового класса изделия {{ instance.name }}</h2>
-    {% endif %}
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        
-        {% if not '/delete/' in request.path %}
-        <!-- Вывод всех ошибок формы -->
-        {% if form.non_field_errors %}
-        <div class="errorlist">
-                {{ form.non_field_errors }}
-            </div>
-            {% endif %}
-            
-            <!-- Поля формы -->
-            {% for field in form %}
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                
-                <!-- Вывод ошибок для конкретного поля -->
-                {% if field.errors %}
-                <ul class="errorlist">
-                    {% for error in field.errors %}
-                    <li>{{ error }}</li>
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="card-title h4 mb-4">
+                {% if '/delete/' in request.path %}
+                    <i class="bi bi-trash text-danger"></i> Удаление класса изделия
+                {% elif '/edit/' in request.path %}
+                    <i class="bi bi-pencil text-warning"></i> Редактирование класса изделия
+                {% else %}
+                    <i class="bi bi-plus-circle text-primary"></i> Добавление класса изделия
+                {% endif %}
+            </h2>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if '/delete/' in request.path %}
+                    <div class="alert alert-danger">
+                        <p class="mb-1"><strong>Вы действительно хотите удалить этот класс?</strong></p>
+                        <p class="mb-0">Это действие необратимо.</p>
+                    </div>
+
+                    <dl class="row mb-4">
+                        <dt class="col-sm-3 fw-semibold">Название</dt>
+                        <dd class="col-sm-9">{{ instance.name }}</dd>
+
+                        <dt class="col-sm-3 fw-semibold">Сокращение</dt>
+                        <dd class="col-sm-9">{{ instance.short_name|default:"—" }}</dd>
+
+                        <dt class="col-sm-3 fw-semibold">Единица измерения</dt>
+                        <dd class="col-sm-9">{{ instance.base_ei|default:"—" }}</dd>
+                    </dl>
+
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Удалить
+                    </button>
+                    <a href="{% url 'classes:index' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Отмена
+                    </a>
+
+                {% else %}
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <p class="mb-0">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                        <div class="mb-3">
+                            {% bootstrap_field field show_label=True show_help=False %}
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in field.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
                     {% endfor %}
-                </ul>
+
+                    <button type="submit" class="btn btn-primary">
+                        {% if '/edit/' in request.path %}
+                            <i class="bi bi-save"></i> Сохранить
+                        {% else %}
+                            <i class="bi bi-plus-circle"></i> Добавить
+                        {% endif %}
+                    </button>
+                    <a href="{% url 'classes:index' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Отмена
+                    </a>
                 {% endif %}
-                
-                <!-- Вывод подсказки -->
-                {% if field.help_text %}
-                <small style="color: #666;">{{ field.help_text }}</small>
-                {% endif %}
-            </div>
-            {% endfor %}
-        {% else %}
-        <p>
-            Название класса: {{ instance.name }}
-        </p>
-        <p>
-            Сокращенное название класса: {{ instance.short_name }}
-        </p>
-        <p>
-            Единицы измерения класса: {{ instance.base_ei }}
-        </p>
-        {% endif %}
-        <!-- Серая кнопка отправки -->
-        <button type="submit" class="submit-btn">
-            {% if '/edit/' in request.path %}
-            Редактировать класс
-            {% elif '/delete/' in request.path %}
-            Удалить класс
-            {% else %}
-            Добавить класс
-            {% endif %}
-        </button>
-    </form>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock content %}

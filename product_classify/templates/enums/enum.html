@@ -1,77 +1,127 @@
 {% extends "base.html" %}
+{% load django_bootstrap5 %}
 
 {% block title %}
-{% if '/edit/' in request.path %}
-Редактирование перечисления
-{% elif '/delete/' in request.path %}
-Удаление перечисления
-{% else %}
-Добавление перечисления
-{% endif %}
+    {% if '/edit/' in request.path %}
+        Редактирование значения перечисления
+    {% elif '/delete/' in request.path %}
+        Удаление значения перечисления
+    {% else %}
+        Добавление значения перечисления
+    {% endif %}
 {% endblock title %}
 
 {% block content %}
-<div class="form-container rounded-box">
-    <h2>
-    {% if '/edit/' in request.path %}
-        Форма редактирования значения перечисления <a href="{% url "enums:detail" instance.enum.id instance.id %}">"{{ instance.enum.name }} - {{ instance.name }}"</a>
-    {% elif '/delete/' in request.path %}
-        Форма удаления значения перечисления <a href="{% url "enums:detail" instance.enum.id instance.id %}">"{{ instance.enum.name }} - {{ instance.name }}"</a>
-    {% else %}
-        Форма добавления значения перечисления
-    {% endif %}
-    </h2>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {% if not '/delete/' in request.path %}
-        <!-- Поля формы -->
-        {% for field in form %}
-        <div class="form-group">
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
-            
-            <!-- Вывод ошибок для конкретного поля -->
-            {% if field.errors %}
-            <ul class="errorlist">
-                {% for error in field.errors %}
-                <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-            
-            <!-- Вывод подсказки -->
-            {% if field.help_text %}
-            <small style="color: #666;">{{ field.help_text }}</small>
-            {% endif %}
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="card-title h4 mb-4">
+                {% if '/delete/' in request.path %}
+                    <i class="bi bi-trash text-danger"></i> Удаление значения перечисления
+                {% elif '/edit/' in request.path %}
+                    <i class="bi bi-pencil text-warning"></i> Редактирование значения перечисления
+                {% else %}
+                    <i class="bi bi-plus-circle text-primary"></i> Добавление значения перечисления
+                {% endif %}
+            </h2>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if '/delete/' in request.path %}
+                    <div class="alert alert-danger">
+                        <p class="mb-1"><strong>Вы действительно хотите удалить это значение перечисления?</strong></p>
+                        <p class="mb-0">Это действие необратимо.</p>
+                    </div>
+
+                    <dl class="row mb-4">
+                        <dt class="col-sm-3 fw-semibold">Родительское перечисление</dt>
+                        <dd class="col-sm-9">
+                            <a href="{% url 'enums:list' instance.enum.main_class.pk %}" class="text-decoration-none">
+                                {{ instance.enum.name }}
+                            </a>
+                        </dd>
+
+                        <dt class="col-sm-3 fw-semibold">Название</dt>
+                        <dd class="col-sm-9">{{ instance.name|default:"—" }}</dd>
+
+                        <dt class="col-sm-3 fw-semibold">Сокращение</dt>
+                        <dd class="col-sm-9">{{ instance.short_name|default:"—" }}</dd>
+
+                        <dt class="col-sm-3 fw-semibold">Значение</dt>
+                        <dd class="col-sm-9">
+                            {% if instance.enum.main_class.id == 15 %}
+                                {{ instance.name|default:"—" }}
+                            {% elif instance.enum.main_class.id == 16 %}
+                                {% if instance.image %}
+                                    <a href="{{ instance.image.url }}" target="_blank" class="d-inline-block">
+                                        <img src="{{ instance.image.url }}"
+                                             alt="Изображение"
+                                             style="max-height: 60px; max-width: 150px; object-fit: cover;"
+                                             class="rounded border">
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            {% elif instance.enum.main_class.id == 19 %}
+                                {{ instance.int_value|default:"—" }}
+                            {% else %}
+                                {{ instance.double_value|default:"—" }}
+                            {% endif %}
+                        </dd>
+                    </dl>
+
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Удалить
+                    </button>
+                    <a href="{% url 'enums:list' instance.enum.main_class.pk %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Отмена
+                    </a>
+
+                {% else %}
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <p class="mb-0">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                        <div class="mb-3">
+                            {% bootstrap_field field show_label=True show_help=False %}
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in field.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-primary">
+                        {% if '/edit/' in request.path %}
+                            <i class="bi bi-save"></i> Сохранить
+                        {% else %}
+                            <i class="bi bi-plus-circle"></i> Добавить
+                        {% endif %}
+                    </button>
+                    <a href="
+                        {% if instance %}
+                            {% url 'enums:list' instance.enum.main_class.pk %}
+                        {% else %}
+                            {% url 'enums:list' 15 %}
+                        {% endif %}
+                    " class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Отмена
+                    </a>
+                {% endif %}
+            </form>
         </div>
-        {% endfor %}
-            <!-- Вывод всех ошибок формы -->
-            {% if form.non_field_errors %}
-            <div class="errorlist">
-                {{ form.non_field_errors }}
-            </div>
-            {% endif %}
-        {% else %}
-            <ul>
-                <li>
-                    <p>Название: {{ instance.enum.name }}</p>
-                </li>
-                <li>
-                    <p>Значение: {{ instance.name }}</p>
-                </li>
-            </ul>
-        {% endif %}
-        <!-- Серая кнопка отправки -->
-        <button type="submit" class="submit-btn">
-            {% if '/add/' in request.path %}
-            Добавить значение перечисления
-            {% elif '/edit/' in request.path %}
-            Изменить значение перечисления
-            {% elif '/delete/' in request.path %}
-            Удалить значение перечисления
-            {% endif %}
-        </button>
-    </form>
+    </div>
 </div>
 {% endblock content %}
-
