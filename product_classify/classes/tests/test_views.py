@@ -222,8 +222,6 @@ class EnumClassCreateViewTest(TestCase):
             path=self.url,
             data=self.valid_data
         )
-        if response.status_code == HTTPStatus.OK:
-            print(response.context["form"].errors)
         new_enum_class = ClassStruct.objects.last()
         self.assertEqual(ClassStruct.objects.count(), count_before + 1)
         self.assertEqual(new_enum_class.name, self.valid_data["name"])

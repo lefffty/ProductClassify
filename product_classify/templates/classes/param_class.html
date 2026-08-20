@@ -15,7 +15,6 @@
 <div class="container py-4">
     <div class="card shadow-sm">
         <div class="card-body">
-            <!-- Заголовок -->
             <h2 class="card-title h4 mb-4">
                 {% if '/delete/' in request.path %}
                     <i class="bi bi-trash text-danger"></i> Удаление параметра класса
@@ -39,7 +38,6 @@
                 {% csrf_token %}
 
                 {% if '/delete/' in request.path %}
-                    <!-- Режим удаления: показываем информацию об объекте -->
                     <div class="alert alert-danger">
                         <p class="mb-1"><strong>Вы действительно хотите удалить этот параметр класса?</strong></p>
                         <p class="mb-0">Это действие необратимо.</p>
@@ -62,12 +60,8 @@
                     <button type="submit" class="btn btn-danger">
                         <i class="bi bi-trash"></i> Удалить
                     </button>
-                    <a href="{% url 'classes:params_list' instance.class_field.id %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-circle"></i> Отмена
-                    </a>
 
                 {% else %}
-                    <!-- Режимы добавления и редактирования -->
                     {% if form.non_field_errors %}
                         <div class="alert alert-danger">
                             {% for error in form.non_field_errors %}
@@ -99,15 +93,6 @@
                             <i class="bi bi-plus-circle"></i> Добавить
                         {% endif %}
                     </button>
-                    <a href="
-                        {% if '/edit/' in request.path or '/delete/' in request.path %}
-                            {% url 'classes:params_list' instance.class_field.id %}
-                        {% else %}
-                            {% url 'classes:params_list' instance.id %}
-                        {% endif %}
-                    " class="btn btn-outline-secondary">
-                        <i class="bi bi-x-circle"></i> Отмена
-                    </a>
                 {% endif %}
             </form>
         </div>

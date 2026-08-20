@@ -14,7 +14,10 @@ from ei.errors import EiErrors
 class EiForm(ModelForm):
     convert_factor = FloatField(
         label="Множитель для перевода",
-        validators=[MinValueValidator(EiConsts.CONVERT_FACTOR_MIN_VALUE)],
+        validators=[MinValueValidator(
+            EiConsts.CONVERT_FACTOR_MIN_VALUE,
+            message=EiErrors.NEGATIVE_FACTOR,
+        )],
         required=True,
         error_messages={
             "required": EiErrors.EMPTY_FACTOR,

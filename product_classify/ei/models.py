@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 
 from ei.constants import EiConsts
 
@@ -41,3 +41,13 @@ class Ei(models.Model):
 
     def __str__(self):
         return self.short_name
+
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            child_eis = Ei.objects.filter(main_class=self)
+            if child_eis.count():
+                new_main = child_eis.first()
+                child_eis.exclude(pk=new_main.pk).update(main_class=new_main)
+                new_main.main_class = None
+                new_main.save(update_fields=["main_class"]) 
+            return super().delete(*args, **kwargs)

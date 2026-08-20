@@ -199,5 +199,6 @@ product_classify/media/enum_images
 product_classify/media/product_images
 product_classify/scripts
 product_classify/fixtures
+product_classify/staticfiles
 
 .python-version

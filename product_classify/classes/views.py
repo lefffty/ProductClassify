@@ -177,6 +177,7 @@ class ClassParamCreateView(
     """
     template_name = "classes/param_class.html"
     form_class = ParClassForm
+    context_object_name = "instance"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -197,6 +198,7 @@ class ClassParamUpdateView(
 ):
     template_name = "classes/param_class.html"
     form_class = ParClassForm
+    context_object_name = "instance"
 
     def get_object(self):
         class_id = self.kwargs.get("class_id")
@@ -221,6 +223,7 @@ class ClassParamDeleteView(
 ):
     model = ParClass
     template_name = "classes/param_class.html"
+    context_object_name = "instance"
 
     def get_object(self):
         return ParClass.objects.get(

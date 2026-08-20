@@ -3,9 +3,12 @@ from django.db import IntegrityError
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 
+from faker import Faker
+
 from classes.models import ClassStruct
 from classes.constants import EnumsIds, ProductsConsts
 
+from enums.constants import EnumsConsts
 from enums.models import Enums
 from enums.errors import ImageEnumErrors, IntEnumErrors, StringEnumErrors, DoubleEnumErrors, EnumsErrors
 
@@ -13,6 +16,7 @@ from enums.errors import ImageEnumErrors, IntEnumErrors, StringEnumErrors, Doubl
 class EnumsModelTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.fake = Faker()
         cls.image = SimpleUploadedFile(
             name="image.jpg",
             content=b"content",
@@ -270,3 +274,55 @@ class EnumsModelTest(TestCase):
         with self.assertRaises(ValidationError) as ve:
             enum.full_clean()
         self.assertEqual(ve.exception.messages[0], EnumsErrors.INVALID_PARENT)
+
+    def test_value_property_for_int_enum(self):
+        int_value = 1
+        enum = Enums.objects.create(
+            name=None,
+            short_name=None,
+            num=1,
+            enum=self.int_enum_class,
+            double_value=None,
+            image=None,
+            int_value=int_value
+        )
+        self.assertEqual(enum.value, int_value)
+
+    def test_value_property_for_double_enum(self):
+        double_value = 1
+        enum = Enums.objects.create(
+            name=None,
+            short_name=None,
+            num=1,
+            enum=self.double_enum_class,
+            double_value=double_value,
+            image=None,
+            int_value=None,
+        )
+        self.assertEqual(enum.value, double_value)
+
+    def test_value_property_for_string_enum(self):
+        name = self.fake.name()[:EnumsConsts.NAME_MAX_LENGTH]
+        short_name = self.fake.name()[:EnumsConsts.SHORT_NAME_MAX_LENGTH]
+        enum = Enums.objects.create(
+            name=name,
+            short_name=short_name,
+            num=1,
+            enum=self.string_enum_class,
+            double_value=None,
+            image=None,
+            int_value=None
+        )
+        self.assertEqual(enum.value, name)
+
+    def test_value_property_for_image_enum(self):
+        enum = Enums.objects.create(
+            name=None,
+            short_name=None,
+            num=1,
+            enum=self.image_enum_class,
+            double_value=None,
+            image=self.image,
+            int_value=None
+        )
+        self.assertHasAttr(enum.value, "file")

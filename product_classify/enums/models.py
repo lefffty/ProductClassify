@@ -79,7 +79,7 @@ class Enums(models.Model):
             return self.image
         elif enum_type == EnumsIds.INT:
             return self.int_value
-        elif enum_type == EnumsIds.DOUBLE:
+        else:
             return self.double_value
 
     def clean(self):

@@ -1,5 +1,9 @@
 from django.test import TestCase
 
+from faker import Faker
+from random import randint
+
+from ei.constants import EiConsts
 from ei.models import Ei
 
 
@@ -43,3 +47,34 @@ class EiModelTest(TestCase):
         child = Ei.objects.create(name="child", short_name="child", main_class=parent)
         self.assertEqual(child.main_class, parent)
         self.assertIn(child, parent.child_eis.all())
+
+    def test_main_class_reassignment_is_correct_(self):
+        fake = Faker()
+        ei1 = Ei.objects.create(
+            name=fake.name()[:EiConsts.NAME_MAX_LENGTH],
+            short_name=fake.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
+            code=fake.name()[:EiConsts.CODE_MAX_LENGTH],
+            convert_factor=1,
+            main_class=None
+        )
+        ei2 = Ei.objects.create(
+            name=fake.name()[:EiConsts.NAME_MAX_LENGTH],
+            short_name=fake.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
+            code=fake.name()[:EiConsts.CODE_MAX_LENGTH],
+            convert_factor=randint(2, 100),
+            main_class=ei1
+        )
+        ei3 = Ei.objects.create(
+            name=fake.name()[:EiConsts.NAME_MAX_LENGTH],
+            short_name=fake.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
+            code=fake.name()[:EiConsts.CODE_MAX_LENGTH],
+            convert_factor=randint(2, 100),
+            main_class=ei1
+        )
+
+        ei1.delete()
+        ei2.refresh_from_db()
+        ei3.refresh_from_db()
+        self.assertNotEqual(ei2.main_class, ei1)
+        self.assertIsNone(ei2.main_class)
+        self.assertEqual(ei3.main_class, ei2)

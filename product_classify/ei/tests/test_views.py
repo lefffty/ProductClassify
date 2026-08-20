@@ -5,6 +5,7 @@ from faker import Faker
 from random import randint
 
 from ei.models import Ei
+from ei.errors import EiErrors
 from ei.constants import EiConsts
 
 
@@ -67,6 +68,34 @@ class EiCreateViewTest(TestCase):
             "convert_factor": randint(1, 100),
             "main_class": cls.main_class.pk,
         }
+        cls.empty_name_data = {
+            "name": "",
+            "short_name": cls.fake.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
+            "code": cls.fake.postcode()[:EiConsts.CODE_MAX_LENGTH],
+            "convert_factor": randint(1, 100),
+            "main_class": cls.main_class.pk,
+        }
+        cls.empty_short_name_data = {
+            "name": cls.fake.name()[:EiConsts.NAME_MAX_LENGTH],
+            "short_name": "",
+            "code": cls.fake.postcode()[:EiConsts.CODE_MAX_LENGTH],
+            "convert_factor": randint(1, 100),
+            "main_class": cls.main_class.pk,
+        }
+        cls.empty_convert_factor_data = {
+            "name": cls.fake.name()[:EiConsts.NAME_MAX_LENGTH],
+            "short_name": cls.fake.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
+            "code": cls.fake.postcode()[:EiConsts.CODE_MAX_LENGTH],
+            "convert_factor": "",
+            "main_class": cls.main_class.pk,
+        }
+        cls.negative_convert_factor_data = {
+            "name": cls.fake.name()[:EiConsts.NAME_MAX_LENGTH],
+            "short_name": cls.fake.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
+            "code": cls.fake.postcode()[:EiConsts.CODE_MAX_LENGTH],
+            "convert_factor": -1,
+            "main_class": cls.main_class.pk,
+        }
 
     def test_ei_create_view_uses_detail_template(self):
         response = self.client.get(self.url)
@@ -88,6 +117,22 @@ class EiCreateViewTest(TestCase):
     def test_ei_create_view_redirects_after_a_POST_request(self):
         response = self.client.post(self.url, data=self.data)
         self.assertRedirects(response, self.redirect_url)
+
+    def test_empty_name_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.empty_name_data)
+        self.assertContains(response, EiErrors.EMPTY_NAME)
+
+    def test_empty_short_name_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.empty_short_name_data)
+        self.assertContains(response, EiErrors.EMPTY_SHORT_NAME)
+
+    def test_empty_convert_factor_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.empty_convert_factor_data)
+        self.assertContains(response, EiErrors.EMPTY_FACTOR)
+
+    def test_negative_convert_factor_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, data=self.negative_convert_factor_data)
+        self.assertContains(response, EiErrors.NEGATIVE_FACTOR)
 
 
 class EiDeleteViewTest(TestCase):
