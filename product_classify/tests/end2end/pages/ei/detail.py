@@ -2,6 +2,9 @@ from playwright.sync_api import Page, expect
 
 from tests.end2end.pages.base import BasePage
 
+from tests.end2end.pages.ei.delete import EiDeletePage
+from tests.end2end.pages.ei.edit import EiEditPage
+
 
 class EiDetailPage(BasePage):
     def __init__(self, page: Page):
@@ -116,3 +119,20 @@ class EiDetailPage(BasePage):
 
     def check_back_btn_text_is_correct(self, text: str):
         expect(self.ei_detail_back_btn).to_have_text(text)
+
+    def edit(self):
+        self.ei_detail_edit_btn.click(force=True)
+        return EiEditPage(self._page)
+
+    def delete(self):
+        self.ei_detail_delete_btn.click(force=True)
+        return EiDeletePage(self._page)
+
+    def back(self):
+        from tests.end2end.pages.ei.list import EiListPage
+        self.ei_detail_back_btn.click(force=True)
+        return EiListPage(self._page)
+
+    def go_to_parent(self):
+        self.ei_detail_parent_btn.click(force=True)
+        return EiDetailPage(self._page)
