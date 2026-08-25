@@ -5,67 +5,67 @@
 {% endblock title %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="card shadow-sm">
+<div id="ei-detail-container" class="container py-4">
+    <div id="ei-detail-header-card" class="card shadow-sm">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <h1 class="h3 mb-2">
+                    <h1 id="ei-detail-title" class="h3 mb-2">
                         <i class="bi bi-rulers"></i> {{ ei.name }}
                     </h1>
-                    <p class="text-muted mb-0">
-                        <span class="badge bg-light text-dark me-2">ID: {{ ei.id }}</span>
-                        <span class="badge bg-secondary">{{ ei.short_name|default:"Без сокращения" }}</span>
+                    <p id="ei-detail-meta" class="text-muted mb-0">
+                        <span id="ei-detail-id-badge" class="badge bg-light text-dark me-2">ID: {{ ei.id }}</span>
+                        <span id="ei-detail-short-badge" class="badge bg-secondary">{{ ei.short_name|default:"Без сокращения" }}</span>
                     </p>
                 </div>
-                <div class="btn-group">
-                    <a href="{% url 'ei:edit' ei.id %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-pencil"></i> Редактировать
+                <div id="ei-detail-actions" class="btn-group">
+                    <a id="ei-detail-edit-btn" href="{% url 'ei:edit' ei.id %}" class="btn btn-outline-secondary">
+                        Редактировать
                     </a>
-                    <a href="{% url 'ei:delete' ei.id %}" class="btn btn-outline-danger">
-                        <i class="bi bi-trash"></i> Удалить
+                    <a id="ei-detail-delete-btn" href="{% url 'ei:delete' ei.id %}" class="btn btn-outline-danger">
+                        Удалить
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm mt-4">
-        <div class="card-header bg-white">
-            <h5 class="mb-0"><i class="bi bi-info-circle"></i> Детальная информация</h5>
+    <div id="ei-detail-info-card" class="card shadow-sm mt-4">
+        <div id="ei-detail-info-header" class="card-header bg-white">
+            <h5 class="mb-0">Детальная информация</h5>
         </div>
-        <div class="card-body">
+        <div id="ei-detail-info-body" class="card-body">
             <dl class="row mb-0">
-                <dt class="col-sm-3 fw-semibold">Название</dt>
-                <dd class="col-sm-9">{{ ei.name }}</dd>
+                <dt id="ei-detail-name-label" class="col-sm-3 fw-semibold">Название</dt>
+                <dd id="ei-detail-name-value" class="col-sm-9">{{ ei.name }}</dd>
 
-                <dt class="col-sm-3 fw-semibold">Сокращение</dt>
-                <dd class="col-sm-9">{{ ei.short_name|default:"—" }}</dd>
+                <dt id="ei-detail-short-label" class="col-sm-3 fw-semibold">Сокращение</dt>
+                <dd id="ei-detail-short-value" class="col-sm-9">{{ ei.short_name|default:"—" }}</dd>
 
-                <dt class="col-sm-3 fw-semibold">Код</dt>
-                <dd class="col-sm-9">{{ ei.code|default:"—" }}</dd>
+                <dt id="ei-detail-code-label" class="col-sm-3 fw-semibold">Код</dt>
+                <dd id="ei-detail-code-value" class="col-sm-9">{{ ei.code|default:"—" }}</dd>
 
-                <dt class="col-sm-3 fw-semibold">Множитель</dt>
-                <dd class="col-sm-9">{{ ei.convert_factor|default:"—" }}</dd>
+                <dt id="ei-detail-factor-label" class="col-sm-3 fw-semibold">Множитель</dt>
+                <dd id="ei-detail-factor-value" class="col-sm-9">{{ ei.convert_factor|default:"—" }}</dd>
 
-                <dt class="col-sm-3 fw-semibold">Родительская единица</dt>
-                <dd class="col-sm-9">
+                <dt id="ei-detail-parent-label" class="col-sm-3 fw-semibold">Родительская единица</dt>
+                <dd id="ei-detail-parent-value" class="col-sm-9">
                     {% if ei.main_class %}
-                        <a href="{% url 'ei:detail' ei.main_class.id %}" class="text-decoration-none">
+                        <a id="ei-detail-parent-link" href="{% url 'ei:detail' ei.main_class.id %}" class="text-decoration-none">
                             {{ ei.main_class.name }}
                         </a>
-                        <span class="text-muted">(ID: {{ ei.main_class.id }})</span>
+                        <span id="ei-detail-parent-id" class="text-muted">(ID: {{ ei.main_class.id }})</span>
                     {% else %}
-                        <span class="text-muted">—</span>
+                        <span id="ei-detail-parent-none" class="text-muted">—</span>
                     {% endif %}
                 </dd>
             </dl>
         </div>
     </div>
 
-    <div class="mt-4">
-        <a href="{% url 'ei:list' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Вернуться к списку
+    <div id="ei-detail-back-container" class="mt-4">
+        <a id="ei-detail-back-btn" href="{% url 'ei:list' %}" class="btn btn-outline-secondary">
+            Вернуться к списку
         </a>
     </div>
 </div>

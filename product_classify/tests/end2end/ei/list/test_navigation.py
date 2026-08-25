@@ -1,12 +1,12 @@
 from django.urls import reverse
 
-from tests.end2end.ei.base import EiBaseEndToEndTest
+from tests.end2end.ei.list.base import EiListBaseEndToEndTest
 from tests.end2end.pages.ei.list import EiListPage
 
 from ei.models import Ei
 
 
-class EiListNavigationEndToEndTest(EiBaseEndToEndTest):
+class EiListNavigationEndToEndTest(EiListBaseEndToEndTest):
     def tearDown(self):
         self.page.goto(self.url)
         self.list_page = EiListPage(self.page)

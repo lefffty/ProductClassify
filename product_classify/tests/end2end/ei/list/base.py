@@ -4,10 +4,11 @@ from tests.end2end.pages.ei.list import EiListPage
 from tests.end2end.base import EndToEndTest
 
 
-class EiBaseEndToEndTest(EndToEndTest):
+class EiListBaseEndToEndTest(EndToEndTest):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.url = cls.server_url + reverse("ei:list")
         cls.page.goto(cls.url)
+
         cls.list_page = EiListPage(cls.page)

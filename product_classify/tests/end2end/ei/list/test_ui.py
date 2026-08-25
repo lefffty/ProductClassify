@@ -1,11 +1,11 @@
 from django.urls import reverse
 
-from tests.end2end.ei.base import EiBaseEndToEndTest
+from tests.end2end.ei.list.base import EiListBaseEndToEndTest
 
 from ei.models import Ei
 
 
-class EiListUIEndToEndTest(EiBaseEndToEndTest):
+class EiListUIEndToEndTest(EiListBaseEndToEndTest):
     def test_url_is_correct(self):
         list_url = reverse("ei:list")
         full_url = self.server_url + list_url
@@ -68,7 +68,7 @@ class EiListUIEndToEndTest(EiBaseEndToEndTest):
         self.list_page.check_table_body_nth_element_actions_data_is_correct(index, names)
 
 
-class EiEmptyListUIEndToEndTest(EiBaseEndToEndTest):
+class EiEmptyListUIEndToEndTest(EiListBaseEndToEndTest):
     fixtures = None
 
     def test_url_is_correct(self):
