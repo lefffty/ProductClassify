@@ -1,6 +1,10 @@
 from playwright.sync_api import Page, expect
 
 from tests.end2end.pages.base import BasePage
+from tests.end2end.pages.ei.create import EiCreatePage
+from tests.end2end.pages.ei.delete import EiDeletePage
+from tests.end2end.pages.ei.detail import EiDetailPage
+from tests.end2end.pages.ei.edit import EiEditPage
 
 
 class EiListPage(BasePage):
@@ -12,9 +16,16 @@ class EiListPage(BasePage):
         self.ei_counter = page.locator("#ei-count")
         self.table_header = page.locator("#ei-table-header")
         self.table_body = page.locator("#ei-table-body")
-        self.ei_selector = "#ei-row-{}"
         self.empty_list_msg = page.locator("#ei-empty-list-msg")
         self.add_first_btn = page.locator("#ei-add-first-btn")
+
+        self.ei_selector = "#ei-row-{}"
+        self.ei_edit_id = "#ei-edit-{}"
+        self.ei_detail_id = "#ei-detail-{}"
+        self.ei_delete_id = "#ei-delete-{}"
+
+    def check_url_is_correct(self, url):
+        expect(self._page).to_have_url(url)
 
     def check_page_title_is_visible(self):
         expect(self.page_title).to_be_visible(timeout=self.timeout)
@@ -75,3 +86,22 @@ class EiListPage(BasePage):
 
     def check_add_first_btn_text_is_correct(self, text: str):
         expect(self.add_first_btn).to_have_text(text)
+
+    def add(self):
+        self.add_btn.click(force=True)
+        return EiCreatePage(self._page)
+
+    def edit(self, index: int):
+        edit_btn = self._page.locator(self.ei_edit_id.format(index))
+        edit_btn.click(force=True)
+        return EiEditPage(self._page)
+
+    def detail(self, index: int):
+        detail_btn = self._page.locator(self.ei_detail_id.format(index))
+        detail_btn.click(force=True)
+        return EiDetailPage(self._page)
+
+    def delete(self, index: int):
+        delete_btn = self._page.locator(self.ei_delete_id.format(index))
+        delete_btn.click(force=True)
+        return EiDeletePage(self._page)

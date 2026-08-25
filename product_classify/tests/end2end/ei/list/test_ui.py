@@ -1,9 +1,16 @@
+from django.urls import reverse
+
 from tests.end2end.ei.base import EiBaseEndToEndTest
 
 from ei.models import Ei
 
 
 class EiListUIEndToEndTest(EiBaseEndToEndTest):
+    def test_url_is_correct(self):
+        list_url = reverse("ei:list")
+        full_url = self.server_url + list_url
+        self.list_page.check_url_is_correct(full_url)
+
     def test_page_title_is_visible(self):
         self.list_page.check_page_title_is_visible()
 
@@ -63,6 +70,11 @@ class EiListUIEndToEndTest(EiBaseEndToEndTest):
 
 class EiEmptyListUIEndToEndTest(EiBaseEndToEndTest):
     fixtures = None
+
+    def test_url_is_correct(self):
+        list_url = reverse("ei:list")
+        full_url = self.server_url + list_url
+        self.list_page.check_url_is_correct(full_url)
 
     def test_empty_ei_list_message_is_visible(self):
         self.list_page.check_empty_list_message_is_visible()
