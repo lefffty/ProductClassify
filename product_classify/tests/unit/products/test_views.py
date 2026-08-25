@@ -1,4 +1,4 @@
-from django.test import TestCase
+from tests.unit.base import BaseUnitTestCase
 from django.urls import reverse
 from django.utils.html import escape
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -24,7 +24,7 @@ from products.models import Prod, ParProd
 from products.errors import ProdErrors, CommonParProdErrors, EnumsParErrors, IntParErrors, DoubleParErrors
 
 
-class ProductDetailViewTest(TestCase):
+class ProductDetailViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -98,7 +98,7 @@ class ProductDetailViewTest(TestCase):
         self.assertContains(response, self.parprod.value)
 
 
-class ProductCreateViewTest(TestCase):
+class ProductCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -165,7 +165,7 @@ class ProductCreateViewTest(TestCase):
         self.assertContains(response, ProdErrors.EMPTY_NAME_FIELD)
 
 
-class ProductUpdateViewTest(TestCase):
+class ProductUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -258,7 +258,7 @@ class ProductUpdateViewTest(TestCase):
         self.assertContains(response, ProdErrors.EMPTY_NAME_FIELD)
 
 
-class ProductDeleteViewTest(TestCase):
+class ProductDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -290,7 +290,7 @@ class ProductDeleteViewTest(TestCase):
         self.assertRedirects(response, self.redirect_url)
 
 
-class ProductParamCreateViewTest(TestCase):
+class ProductParamCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -602,7 +602,7 @@ class ProductParamCreateViewTest(TestCase):
         )
 
 
-class ProductParamDeleteViewTest(TestCase):
+class ProductParamDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -672,7 +672,7 @@ class ProductParamDeleteViewTest(TestCase):
         self.assertRedirects(response, self.redirect_url)
 
 
-class ProductParamUpdateViewTest(TestCase):
+class ProductParamUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -812,7 +812,7 @@ class ProductParamUpdateViewTest(TestCase):
         self.assertRedirects(response, self.redirect_url)
 
 
-class ModificationCreateViewTest(TestCase):
+class ModificationCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         fake = Faker()

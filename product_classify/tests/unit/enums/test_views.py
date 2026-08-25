@@ -1,4 +1,4 @@
-from django.test import TestCase
+from tests.unit.base import BaseUnitTestCase
 from django.urls import reverse
 from django.utils.html import escape
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -23,7 +23,7 @@ from enums.errors import (
 from enums.models import Enums
 
 
-class EnumsListViewTest(TestCase):
+class EnumsListViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -77,7 +77,7 @@ class EnumsListViewTest(TestCase):
         self.assertEqual(response.context["enums"].count(), 0)
 
 
-class EnumsDetailViewTest(TestCase):
+class EnumsDetailViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -117,7 +117,7 @@ class EnumsDetailViewTest(TestCase):
         self.assertContains(response, self.enum.value)
 
 
-class EnumsCreateViewTest(TestCase):
+class EnumsCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -360,7 +360,7 @@ class EnumsCreateViewTest(TestCase):
         self.assertContains(response, escape(IntEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR))
 
 
-class EnumsDeleteViewTest(TestCase):
+class EnumsDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -413,7 +413,7 @@ class EnumsDeleteViewTest(TestCase):
         self.assertRedirects(response, self.redirect_url)
 
 
-class EnumsUpdateViewTest(TestCase):
+class EnumsUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -477,7 +477,7 @@ class EnumsUpdateViewTest(TestCase):
         self.assertRedirects(response, self.redirect_url)
 
 
-class ChangeNumViewTest(TestCase):
+class ChangeNumViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()

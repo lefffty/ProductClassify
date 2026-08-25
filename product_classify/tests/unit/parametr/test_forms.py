@@ -1,4 +1,4 @@
-from django.test import TestCase
+from tests.unit.base import BaseUnitTestCase
 from django.db.models import QuerySet
 
 from unittest.mock import patch
@@ -10,7 +10,7 @@ from ei.models import Ei
 from parametr.forms import ParametrForm
 
 
-class ParametrFormTest(TestCase):
+class ParametrFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.string_enum_type = ClassStruct.objects.get(pk=EnumsIds.STRING)

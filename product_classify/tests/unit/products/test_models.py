@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from tests.unit.base import BaseUnitTestCase
 from django.db import IntegrityError
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -17,7 +17,7 @@ from products.constants import ProdConsts
 from products.models import Prod, ParProd
 
 
-class ProdModelTest(TestCase):
+class ProdModelTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.main_class = ClassStruct.objects.create(
@@ -111,7 +111,7 @@ class ProdModelTest(TestCase):
         self.assertEqual(ProdComponent.objects.filter(parent_prod=modification.pk).count(), 1)
 
 
-class ParProdModelTest(TestCase):
+class ParProdModelTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         par_ei = Ei.objects.first()

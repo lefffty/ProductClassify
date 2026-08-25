@@ -1,16 +1,16 @@
-from django.test import TestCase
 from django.db.models import QuerySet
+
+from tests.unit.base import BaseUnitTestCase
 
 from ei.models import Ei
 from classes.models import ClassStruct
 from classes.constants import ParamIds
 from parametr.models import Parametr
-
 from agregat.models import Agregat
 from agregat.forms import AgregatForm, ChangeAgregatNumForm
 
 
-class AgregatFormTest(TestCase):
+class AgregatFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.par_ei = Ei.objects.first()
@@ -180,7 +180,7 @@ class AgregatFormTest(TestCase):
         self.assertEqual(obj.num, 1)
 
 
-class ChangeAgregatNumFormTest(TestCase):
+class ChangeAgregatNumFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.par_ei = Ei.objects.first()

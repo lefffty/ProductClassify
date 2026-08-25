@@ -1,4 +1,4 @@
-from django.test import TestCase
+from tests.unit.base import BaseUnitTestCase
 from django.db.models import QuerySet, PositiveSmallIntegerField
 from django.db import transaction
 from django.db.backends.base.operations import BaseDatabaseOperations
@@ -30,7 +30,7 @@ def create_test_image(extension: AllowedImageFormats = "jpg"):
     )
 
 
-class EnumsFormTest(TestCase):
+class EnumsFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.string_enum_type = ClassStruct.objects.get(pk=EnumsIds.STRING)
@@ -1077,7 +1077,7 @@ class EnumsFormTest(TestCase):
         self.assertFalse(form.is_valid())
 
 
-class ChangeNumFormTest(TestCase):
+class ChangeNumFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.int_enum_type = ClassStruct.objects.get(pk=EnumsIds.INT)

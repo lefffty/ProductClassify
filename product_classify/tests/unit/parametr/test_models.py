@@ -1,4 +1,4 @@
-from django.test import TestCase
+from tests.unit.base import BaseUnitTestCase
 
 from classes.models import ClassStruct
 from classes.constants import ParamIds
@@ -7,7 +7,7 @@ from ei.models import Ei
 from parametr.models import Parametr
 
 
-class ParametrModelTest(TestCase):
+class ParametrModelTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.par_ei = Ei.objects.first()

@@ -1,4 +1,4 @@
-from django.test import TestCase
+from tests.unit.base import BaseUnitTestCase
 from django.db.models import QuerySet
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -30,7 +30,7 @@ def create_image(extension: str = "jpg"):
     )
 
 
-class ProdFormTest(TestCase):
+class ProdFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.NUTS_CLASS = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
@@ -314,7 +314,7 @@ class ProdFormTest(TestCase):
         self.assertNotEqual(obj.image.name, form_files["image"])
 
 
-class ParProdFormTest(TestCase):
+class ParProdFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.PARCLASS_INT_MIN_VALUE = 0.0
@@ -790,7 +790,7 @@ class ParProdFormTest(TestCase):
         )
 
 
-class ModificationFormTest(TestCase):
+class ModificationFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()

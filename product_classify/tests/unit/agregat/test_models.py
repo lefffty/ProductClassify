@@ -1,5 +1,6 @@
 from django.db import IntegrityError
-from django.test import TestCase
+
+from tests.unit.base import BaseUnitTestCase
 
 from classes.models import ClassStruct
 from classes.constants import ParamIds
@@ -7,7 +8,7 @@ from classes.constants import ParamIds
 from agregat.models import Agregat, Parametr
 
 
-class AgregatModelTest(TestCase):
+class AgregatModelTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         parametr_type = ClassStruct.objects.get(pk=ParamIds.INT)

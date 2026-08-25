@@ -1,7 +1,8 @@
-from django.test import TestCase
 from django.db.models import QuerySet
 
 from unittest.mock import patch
+
+from tests.unit.base import BaseUnitTestCase
 
 from ei.models import Ei
 from parametr.models import Parametr
@@ -17,7 +18,7 @@ from classes.forms import (
 )
 
 
-class ProdClassFormTest(TestCase):
+class ProdClassFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.base_ei = Ei.objects.first()
@@ -322,7 +323,7 @@ class ProdClassFormTest(TestCase):
             self.assertEqual(form.errors[key], expected_errors[key])
 
 
-class EnumClassFormTest(TestCase):
+class EnumClassFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.base_ei = Ei.objects.first()
@@ -638,7 +639,7 @@ class EnumClassFormTest(TestCase):
             self.assertEqual(form.errors[key], expected_errors[key])
 
 
-class ParClassFormTest(TestCase):
+class ParClassFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.par_ei = Ei.objects.first()
@@ -1180,7 +1181,7 @@ class ParClassFormTest(TestCase):
         )
 
 
-class ChangeParClassNumFormTest(TestCase):
+class ChangeParClassNumFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.par_ei = Ei.objects.first()

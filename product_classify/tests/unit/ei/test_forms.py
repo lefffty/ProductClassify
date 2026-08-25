@@ -1,13 +1,13 @@
 from parameterized import parameterized
 
-from django.test import TestCase
+from tests.unit.base import BaseUnitTestCase
 from django.db.models import QuerySet
 
 from ei.models import Ei
 from ei.forms import EiForm
 
 
-class EiFormTest(TestCase):
+class EiFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.NEW_INSTANCE_MAIN_CLASS = Ei.objects.first()

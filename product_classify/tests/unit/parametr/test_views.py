@@ -1,4 +1,4 @@
-from django.test import TestCase
+from tests.unit.base import BaseUnitTestCase
 from django.urls import reverse
 from django.utils.html import escape
 
@@ -14,7 +14,7 @@ from parametr.constants import ParametrConsts
 from parametr.errors import ParametrErrors
 
 
-class ParametrListViewTest(TestCase):
+class ParametrListViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -52,7 +52,7 @@ class ParametrListViewTest(TestCase):
         self.assertEqual(response.context["parameters"].count(), expected_no_params)
 
 
-class ParametrDetailViewTest(TestCase):
+class ParametrDetailViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -86,7 +86,7 @@ class ParametrDetailViewTest(TestCase):
         self.assertContains(response, self.int_par.par_ei)
 
 
-class ParametrCreateViewTest(TestCase):
+class ParametrCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -188,7 +188,7 @@ class ParametrCreateViewTest(TestCase):
         self.assertContains(response, escape(ParametrErrors.AGREGAT))
 
 
-class ParametrUpdateViewTest(TestCase):
+class ParametrUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -240,7 +240,7 @@ class ParametrUpdateViewTest(TestCase):
         self.assertRedirects(response, self.redirect_url)
 
 
-class ParametrDeleteViewTest(TestCase):
+class ParametrDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()

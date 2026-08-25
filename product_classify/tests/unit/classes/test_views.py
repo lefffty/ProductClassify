@@ -1,4 +1,3 @@
-from django.test import TestCase
 from django.utils.html import escape
 from django.urls import reverse
 
@@ -7,6 +6,8 @@ from parameterized import parameterized
 from faker import Faker
 from unittest.mock import patch
 from random import randint
+
+from tests.unit.base import BaseUnitTestCase
 
 from parametr.models import Parametr
 from parametr.constants import ParametrConsts
@@ -25,7 +26,7 @@ from classes.constants import (
 )
 
 
-class MainPageTemplateViewTest(TestCase):
+class MainPageTemplateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.reversed_url = reverse("classes:index")
@@ -47,7 +48,7 @@ class MainPageTemplateViewTest(TestCase):
         self.assertContains(response, '<nav class="navbar">')
 
 
-class CategoryClassesListViewTest(TestCase):
+class CategoryClassesListViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         nuts_class = ClassStruct.objects.get(pk=3)
@@ -99,7 +100,7 @@ class CategoryClassesListViewTest(TestCase):
         self.assertIn("main_class", response.context)
 
 
-class ProdClassCreateViewTest(TestCase):
+class ProdClassCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
@@ -187,7 +188,7 @@ class ProdClassCreateViewTest(TestCase):
         self.assertContains(response, escape(ClassStructErrors.EMPTY_NAME_ERROR))
 
 
-class EnumClassCreateViewTest(TestCase):    
+class EnumClassCreateViewTest(BaseUnitTestCase):    
     @classmethod
     def setUpTestData(cls):
         cls.url = reverse("classes:add_enum_class")
@@ -268,7 +269,7 @@ class EnumClassCreateViewTest(TestCase):
         self.assertContains(response, escape(ClassStructErrors.EMPTY_MAIN_CLASS_ERROR))
 
 
-class ClassUpdateViewTest(TestCase):
+class ClassUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.int_enum_class = ClassStruct.objects.get(pk=EnumsIds.INT)
@@ -407,7 +408,7 @@ class ClassUpdateViewTest(TestCase):
         self.assertContains(response, escape(ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR))
 
 
-class DeleteClassViewTest(TestCase):
+class DeleteClassViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -452,7 +453,7 @@ class DeleteClassViewTest(TestCase):
             mock_delete_class_and_descendants.assert_called_with(self.class_id)
 
 
-class ClassParamCreateViewTest(TestCase):
+class ClassParamCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -595,7 +596,7 @@ class ClassParamCreateViewTest(TestCase):
         self.assertContains(response, escape(ParClassErrors.MIN_GE_MAX))
 
 
-class ClassParamUpdateViewTest(TestCase):
+class ClassParamUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -655,7 +656,7 @@ class ClassParamUpdateViewTest(TestCase):
         self.assertRedirects(response, self.redirect_url)
 
 
-class ClassParamDeleteViewTest(TestCase):
+class ClassParamDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -719,7 +720,7 @@ class ClassParamDeleteViewTest(TestCase):
         self.assertRedirects(response, self.redirect_url)
 
 
-class ChangeNumViewTest(TestCase):
+class ChangeNumViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -813,7 +814,7 @@ class ChangeNumViewTest(TestCase):
         self.assertContains(response, escape(ChangeParClassErrors.EQUAL_PAR))
 
 
-class ClassParamsListViewTest(TestCase):
+class ClassParamsListViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()

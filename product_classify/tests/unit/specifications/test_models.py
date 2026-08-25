@@ -1,4 +1,4 @@
-from django.test import TestCase
+from tests.unit.base import BaseUnitTestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from faker import Faker
@@ -12,7 +12,7 @@ from ei.models import Ei
 from specifications.models import ProdComponent, SpecificationLogs
 
 
-class ProdComponentTest(TestCase):
+class ProdComponentTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -88,7 +88,7 @@ class ProdComponentTest(TestCase):
         self.assertEqual(record.quantity, self.prodcomponent1.quantity)
 
 
-class SpecificationLogsTest(TestCase):
+class SpecificationLogsTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()

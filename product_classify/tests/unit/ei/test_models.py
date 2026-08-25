@@ -1,4 +1,4 @@
-from django.test import TestCase
+from tests.unit.base import BaseUnitTestCase
 
 from faker import Faker
 from random import randint
@@ -7,7 +7,7 @@ from ei.constants import EiConsts
 from ei.models import Ei
 
 
-class EiModelTest(TestCase):
+class EiModelTest(BaseUnitTestCase):
     def test_string_representation(self):
         ei = Ei(
             name="test_name",

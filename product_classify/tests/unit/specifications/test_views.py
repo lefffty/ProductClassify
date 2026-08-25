@@ -1,4 +1,4 @@
-from django.test import TestCase
+from tests.unit.base import BaseUnitTestCase
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -18,7 +18,7 @@ from specifications.views import ProdComponentFormSet
 from specifications.models import ProdComponent, SpecificationLogs
 
 
-class GetTotalCostRatioViewTest(TestCase):
+class GetTotalCostRatioViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -85,7 +85,7 @@ class GetTotalCostRatioViewTest(TestCase):
         )
 
 
-class GetProductChangelogViewTest(TestCase):
+class GetProductChangelogViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -157,7 +157,7 @@ class GetProductChangelogViewTest(TestCase):
         )
 
 
-class EditSpecificationViewTest(TestCase):
+class EditSpecificationViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()

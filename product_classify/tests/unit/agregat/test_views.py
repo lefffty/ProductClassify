@@ -1,19 +1,19 @@
-from django.test import TestCase
 from django.urls import reverse
 
 from faker import Faker
+
+from tests.unit.base import BaseUnitTestCase
 
 from classes.constants import ParamIds
 from classes.models import ClassStruct
 from parametr.models import Parametr
 from parametr.constants import ParametrConsts
 from ei.models import Ei
-
 from agregat.errors import AgregatErrors
 from agregat.models import Agregat
 
 
-class AgregatListViewTest(TestCase):
+class AgregatListViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -56,7 +56,7 @@ class AgregatListViewTest(TestCase):
         self.assertEqual(response.context["agregats"].count(), 1)
 
 
-class AgregatParametrCreateViewTest(TestCase):
+class AgregatParametrCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -117,7 +117,7 @@ class AgregatParametrCreateViewTest(TestCase):
         self.assertRedirects(response, self.redirect_url)
 
 
-class AgregatParametrDetailViewTest(TestCase):
+class AgregatParametrDetailViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -171,7 +171,7 @@ class AgregatParametrDetailViewTest(TestCase):
         self.assertContains(response, self.par2.name)
 
 
-class ChangeNumViewTest(TestCase):
+class ChangeNumViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -264,7 +264,7 @@ class ChangeNumViewTest(TestCase):
         self.assertContains(response, AgregatErrors.SAME_PARAMS)
 
 
-class AgregatParametrDeleteViewTest(TestCase):
+class AgregatParametrDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()

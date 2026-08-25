@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from django.test import TestCase
+from tests.unit.base import BaseUnitTestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from faker import Faker
@@ -13,7 +13,7 @@ from enums.models import Enums
 from enums.errors import ImageEnumErrors, IntEnumErrors, StringEnumErrors, DoubleEnumErrors, EnumsErrors
 
 
-class EnumsModelTest(TestCase):
+class EnumsModelTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()

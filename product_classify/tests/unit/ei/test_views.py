@@ -1,4 +1,4 @@
-from django.test import TestCase
+from tests.unit.base import BaseUnitTestCase
 from django.urls import reverse
 
 from faker import Faker
@@ -9,7 +9,7 @@ from ei.errors import EiErrors
 from ei.constants import EiConsts
 
 
-class EiListViewTest(TestCase):
+class EiListViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.url = reverse("ei:list")
@@ -27,7 +27,7 @@ class EiListViewTest(TestCase):
         self.assertIn("fastener_classes", response.context)
 
 
-class EiDetailViewTest(TestCase):
+class EiDetailViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.instance = Ei.objects.first()
@@ -53,7 +53,7 @@ class EiDetailViewTest(TestCase):
         self.assertContains(response, self.instance.convert_factor)
 
 
-class EiCreateViewTest(TestCase):
+class EiCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.fake = Faker()
@@ -135,7 +135,7 @@ class EiCreateViewTest(TestCase):
         self.assertContains(response, EiErrors.NEGATIVE_FACTOR)
 
 
-class EiDeleteViewTest(TestCase):
+class EiDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.ei_id = Ei.objects.last().pk
@@ -156,7 +156,7 @@ class EiDeleteViewTest(TestCase):
         self.assertRedirects(response, self.redirect_url)
 
 
-class EiUpdateViewTest(TestCase):
+class EiUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.ei = Ei.objects.last()

@@ -1,7 +1,8 @@
 from django.core.exceptions import ValidationError
-from django.test import TestCase
 from django.db.models import QuerySet
 from django.db import IntegrityError
+
+from tests.unit.base import BaseUnitTestCase
 
 from parametr.models import Parametr
 from ei.models import Ei
@@ -10,7 +11,7 @@ from classes.models import ClassStruct, ParClass
 from classes.constants import ProductsConsts, ParamIds, EnumsIds, TYPE_IDS, ENUM_PARAMS
 
 
-class ClassStructModelTest(TestCase):
+class ClassStructModelTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
@@ -140,7 +141,7 @@ class ClassStructModelTest(TestCase):
         self.assertEqual(all_enum_classes.model, ClassStruct, msg2)
 
 
-class ParClassModelTest(TestCase):
+class ParClassModelTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         base_ei = Ei.objects.first()
