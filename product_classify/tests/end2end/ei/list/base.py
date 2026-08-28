@@ -1,6 +1,6 @@
 from django.urls import reverse
 
-from tests.end2end.pages.ei.list import EiListPage
+from tests.end2end.components.pages.ei.list import EiListPage
 from tests.end2end.base import EndToEndTest
 
 

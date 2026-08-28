@@ -8,7 +8,7 @@ from tests.end2end.ei.detail.base import (
 
 class EiParentNavigationEndToEndTest(EiParentDetailBaseEndToEndTest):
     def tearDown(self):
-        from tests.end2end.pages.ei.detail import EiDetailPage
+        from tests.end2end.components.pages.ei.detail import EiDetailPage
         self.page.goto(self.url)
         self.detail_page = EiDetailPage(self.page)
 
@@ -33,7 +33,7 @@ class EiParentNavigationEndToEndTest(EiParentDetailBaseEndToEndTest):
 
 class EiChildNavigationEndToEndTest(EiChildDetailBaseEndToEndTest):
     def tearDown(self):
-        from tests.end2end.pages.ei.detail import EiDetailPage
+        from tests.end2end.components.pages.ei.detail import EiDetailPage
         self.page.goto(self.url)
         self.detail_page = EiDetailPage(self.page)
 

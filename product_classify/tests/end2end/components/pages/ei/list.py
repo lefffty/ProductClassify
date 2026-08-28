@@ -1,9 +1,9 @@
 from playwright.sync_api import Page, expect
 
-from tests.end2end.pages.base import BasePage
-from tests.end2end.pages.ei.create import EiCreatePage
-from tests.end2end.pages.ei.delete import EiDeletePage
-from tests.end2end.pages.ei.edit import EiEditPage
+from tests.end2end.components.pages.base import BasePage
+from tests.end2end.components.pages.ei.create import EiCreatePage
+from tests.end2end.components.pages.ei.delete import EiDeletePage
+from tests.end2end.components.pages.ei.edit import EiEditPage
 
 
 class EiListPage(BasePage):
@@ -96,7 +96,7 @@ class EiListPage(BasePage):
         return EiEditPage(self._page)
 
     def detail(self, index: int):
-        from tests.end2end.pages.ei.detail import EiDetailPage
+        from tests.end2end.components.pages.ei.detail import EiDetailPage
         detail_btn = self._page.locator(self.ei_detail_id.format(index))
         detail_btn.click(force=True)
         return EiDetailPage(self._page)

@@ -1,6 +1,6 @@
 from playwright.sync_api import Page, expect
 
-from tests.end2end.pages.base import BasePage
+from tests.end2end.components.pages.base import BasePage
 
 
 class EiEditPage(BasePage):

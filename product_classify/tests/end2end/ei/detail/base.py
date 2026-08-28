@@ -14,7 +14,7 @@ class EiParentDetailBaseEndToEndTest(EndToEndTest):
         cls.url = cls.server_url + reverse("ei:detail", args=[cls.ei_id])
         cls.page.goto(cls.url)
 
-        from tests.end2end.pages.ei.detail import EiDetailPage
+        from tests.end2end.components.pages.ei.detail import EiDetailPage
         cls.detail_page = EiDetailPage(cls.page)
 
 
@@ -27,5 +27,5 @@ class EiChildDetailBaseEndToEndTest(EndToEndTest):
         cls.url = cls.server_url + reverse("ei:detail", args=[cls.ei_id])
         cls.page.goto(cls.url)
 
-        from tests.end2end.pages.ei.detail import EiDetailPage
+        from tests.end2end.components.pages.ei.detail import EiDetailPage
         cls.detail_page = EiDetailPage(cls.page)

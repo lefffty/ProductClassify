@@ -12,58 +12,58 @@
 {% endblock title %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="card shadow-sm">
+<div id="ei-form-container" class="container py-4">
+    <div id="ei-form-card" class="card shadow-sm">
         <div class="card-body">
-            <h2 class="card-title h4 mb-4">
+            <h2 id="ei-form-header" class="card-title h4 mb-4">
                 {% if '/delete/' in request.path %}
-                    <i class="bi bi-trash text-danger"></i> Удаление единицы измерения
+                    Удаление единицы измерения
                 {% elif '/edit/' in request.path %}
-                    <i class="bi bi-pencil text-warning"></i> Редактирование единицы измерения
+                    Редактирование единицы измерения
                 {% else %}
-                    <i class="bi bi-plus-circle text-primary"></i> Добавление единицы измерения
+                    Добавление единицы измерения
                 {% endif %}
             </h2>
 
-            <form method="post" enctype="multipart/form-data">
+            <form id="ei-form" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
 
                 {% if '/delete/' in request.path %}
-                    <div class="alert alert-danger">
-                        <p class="mb-1"><strong>Вы действительно хотите удалить эту единицу измерения?</strong></p>
-                        <p class="mb-0">Это действие необратимо.</p>
+                    <div id="ei-delete-alert" class="alert alert-danger">
+                        <p id="ei-delete-warning" class="mb-1"><strong>Вы действительно хотите удалить эту единицу измерения?</strong></p>
+                        <p id="ei-delete-hint" class="mb-0">Это действие необратимо.</p>
                     </div>
 
-                    <dl class="row mb-4">
+                    <dl id="ei-delete-info" class="row mb-4">
                         <dt class="col-sm-3 fw-semibold">ID</dt>
-                        <dd class="col-sm-9">{{ instance.id }}</dd>
+                        <dd id="ei-delete-id" class="col-sm-9">{{ instance.id }}</dd>
 
                         <dt class="col-sm-3 fw-semibold">Название</dt>
-                        <dd class="col-sm-9">{{ instance.name }}</dd>
+                        <dd id="ei-delete-name" class="col-sm-9">{{ instance.name }}</dd>
 
                         <dt class="col-sm-3 fw-semibold">Сокращение</dt>
-                        <dd class="col-sm-9">{{ instance.short_name|default:"—" }}</dd>
+                        <dd id="ei-delete-short" class="col-sm-9">{{ instance.short_name|default:"—" }}</dd>
 
                         <dt class="col-sm-3 fw-semibold">Код</dt>
-                        <dd class="col-sm-9">{{ instance.code|default:"—" }}</dd>
+                        <dd id="ei-delete-code" class="col-sm-9">{{ instance.code|default:"—" }}</dd>
 
                         <dt class="col-sm-3 fw-semibold">Множитель</dt>
-                        <dd class="col-sm-9">{{ instance.convert_factor|default:"—" }}</dd>
+                        <dd id="ei-delete-factor" class="col-sm-9">{{ instance.convert_factor|default:"—" }}</dd>
 
                         <dt class="col-sm-3 fw-semibold">Родительская единица</dt>
-                        <dd class="col-sm-9">{{ instance.main_class|default:"—" }}</dd>
+                        <dd id="ei-delete-parent" class="col-sm-9">{{ instance.main_class|default:"—" }}</dd>
                     </dl>
 
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash"></i> Удалить
+                    <button id="ei-form-submit-btn" type="submit" class="btn btn-danger">
+                        Удалить
                     </button>
-                    <a href="{% url 'ei:list' %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-circle"></i> Отмена
+                    <a id="ei-form-cancel-btn" href="{% url 'ei:list' %}" class="btn btn-outline-secondary">
+                        Отмена
                     </a>
 
                 {% else %}
                     {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
+                        <div id="ei-form-non-field-errors" class="alert alert-danger">
                             {% for error in form.non_field_errors %}
                                 <p class="mb-0">{{ error }}</p>
                             {% endfor %}
@@ -74,10 +74,10 @@
                         <div class="mb-3">
                             {% bootstrap_field field show_label=True show_help=False %}
                             {% if field.help_text %}
-                                <div class="form-text">{{ field.help_text }}</div>
+                                <div id="ei-field-{{ field.name }}-help" class="form-text">{{ field.help_text }}</div>
                             {% endif %}
                             {% if field.errors %}
-                                <div class="invalid-feedback d-block">
+                                <div id="ei-field-{{ field.name }}-errors" class="invalid-feedback d-block">
                                     {% for error in field.errors %}
                                         <span>{{ error }}</span>
                                     {% endfor %}
@@ -86,15 +86,15 @@
                         </div>
                     {% endfor %}
 
-                    <button type="submit" class="btn btn-primary">
+                    <button id="ei-form-submit-btn" type="submit" class="btn btn-primary">
                         {% if '/edit/' in request.path %}
-                            <i class="bi bi-save"></i> Сохранить
+                            Сохранить
                         {% else %}
-                            <i class="bi bi-plus-circle"></i> Добавить
+                            Добавить
                         {% endif %}
                     </button>
-                    <a href="{% url 'ei:list' %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-circle"></i> Отмена
+                    <a id="ei-form-cancel-btn" href="{% url 'ei:list' %}" class="btn btn-outline-secondary">
+                        Отмена
                     </a>
                 {% endif %}
             </form>

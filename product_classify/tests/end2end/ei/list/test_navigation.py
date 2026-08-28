@@ -1,7 +1,7 @@
 from django.urls import reverse
 
 from tests.end2end.ei.list.base import EiListBaseEndToEndTest
-from tests.end2end.pages.ei.list import EiListPage
+from tests.end2end.components.pages.ei.list import EiListPage
 
 from ei.models import Ei
 
