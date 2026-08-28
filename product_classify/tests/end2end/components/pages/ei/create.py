@@ -13,10 +13,18 @@ class EiCreatePage(BasePage):
         self.form = page.locator("#ei-form")
 
         self.field_help_texts = {
-            field: page.locator(f"label[for='id_{field}']") for field in ["name", "short_name", "code", "convert_factor", "main_class"]
+            field: page.locator(f"label[for='id_{field}']")
+            for field in [
+                "name",
+                "short_name",
+                "code",
+                "convert_factor",
+                "main_class"
+            ]
         }
         self.fields = {
-            field: page.locator(f"{field_type}[id='id_{field}']") for field_type, field in [
+            (field, field_type): page.locator(f"{field_type}[id='id_{field}']")
+            for field_type, field in [
                 ("input", "name"), 
                 ("input", "short_name"), 
                 ("input", "code"), 
@@ -69,3 +77,18 @@ class EiCreatePage(BasePage):
     def check_form_fields_help_texts_are_correct(self, help_texts: list[str]):
         for help_field, help_text in zip(self.field_help_texts.values(), help_texts):
             expect(help_field).to_have_text(help_text)
+
+    def cancel(self):
+        from tests.end2end.components.pages.ei.list import EiListPage
+        self.cancel_btn.click(force=True)
+        return EiListPage(self._page)
+
+    def submit(self, data: dict):
+        from tests.end2end.components.pages.ei.list import EiListPage
+        for (field_name, field_type), field in self.fields.items():
+            if field_type == 'input':
+                field.fill(data[field_name])
+            elif field_type == 'select':
+                field.select_option(data[field_name])
+        self.submit_btn.click(force=True)
+        return EiListPage(self._page)
