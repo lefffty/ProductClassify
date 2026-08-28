@@ -11,7 +11,7 @@ class EiEditEndToEndTest(EndToEndTest):
     def setUpClass(cls):
         super().setUpClass()
         ei = Ei.objects.first()
-        ei_pk = ei.pk
-        cls.url = cls.server_url + reverse("ei:edit", args=[ei_pk])
+        cls.ei_pk = ei.pk
+        cls.url = cls.server_url + reverse("ei:edit", args=[cls.ei_pk])
         cls.page.goto(cls.url)
         cls.edit_page = EiEditPage(cls.page)

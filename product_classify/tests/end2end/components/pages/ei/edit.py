@@ -77,3 +77,18 @@ class EiEditPage(BasePage):
     def check_form_fields_help_texts_are_correct(self, help_texts: list[str]):
         for help_field, help_text in zip(self.field_help_texts.values(), help_texts):
             expect(help_field).to_have_text(help_text)
+
+    def cancel(self):
+        from tests.end2end.components.pages.ei.list import EiListPage
+        self.cancel_btn.click(force=True)
+        return EiListPage(self._page)
+
+    def submit(self, data: dict):
+        from tests.end2end.components.pages.ei.detail import EiDetailPage
+        for (field_name, field_type), field in self.fields.items():
+            if field_type == 'input':
+                field.fill(data[field_name])
+            elif field_type == 'select':
+                field.select_option(data[field_name])
+        self.submit_btn.click(force=True)
+        return EiDetailPage(self._page)
