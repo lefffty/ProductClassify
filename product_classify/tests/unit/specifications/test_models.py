@@ -1,7 +1,8 @@
-from tests.unit.base import BaseUnitTestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from faker import Faker
+
+from tests.unit.base import BaseUnitTestCase
 
 from classes.models import ClassStruct
 from classes.constants import ProductsConsts, ProdClassConsts
@@ -54,6 +55,11 @@ class ProdComponentTest(BaseUnitTestCase):
             num=1,
             quantity=12
         )
+
+    def test_string_representation(self):
+        actual_representation = str(self.prodcomponent1)
+        expected_representation = f"{self.prod.name} - {self.component.name}"
+        self.assertEqual(actual_representation, expected_representation)
 
     def test_is_parent_prod_returns_true_if_product_is_parent(self):
         is_parent = ProdComponent.is_parent_prod(self.prod.pk)
@@ -135,6 +141,11 @@ class SpecificationLogsTest(BaseUnitTestCase):
             old_quantity=12,
             new_quantity=24,
         )
+
+    def test_string_representation(self):
+        actual_representation = str(self.logs1)
+        expected_representation = f"Количество изделия {self.component.name} изменилось с {12} на {24}"
+        self.assertEqual(actual_representation, expected_representation)
 
     def test_get_changelog(self):
         log_string = f'Количество изделия "{self.component.name}" для изделия "{self.prod.name}" изменилось с {self.logs1.old_quantity} на {self.logs1.new_quantity}'

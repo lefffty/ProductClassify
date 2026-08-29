@@ -1,0 +1,22 @@
+[run]
+source = 
+    classes,
+    products,
+    enums,
+    agregat,
+    ei,
+    parametr,
+    specifications,
+omit =
+    */migrations/*
+    */tests/*
+    manage.py
+    */__init__.py
+    */settings.py
+    */admin.py
+    */apps.py
+    */constants.py
+    */urls.py
+    */errors.py
+    */inlines.py
+    */base.py

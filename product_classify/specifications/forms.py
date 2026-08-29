@@ -1,5 +1,7 @@
 from django import forms
+
 from specifications.models import ProdComponent
+
 
 class ProdComponentForm(forms.ModelForm):
     class Meta:
