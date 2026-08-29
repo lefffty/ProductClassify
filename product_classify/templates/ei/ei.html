@@ -35,23 +35,23 @@
                     </div>
 
                     <dl id="ei-delete-info" class="row mb-4">
-                        <dt class="col-sm-3 fw-semibold">ID</dt>
+                        <dt id="ei-delete-id-help" class="col-sm-3 fw-semibold">ID</dt>
                         <dd id="ei-delete-id" class="col-sm-9">{{ instance.id }}</dd>
 
-                        <dt class="col-sm-3 fw-semibold">Название</dt>
+                        <dt id="ei-delete-name-help" class="col-sm-3 fw-semibold">Название</dt>
                         <dd id="ei-delete-name" class="col-sm-9">{{ instance.name }}</dd>
 
-                        <dt class="col-sm-3 fw-semibold">Сокращение</dt>
+                        <dt id="ei-delete-short-help" class="col-sm-3 fw-semibold">Сокращение</dt>
                         <dd id="ei-delete-short" class="col-sm-9">{{ instance.short_name|default:"—" }}</dd>
 
-                        <dt class="col-sm-3 fw-semibold">Код</dt>
+                        <dt id="ei-delete-code-help" class="col-sm-3 fw-semibold">Код</dt>
                         <dd id="ei-delete-code" class="col-sm-9">{{ instance.code|default:"—" }}</dd>
 
-                        <dt class="col-sm-3 fw-semibold">Множитель</dt>
+                        <dt id="ei-delete-factor-help" class="col-sm-3 fw-semibold">Множитель</dt>
                         <dd id="ei-delete-factor" class="col-sm-9">{{ instance.convert_factor|default:"—" }}</dd>
 
-                        <dt class="col-sm-3 fw-semibold">Родительская единица</dt>
-                        <dd id="ei-delete-parent" class="col-sm-9">{{ instance.main_class|default:"—" }}</dd>
+                        <dt id="ei-delete-main_class-help" class="col-sm-3 fw-semibold">Родительская единица</dt>
+                        <dd id="ei-delete-main_class" class="col-sm-9">{{ instance.main_class|default:"—" }}</dd>
                     </dl>
 
                     <button id="ei-form-submit-btn" type="submit" class="btn btn-danger">

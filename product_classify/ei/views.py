@@ -48,6 +48,7 @@ class EiDeleteView(
     DeleteView,
 ):
     pk_url_kwarg = "ei_id"
+    context_object_name = "instance"
 
 
 class EiUpdateView(
