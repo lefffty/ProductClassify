@@ -17,6 +17,7 @@ class EiListPage(BasePage):
         self.table_body = page.locator("#ei-table-body")
         self.empty_list_msg = page.locator("#ei-empty-list-msg")
         self.add_first_btn = page.locator("#ei-add-first-btn")
+        self.rows = page.locator("#ei-table-body tr")
 
         self.ei_selector = "#ei-row-{}"
         self.ei_edit_id = "#ei-edit-{}"
@@ -85,6 +86,9 @@ class EiListPage(BasePage):
 
     def check_add_first_btn_text_is_correct(self, text: str):
         expect(self.add_first_btn).to_have_text(text)
+
+    def check_rows_count(self, count: int):
+        expect(self.rows).to_have_count(count)
 
     def add(self):
         self.add_btn.click(force=True)

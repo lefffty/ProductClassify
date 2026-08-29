@@ -1,7 +1,5 @@
 from playwright.sync_api import Page, expect
 
-from loguru import logger
-
 from tests.end2end.components.pages.base import BasePage
 
 
@@ -95,3 +93,13 @@ class EiDeletePage(BasePage):
 
     def check_submit_btn_text_is_correct(self, text: str):
         expect(self.submit_btn).to_have_text(text)
+
+    def cancel(self):
+        from tests.end2end.components.pages.ei.list import EiListPage
+        self.cancel_btn.click(force=True)
+        return EiListPage(self._page)
+
+    def submit(self):
+        from tests.end2end.components.pages.ei.list import EiListPage
+        self.submit_btn.click(force=True)
+        return EiListPage(self._page)
