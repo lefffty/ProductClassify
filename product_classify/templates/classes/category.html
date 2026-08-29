@@ -5,36 +5,36 @@
 {% endblock title %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="card shadow-sm mb-4">
+<div id="category-container" class="container py-4">
+    <div id="category-main-card" class="card shadow-sm mb-4">
         <div class="card-body">
-            <h1 class="card-title h3 mb-3">
-                <i class="bi bi-folder2-open"></i> Подклассы класса
-                <span class="text-primary">{{ main_class.name }}</span>
+            <h1 id="category-main-title" class="card-title h3 mb-3">
+                Подклассы класса
+                <span id="category-main-class-name" class="text-primary">{{ main_class.name }}</span>
             </h1>
-            <dl class="row mb-0">
+            <dl id="category-main-info" class="row mb-0">
                 <dt class="col-sm-3">ID</dt>
-                <dd class="col-sm-9">{{ main_class.id }}</dd>
+                <dd id="category-main-id" class="col-sm-9">{{ main_class.id }}</dd>
                 <dt class="col-sm-3">Полное название</dt>
-                <dd class="col-sm-9">{{ main_class.name }}</dd>
+                <dd id="category-main-fullname" class="col-sm-9">{{ main_class.name }}</dd>
                 <dt class="col-sm-3">Сокращение</dt>
-                <dd class="col-sm-9">{{ main_class.short_name|default:"—" }}</dd>
+                <dd id="category-main-short" class="col-sm-9">{{ main_class.short_name|default:"—" }}</dd>
                 <dt class="col-sm-3">Единица измерения</dt>
-                <dd class="col-sm-9">{{ main_class.base_ei|default:"Не задана" }}</dd>
+                <dd id="category-main-ei" class="col-sm-9">{{ main_class.base_ei|default:"Не задана" }}</dd>
             </dl>
         </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Список подклассов</h5>
-            <span class="badge bg-secondary">{{ classes|length }}</span>
+    <div id="category-list-card" class="card shadow-sm mb-4">
+        <div id="category-list-header" class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 id="category-list-title" class="mb-0">Список подклассов</h5>
+            <span id="category-list-count" class="badge bg-secondary">{{ classes|length }}</span>
         </div>
-        <div class="card-body p-0">
+        <div id="category-list-body" class="card-body p-0">
             {% if classes %}
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+                    <table id="category-table" class="table table-hover align-middle mb-0">
+                        <thead id="category-table-header" class="table-light">
                             <tr>
                                 <th>ID</th>
                                 <th>Название</th>
@@ -43,16 +43,17 @@
                                 <th>Действия</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="category-table-body">
                             {% for class in classes %}
-                            <tr>
-                                <td>{{ class.id }}</td>
-                                <td><strong>{{ class.name }}</strong></td>
-                                <td>{{ class.short_name|default:"—" }}</td>
-                                <td>{{ class.base_ei|default:"—" }}</td>
-                                <td>
+                            <tr id="category-row-{{ class.id }}">
+                                <td id="category-row-{{ class.id }}-id">{{ class.id }}</td>
+                                <td id="category-row-{{ class.id }}-name"><strong>{{ class.name }}</strong></td>
+                                <td id="category-row-{{ class.id }}-short">{{ class.short_name|default:"—" }}</td>
+                                <td id="category-row-{{ class.id }}-ei">{{ class.base_ei|default:"—" }}</td>
+                                <td id="category-row-{{ class.id }}-actions">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <a href="{% url 'products:class_products' class.main_class.id class.id %}"
+                                           id="category-row-{{ class.id }}-products-btn"
                                            class="btn btn-outline-primary"
                                            title="Список изделий">
                                             <i class="bi bi-box-seam">
@@ -60,6 +61,7 @@
                                             </i>
                                         </a>
                                         <a href="{% url 'classes:edit' class.id %}"
+                                           id="category-row-{{ class.id }}-edit-btn"
                                            class="btn btn-outline-secondary"
                                            title="Редактировать">
                                             <i class="bi bi-pencil">
@@ -67,6 +69,7 @@
                                             </i>
                                         </a>
                                         <a href="{% url 'classes:delete' class.id %}"
+                                           id="category-row-{{ class.id }}-delete-btn"
                                            class="btn btn-outline-danger"
                                            title="Удалить">
                                             <i class="bi bi-trash">
@@ -74,6 +77,7 @@
                                             </i>
                                         </a>
                                         <a href="{% url 'classes:params_list' class.id %}"
+                                           id="category-row-{{ class.id }}-params-btn"
                                            class="btn btn-outline-info"
                                            title="Параметры класса">
                                             <i class="bi bi-list-ul">
@@ -88,31 +92,35 @@
                     </table>
                 </div>
             {% else %}
-                <div class="text-center py-4 text-muted">
+                <div id="category-empty-state" class="text-center py-4 text-muted">
                     <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                    <p class="mt-2">Подклассы отсутствуют</p>
+                    <p id="category-empty-msg" class="mt-2">Подклассы отсутствуют</p>
                 </div>
             {% endif %}
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body d-flex flex-wrap gap-2">
+    <div id="category-actions-card" class="card shadow-sm">
+        <div id="category-actions-body" class="card-body d-flex flex-wrap gap-2">
             <a href="{% url 'classes:delete' main_class.id %}"
+               id="category-delete-main-btn"
                class="btn btn-outline-danger">
-                <i class="bi bi-trash"></i> Удалить класс
+                Удалить класс
             </a>
             <a href="{% url 'classes:edit' main_class.id %}"
+               id="category-edit-main-btn"
                class="btn btn-outline-secondary">
-                <i class="bi bi-pencil"></i> Редактировать
+                Редактировать
             </a>
             <a href="{% url 'classes:add_param' main_class.id %}"
+               id="category-add-param-btn"
                class="btn btn-outline-success">
-                <i class="bi bi-plus-circle"></i> Добавить параметр
+                Добавить параметр
             </a>
             <a href="{% url 'classes:params_list' main_class.id %}"
+               id="category-params-list-btn"
                class="btn btn-outline-info">
-                <i class="bi bi-list-ul"></i> Параметры класса
+                Параметры класса
             </a>
         </div>
     </div>
