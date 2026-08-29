@@ -163,7 +163,7 @@ class ClassParamsListView(
         context = super().get_context_data(**kwargs)
         class_id = self.kwargs.get("class_id")
         class_ = ClassStruct.objects.get(
-            pk=class_id,
+            pk=class_id
         )
         context["class"] = class_
         return context

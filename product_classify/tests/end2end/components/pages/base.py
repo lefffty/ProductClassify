@@ -1,2 +1,2 @@
 class BasePage:
-    timeout = 7000
+    timeout = 5000

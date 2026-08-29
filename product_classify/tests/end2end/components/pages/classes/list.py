@@ -1,7 +1,11 @@
 from playwright.sync_api import Page, expect
 
-
 from tests.end2end.components.pages.base import BasePage
+from tests.end2end.components.pages.classes.delete import ClassesDeletePage
+from tests.end2end.components.pages.classes.add_param import ClassesAddParamPage
+from tests.end2end.components.pages.classes.edit import ClassesEditPage
+from tests.end2end.components.pages.classes.params_list import ClassesParamsListPage
+from tests.end2end.components.pages.products.list import ProductsListPage
 
 
 class ClassesListPage(BasePage):
@@ -212,3 +216,39 @@ class ClassesListPage(BasePage):
 
     def check_row_params_btn_text_is_correct(self, class_id: int, text: str):
         expect(self.get_row_params_btn(class_id)).to_have_text(text)
+
+    def delete(self):
+        self.category_delete_main_btn.click(force=True)
+        return ClassesDeletePage(self._page)
+
+    def delete_subclass(self, class_id: int):
+        delete_btn = self.get_row_delete_btn(class_id)
+        delete_btn.click(force=True)
+        return ClassesDeletePage(self._page)
+
+    def edit(self):
+        self.category_edit_main_btn.click(force=True)
+        return ClassesEditPage(self._page)
+
+    def edit_subclass(self, class_id: int):
+        edit_btn = self.get_row_edit_btn(class_id)
+        edit_btn.click(force=True)
+        return ClassesEditPage(self._page)
+
+    def add_param(self):
+        self.category_add_param_btn.click(force=True)
+        return ClassesAddParamPage(self._page)
+
+    def params_list(self):
+        self.category_params_list_btn.click(force=True)
+        return ClassesParamsListPage(self._page)
+
+    def params_list_subclass(self, class_id: int):
+        params_list_btn = self.get_row_params_btn(class_id)
+        params_list_btn.click(force=True)
+        return ClassesParamsListPage(self._page)
+
+    def products_list_subclass(self, class_id: int):
+        products_list_btn = self.get_row_products_btn(class_id)
+        products_list_btn.click(force=True)
+        return ProductsListPage(self._page)

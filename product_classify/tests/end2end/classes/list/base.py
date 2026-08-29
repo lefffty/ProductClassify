@@ -21,24 +21,22 @@ class ClassesEmptyListBaseEndToEndTest(EndToEndTest):
 
 
 class ClassesFilledListBaseEndToEndTest(EndToEndTest):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUp(self):
+        super().setUp()
         faker = Faker()
-        cls.prod_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.child_prod_class1 = ClassStruct.objects.create(
+        self.prod_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        self.child_prod_class1 = ClassStruct.objects.create(
             name=faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
             short_name=faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=None,
-            main_class=cls.prod_class
+            main_class=self.prod_class
         )
-        cls.child_prod_class2 = ClassStruct.objects.create(
+        self.child_prod_class2 = ClassStruct.objects.create(
             name=faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
             short_name=faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=None,
-            main_class=cls.prod_class
+            main_class=self.prod_class
         )
-        cls.url = cls.server_url + reverse("classes:category_classes", args=[cls.prod_class.pk])
-        cls.page.goto(cls.url)
-
-        cls.list_page = ClassesListPage(cls.page)
+        self.url = self.live_server_url + reverse("classes:category_classes", args=[self.prod_class.pk])
+        self.page.goto(self.url)
+        self.list_page = ClassesListPage(self.page)
