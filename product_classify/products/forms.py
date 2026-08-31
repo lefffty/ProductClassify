@@ -12,7 +12,7 @@ from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
 
 from classes.models import ClassStruct, ParClass
-from classes.constants import ParamIds, ENUMS_IDS
+from classes.constants import ParamIds, ENUMS_IDS, NUMERIC_PARAMS, ENUM_PARAMS
 from enums.models import Enums
 
 from products.models import Parametr, ParProd, Prod
@@ -249,27 +249,30 @@ class SearchForm(Form):
         super().__init__(*args, **kwargs)
 
         for par_class in ParClass.objects.filter(class_field=cls):
+            par_type = par_class.parametr.parametr_type.id
+            par_name = par_class.parametr.name
             if (
-                par_class.parametr.parametr_type.id == ParamIds.INT
+                par_type in NUMERIC_PARAMS
                 and ParProd.objects.filter(par=par_class.parametr).exists()
             ):
-                self.fields[f"{par_class.parametr.name}"] = RangeField(
-                    label=f"{par_class.parametr.name}",
+                min_value = par_class.min_value
+                max_value = par_class.max_value
+                self.fields[f"{par_name}"] = RangeField(
+                    label=f"{par_name}",
                     required=False,
                     help_text=f"""Вводить в формате "min-max" (например, "10.0-20.0").
-                            <br>Границы диапазоны: {par_class.min_value}-{par_class.max_value}""",
+                            <br>Границы диапазоны: {min_value}-{max_value}""",
                 )
             elif (
-                par_class.parametr.parametr_type.id
-                in ClassStruct.enum_classes().values_list("id", flat=True)
+                par_type in ENUM_PARAMS
                 and ParProd.objects.filter(par=par_class.parametr).exists()
             ):
-                self.fields[par_class.parametr.name] = ModelChoiceField(
+                self.fields[par_name] = ModelChoiceField(
                     queryset=Enums.objects.filter(
                         parprod__par=par_class.parametr
                     ).distinct(),
-                    label=par_class.parametr.name,
                     required=False,
+                    label=par_name,
                 )
 
 

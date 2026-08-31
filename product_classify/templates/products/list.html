@@ -19,11 +19,11 @@
                     </h1>
                     <p class="text-muted mb-0">
                         <span class="badge bg-light text-dark me-2">ID класса: {{ cls.id }}</span>
-                        <span class="badge bg-secondary">Всего изделий: {{ products|length|add:products_no_params|length }}</span>
+                        <span class="badge bg-secondary">Всего изделий: {{ prod_count }}</span>
                     </p>
                 </div>
                 <a href="{% url 'products:add' %}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Добавить изделие
+                    Добавить изделие
                 </a>
             </div>
         </div>
@@ -32,7 +32,7 @@
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white">
             <h5 class="mb-0">
-                <i class="bi bi-funnel"></i> Фильтр изделий
+                Фильтр изделий
             </h5>
         </div>
         <div class="card-body">
@@ -41,12 +41,12 @@
                 <div class="row g-3 align-items-end">
                     {% for field in search_form %}
                         <div class="col-md-4">
-                            {% bootstrap_field field show_label=True show_help=False %}
+                            {% bootstrap_field field show_label=True show_help=True %}
                         </div>
                     {% endfor %}
                     <div class="col-md-2">
                         <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-search"></i> Найти
+                            Найти
                         </button>
                     </div>
                 </div>
@@ -77,13 +77,13 @@
                         <tbody>
                             {% for product in products %}
                             <tr>
-                                <td>{{ product.prod.id }}</td>
-                                <td><strong>{{ product.prod.name }}</strong></td>
-                                <td>{{ product.prod.class_field|default:"—" }}</td>
+                                <td>{{ product.id }}</td>
+                                <td><strong>{{ product.name }}</strong></td>
+                                <td>{{ product.class_field|default:"—" }}</td>
                                 <td>
-                                    {% if product.prod.image %}
-                                        <a href="{{ product.prod.image.url }}" target="_blank" class="d-inline-block">
-                                            <img src="{{ product.prod.image.url }}"
+                                    {% if product.image %}
+                                        <a href="{{ product.image.url }}" target="_blank" class="d-inline-block">
+                                            <img src="{{ product.image.url }}"
                                                  alt="Изображение изделия"
                                                  style="max-height: 50px; max-width: 80px; object-fit: cover;"
                                                  class="rounded border">
@@ -94,7 +94,7 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{% url 'products:detail' product.prod.id %}"
+                                        <a href="{% url 'products:detail' product.id %}"
                                            class="btn btn-outline-primary"
                                            title="Подробнее">
                                             Подробнее

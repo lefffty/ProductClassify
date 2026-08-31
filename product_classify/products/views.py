@@ -1,10 +1,6 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.http import (
-    HttpRequest,
-    HttpResponse,
-)
-from django.db.models import Q
+from django.db.models import Q, Exists, OuterRef
 from django.views.generic import (
     FormView,
     DetailView,
@@ -34,112 +30,77 @@ from products.models import (
 )
 
 
-def class_products(
-    request: HttpRequest,
-    main_class_id: int,
-    class_id: int,
-) -> HttpResponse:
-    """
-    Страница списка изделий
-    """
-    main_cls = ClassStruct.objects.get(
-        pk=main_class_id,
-    )
-    cls = ClassStruct.objects.get(
-        pk=class_id,
-    )
+def class_products(request, main_class_id: int, class_id: int):
+    main_cls = get_object_or_404(ClassStruct, pk=main_class_id)
+    cls = get_object_or_404(ClassStruct, pk=class_id)
+
     fastener_classes = ClassStruct.objects.filter(main_class__exact=ProductsConsts.FASTENER_ID)
+    search_form = SearchForm(request.GET, cls=cls)
 
-    base_query = Q(prod__class_field__exact=class_id)
-
-    search_form = SearchForm(
-        request.GET,
-        cls=ClassStruct.objects.get(
-            pk=class_id,
-        ),
-    )
+    products_qs = Prod.objects.filter(class_field=class_id)
 
     if search_form.is_valid():
         data = search_form.cleaned_data
-        filter_queries = []
-        for par_class in ParClass.objects.filter(
-            class_field__exact=class_id,
-        ):
-            param_name = par_class.parametr
-            if param_name in data and data[param_name]:
-                
-                if par_class.parametr.parametr_type.id in ENUM_PARAMS:
-                    filter_queries.append(
-                        Q(par=par_class.parametr)
-                        & Q(enum_val__exact=data[param_name])
-                    )
+        par_classes = ParClass.objects.filter(class_field=class_id).select_related('parametr__parametr_type')
 
-                elif par_class.parametr.parametr_type.id in NUMERIC_PARAMS:
-                    mn_val = data[param_name][0]
-                    mx_val = data[param_name][1]
+        conditions = []
 
+        for par_class in par_classes:
+            param_name = par_class.parametr.name
+            value = data.get(param_name)
+            if param_name in data and value:
+                param_type_id = par_class.parametr.parametr_type.id
+
+                if param_type_id in ENUM_PARAMS:
+                    condition = Q(par=par_class.parametr, enum_val=value)
+                elif param_type_id in NUMERIC_PARAMS:
+                    mn_val, mx_val = value[0], value[1]
                     if mn_val and mx_val:
                         try:
-                            if par_class.parametr.parametr_type.id == ParamIds.DOUBLE:
-                                mn_val = float(mn_val)
-                                mx_val = float(mx_val)
-                                filter_queries.append(
-                                    Q(par=par_class.parametr)
-                                    & Q(double_value__gte=mn_val)
-                                    & Q(double_value__lte=mx_val)
+                            if param_type_id == ParamIds.DOUBLE:
+                                mn_val, mx_val = float(mn_val), float(mx_val)
+                                condition = Q(
+                                    par=par_class.parametr, 
+                                    double_value__gte=mn_val,
+                                    double_value__lte=mx_val
                                 )
-                            elif par_class.parametr.parametr_type.id == ParamIds.INT:
-                                mn_val = int(mn_val)
-                                mx_val = int(mx_val)
-                                filter_queries.append(
-                                    Q(par=par_class.parametr)
-                                    & Q(int_value__gte=mn_val)
-                                    & Q(int_value__lte=mx_val)
+                            elif param_type_id == ParamIds.INT:
+                                mn_val, mx_val = int(mn_val), int(mx_val)
+                                condition = Q(
+                                    par=par_class.parametr,
+                                    int_value__gte=mn_val,
+                                    int_value__lte=mx_val
                                 )
                         except (ValueError, TypeError):
                             continue
+                else:
+                    continue
 
-        if filter_queries:
-            products = ParProd.objects.filter(base_query)
-
-            matching_products = []
-            for filter_query in filter_queries:
-                matching_products.append(
-                    set(products.filter(filter_query).values_list("id", flat=True))
+                conditions.append(
+                    Exists(ParProd.objects.filter(prod=OuterRef('pk')).filter(condition))
                 )
 
-            if matching_products:
-                common_product_ids = set.intersection(*matching_products)
-                products = ParProd.objects.filter(id__in=common_product_ids)
-            else:
-                products = ParProd.objects.none()
-        else:
-            products = ParProd.objects.filter(base_query)
+        for cond in conditions:
+            products_qs = products_qs.filter(cond)
 
-    else:
-        products = ParProd.objects.filter(base_query)
+    products_no_params = Prod.objects.filter(class_field=class_id).exclude(
+        id__in=ParProd.objects.filter(prod=OuterRef('pk')).values('prod')
+    )
 
-    products_no_params = Prod.objects.exclude(
-        product_params__isnull=False,
-    ).filter(class_field__exact=class_id)
-    products = products.distinct("prod")
+    prod_count = products_qs.count() + products_no_params.count()
 
     context = {
         "id": class_id,
         "main_class_id": main_class_id,
         "search_form": search_form,
-        "products": products,
+        "products": products_qs,
         "products_no_params": products_no_params,
         "main_cls": main_cls,
         "cls": cls,
-        "prod_count": products.count(),
+        "prod_count": prod_count,
         "fastener_classes": fastener_classes,
     }
-    return render(
-        request,
-        "products/list.html",
-        context,
-    )
+    return render(request, "products/list.html", context)
 
 
 class ProductDetailView(
