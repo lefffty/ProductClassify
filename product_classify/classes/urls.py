@@ -32,7 +32,7 @@ urlpatterns = [
     ),
     path(
         "<int:class_id>/delete/",
-        views.delete,
+        views.ClassDeleteView.as_view(),
         name="delete",
     ),
     path(

@@ -1,6 +1,6 @@
-from django.shortcuts import render, redirect
-from django.http import HttpRequest, HttpResponse, Http404
-from django.urls import reverse_lazy
+from django.shortcuts import redirect
+from django.http import Http404, HttpResponseRedirect
+from django.urls import reverse_lazy, reverse
 from django.views.generic import (
     FormView,
     ListView,
@@ -22,7 +22,7 @@ from classes.forms import (
     EnumClassForm,
     ParClassForm,
 )
-from classes.constants import ENUMS_IDS, ProductsConsts
+from classes.constants import ENUMS_IDS
 
 
 
@@ -120,27 +120,24 @@ class ClassUpdateView(
         )
 
 
-def delete(
-    request: HttpRequest,
-    class_id: int,
-) -> HttpResponse:
-    """Представление для удаления класса
-    """
-    fastener_classes = ClassStruct.objects.filter(main_class__pk=ProductsConsts.FASTENER_ID)
-    class_ = ClassStruct.objects.get(pk=class_id)
-    context = {
-        "fastener_classes": fastener_classes,
-        "instance": class_,
-    }
-    if request.method == "POST":
-        main_class_id = class_.main_class.pk
-        ClassStruct.delete_class_and_descendants(class_id)
-        return redirect("classes:category_classes", class_id=main_class_id)
-    return render(
-        request,
-        "classes/enum_class.html",
-        context,
-    )
+class ClassDeleteView(
+    CommonContextMixin,
+    DeleteView
+):
+    template_name = "classes/enum_class.html"
+    context_object_name = "instance"
+
+    def get_object(self) -> ClassStruct:
+        class_id = self.kwargs.get("class_id")
+        return ClassStruct.objects.get(pk=class_id)
+
+    def post(self, request, *args, **kwargs):
+        obj = self.get_object()
+        main_class_id = obj.main_class.pk
+        ClassStruct.delete_class_and_descendants(obj.pk)
+        return HttpResponseRedirect(
+            reverse("classes:category_classes", kwargs={"class_id": main_class_id})
+        )
 
 
 class ClassParamsListView(
