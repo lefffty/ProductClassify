@@ -7,13 +7,14 @@ from io import BytesIO
 from faker import Faker
 
 from classes.models import ClassStruct, ParClass
-from classes.constants import ProductsConsts, EnumsIds, ParamIds
+from classes.constants import ProductsConsts, EnumsIds, ParamIds, ProdClassConsts
 from parametr.models import Parametr
+from ei.models import Ei
 from enums.models import Enums
 
 from products.constants import ProdConsts
 from products.models import Prod, ParProd
-from products.forms import ProdForm, ParProdForm, ModificationForm
+from products.forms import ProdForm, ParProdForm, ModificationForm, SearchForm
 from products.errors import IntParErrors, DoubleParErrors, ProdErrors
 
 
@@ -814,4 +815,168 @@ class ModificationFormTest(BaseUnitTestCase):
         self.assertEqual(
             form.errors["name"],
             [ProdErrors.EMPTY_NAME_FIELD]
+        )
+
+
+class SearchFormTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.base_ei = Ei.objects.first()
+
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.int_par_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.int_enum_type = ClassStruct.objects.get(pk=EnumsIds.INT)
+
+        cls.nuts_subclass = ClassStruct.objects.create(
+            name=cls.faker.name()[:ProdClassConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.nuts_class,
+            base_ei=cls.base_ei
+        )
+        cls.enum_subclass = ClassStruct.objects.create(
+            name="enum class",
+            short_name="class",
+            main_class=cls.int_enum_type,
+            base_ei=cls.base_ei,
+        )
+
+        cls.prod1 = Prod.objects.create(
+            name="test prod1",
+            short_name="prod1",
+            class_field=cls.nuts_subclass,
+            image=None,
+            cost=200,
+            modification=None,
+            ei=cls.base_ei
+        )
+        cls.prod2 = Prod.objects.create(
+            name="test prod2",
+            short_name="prod2",
+            class_field=cls.nuts_subclass,
+            image=None,
+            cost=200,
+            modification=None,
+            ei=cls.base_ei
+        )
+
+        cls.par1_name = "test parametr1"
+        cls.par2_name = "test parametr2"
+
+        cls.par1 = Parametr.objects.create(
+            name=cls.par1_name,
+            short_name="parametr1",
+            parametr_type=cls.int_par_type,
+            par_ei=cls.base_ei,
+        )
+        cls.par2 = Parametr.objects.create(
+            name=cls.par2_name,
+            short_name="parametr2",
+            parametr_type=cls.int_enum_type,
+            par_ei=cls.base_ei,
+        )
+
+        cls.enum1 = Enums.objects.create(
+            enum=cls.enum_subclass,
+            num=1,
+            name=None,
+            short_name=None,
+            double_value=None,
+            int_value=2,
+            image=None,
+        )
+        cls.enum2 = Enums.objects.create(
+            enum=cls.enum_subclass,
+            num=2,
+            name=None,
+            short_name=None,
+            double_value=None,
+            int_value=4,
+            image=None,
+        )
+
+        cls.parclass1 = ParClass.objects.create(
+            class_field=cls.nuts_subclass,
+            parametr=cls.par1,
+            num=1,
+            min_value=100,
+            max_value=200
+        )
+        cls.parclass2 = ParClass.objects.create(
+            class_field=cls.nuts_subclass,
+            parametr=cls.par2,
+            num=2,
+            min_value=None,
+            max_value=None
+        )
+
+        cls.parprod1_1 = ParProd.objects.create(
+            prod=cls.prod1,
+            par=cls.par1,
+            int_value=150,
+            double_value=None,
+            enum_val=None,
+        )
+        cls.parprod1_2 = ParProd.objects.create(
+            prod=cls.prod1,
+            par=cls.par2,
+            int_value=None,
+            double_value=None,
+            enum_val=cls.enum1,
+        )
+
+        cls.parprod2_1 = ParProd.objects.create(
+            prod=cls.prod2,
+            par=cls.par1,
+            int_value=120,
+            double_value=None,
+            enum_val=None,
+        )
+        cls.parprod2_2 = ParProd.objects.create(
+            prod=cls.prod2,
+            par=cls.par2,
+            int_value=None,
+            double_value=None,
+            enum_val=cls.enum2,
+        )
+
+        cls.form = SearchForm({}, cls=cls.nuts_subclass)
+
+    def test_form_instance_has_correct_number_of_parameter_fields(self):
+        self.assertEqual(len(self.form.fields), 2)
+
+    def test_form_instance_has_correct_fields_names(self):
+        self.assertEqual(list(self.form.fields.keys()), [self.par1_name, self.par2_name])
+
+    def test_form_instance_has_correct_help_texts(self):
+        self.assertEqual(
+            self.form.fields[self.par1_name].help_text,
+            f"""Вводить в формате "min-max" (например, "10.0-20.0").<br>Границы диапазоны: {100.0}-{200.0}"""
+        )
+
+    def test_form_instance_without_specified_fields_is_valid(self):
+        self.assertTrue(self.form.is_valid(), self.form.errors)
+
+    def test_form_instance_is_valid_if_fields_were_specified_correctly(self):
+        self.form = SearchForm({
+            self.par1_name: "150.0 - 160.0",
+            self.par2_name: str(self.enum1.pk),
+        }, cls=self.nuts_subclass)
+        self.assertTrue(self.form.is_valid())
+
+    def test_form_instance_is_invalid_if_numeric_field_is_incorrect(self):
+        self.form = SearchForm({
+            self.par1_name: "150.0 ; 160.0",
+            self.par2_name: str(self.enum1.pk),
+        }, cls=self.nuts_subclass)
+        self.assertFalse(self.form.is_valid())
+
+    def test_form_instance_enum_field_has_correct_queryset(self):
+        self.assertQuerySetEqual(
+            self.form.fields[self.par2_name].queryset,
+            Enums.objects.filter(
+                parprod__par=self.parclass2.parametr
+            ).distinct(),
+            ordered=False
         )

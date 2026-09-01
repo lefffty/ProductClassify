@@ -260,8 +260,7 @@ class SearchForm(Form):
                 self.fields[f"{par_name}"] = RangeField(
                     label=f"{par_name}",
                     required=False,
-                    help_text=f"""Вводить в формате "min-max" (например, "10.0-20.0").
-                            <br>Границы диапазоны: {min_value}-{max_value}""",
+                    help_text=f"""Вводить в формате "min-max" (например, "10.0-20.0").<br>Границы диапазоны: {min_value}-{max_value}"""
                 )
             elif (
                 par_type in ENUM_PARAMS
