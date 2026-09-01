@@ -21,7 +21,7 @@ def get_filtered_products(products_qs: QuerySet[Prod], form_data: dict, class_id
             if param_type_id in ENUM_PARAMS:
                 condition = Q(par=par_class.parametr, enum_val=value)
             elif param_type_id in NUMERIC_PARAMS:
-                mn_val, mx_val = value[0], value[1]
+                mn_val, mx_val = value
                 if mn_val and mx_val:
                     try:
                         if param_type_id == ParamIds.DOUBLE:
@@ -38,8 +38,8 @@ def get_filtered_products(products_qs: QuerySet[Prod], form_data: dict, class_id
                                 int_value__gte=mn_val,
                                 int_value__lte=mx_val
                             )
-                    except (ValueError, TypeError):
-                        continue
+                    except (ValueError, TypeError) as e:
+                        print("CAUGHT CONVERSION ERROR:", e)
             else:
                 continue
 
