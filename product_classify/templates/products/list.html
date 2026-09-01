@@ -29,7 +29,7 @@
         </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
+    <div class="card shadow-sm mb-4 col-md-6 col-lg-4 mx-auto">
         <div class="card-header bg-white">
             <h5 class="mb-0">
                 Фильтр изделий
@@ -38,16 +38,14 @@
         <div class="card-body">
             <form method="get" action="{% url 'products:class_products' main_class_id id %}">
                 {% csrf_token %}
-                <div class="row g-3 align-items-end">
+                <div class="row g-6">
                     {% for field in search_form %}
-                        <div class="col-md-4">
+                        <div class="col-12">
                             {% bootstrap_field field show_label=True show_help=True %}
                         </div>
                     {% endfor %}
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">
-                            Найти
-                        </button>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary w-100">Найти</button>
                     </div>
                 </div>
             </form>

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.db.models import Q, Exists, OuterRef
+from django.http import HttpRequest
+from django.db.models import OuterRef
 from django.views.generic import (
     FormView,
     DetailView,
@@ -11,11 +12,8 @@ from django.views.generic import (
 from django.contrib.auth.views import RedirectURLMixin
 from django.views.generic.detail import SingleObjectMixin
 
-from classes.models import (
-    ClassStruct,
-    ParClass,
-)
-from classes.constants import ProductsConsts, ENUM_PARAMS, NUMERIC_PARAMS, ParamIds
+from classes.constants import ProductsConsts
+from classes.models import ClassStruct
 from core.mixins import CommonContextMixin
 
 from products.forms import (
@@ -24,13 +22,14 @@ from products.forms import (
     SearchForm,
     ModificationForm,
 )
+from products.utils import get_filtered_products
 from products.models import (
     Prod,
     ParProd,
 )
 
 
-def class_products(request, main_class_id: int, class_id: int):
+def class_products(request: HttpRequest, main_class_id: int, class_id: int):
     main_cls = get_object_or_404(ClassStruct, pk=main_class_id)
     cls = get_object_or_404(ClassStruct, pk=class_id)
 
@@ -40,48 +39,8 @@ def class_products(request, main_class_id: int, class_id: int):
     products_qs = Prod.objects.filter(class_field=class_id)
 
     if search_form.is_valid():
-        data = search_form.cleaned_data
-        par_classes = ParClass.objects.filter(class_field=class_id).select_related('parametr__parametr_type')
-
-        conditions = []
-
-        for par_class in par_classes:
-            param_name = par_class.parametr.name
-            value = data.get(param_name)
-            if param_name in data and value:
-                param_type_id = par_class.parametr.parametr_type.id
-
-                if param_type_id in ENUM_PARAMS:
-                    condition = Q(par=par_class.parametr, enum_val=value)
-                elif param_type_id in NUMERIC_PARAMS:
-                    mn_val, mx_val = value[0], value[1]
-                    if mn_val and mx_val:
-                        try:
-                            if param_type_id == ParamIds.DOUBLE:
-                                mn_val, mx_val = float(mn_val), float(mx_val)
-                                condition = Q(
-                                    par=par_class.parametr, 
-                                    double_value__gte=mn_val,
-                                    double_value__lte=mx_val
-                                )
-                            elif param_type_id == ParamIds.INT:
-                                mn_val, mx_val = int(mn_val), int(mx_val)
-                                condition = Q(
-                                    par=par_class.parametr,
-                                    int_value__gte=mn_val,
-                                    int_value__lte=mx_val
-                                )
-                        except (ValueError, TypeError):
-                            continue
-                else:
-                    continue
-
-                conditions.append(
-                    Exists(ParProd.objects.filter(prod=OuterRef('pk')).filter(condition))
-                )
-
-        for cond in conditions:
-            products_qs = products_qs.filter(cond)
+        form_data = search_form.cleaned_data
+        products_qs = get_filtered_products(products_qs, form_data, class_id)
 
     products_no_params = Prod.objects.filter(class_field=class_id).exclude(
         id__in=ParProd.objects.filter(prod=OuterRef('pk')).values('prod')
