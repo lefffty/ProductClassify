@@ -5,100 +5,99 @@
 {% endblock title %}
 
 {% block content %}
-<div class="container py-4">
-    <!-- Заголовок -->
-    <div class="text-center mb-5">
-        <h1 class="display-4 fw-light">
-            <i class="bi bi-house-door"></i> Добро пожаловать
+<div id="home-container" class="container py-4">
+    <div id="home-header" class="text-center mb-5">
+        <h1 id="home-title" class="display-4 fw-light">
+            Добро пожаловать
         </h1>
-        <p class="text-muted">Управление справочной системой</p>
+        <p id="home-subtitle" class="text-muted">Управление справочной системой</p>
     </div>
 
-    <div class="row g-4">
-        <div class="col-md-6 col-lg-4">
+    <div id="home-cards-grid" class="row g-4">
+        <div id="home-card-classes" class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm text-center">
                 <div class="card-body">
-                    <div class="display-4 text-primary mb-3">
+                    <div id="home-card-classes-icon" class="display-4 text-primary mb-3">
                         <i class="bi bi-boxes"></i>
                     </div>
-                    <h5 class="card-title">Классы изделий</h5>
-                    <p class="card-text text-muted small">Управление классификацией изделий</p>
-                    <a href="{% url 'classes:add_prod_class' %}" class="btn btn-outline-primary stretched-link">
-                        <i class="bi bi-plus-circle"></i> Добавить класс
+                    <h5 id="home-card-classes-title" class="card-title">Классы изделий</h5>
+                    <p id="home-card-classes-text" class="card-text text-muted small">Управление классификацией изделий</p>
+                    <a id="home-card-classes-btn" href="{% url 'classes:add_prod_class' %}" class="btn btn-outline-primary stretched-link">
+                        Добавить класс
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 col-lg-4">
+        <div id="home-card-enums" class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm text-center">
                 <div class="card-body">
-                    <div class="display-4 text-success mb-3">
+                    <div id="home-card-enums-icon" class="display-4 text-success mb-3">
                         <i class="bi bi-list-ul"></i>
                     </div>
-                    <h5 class="card-title">Классы перечислений</h5>
-                    <p class="card-text text-muted small">Управление перечисляемыми типами</p>
-                    <a href="{% url 'classes:add_enum_class' %}" class="btn btn-outline-success stretched-link">
+                    <h5 id="home-card-enums-title" class="card-title">Классы перечислений</h5>
+                    <p id="home-card-enums-text" class="card-text text-muted small">Управление перечисляемыми типами</p>
+                    <a id="home-card-enums-btn" href="{% url 'classes:add_enum_class' %}" class="btn btn-outline-success stretched-link">
                         <i class="bi bi-plus-circle"></i> Добавить класс
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 col-lg-4">
+        <div id="home-card-ei" class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm text-center">
                 <div class="card-body">
-                    <div class="display-4 text-warning mb-3">
+                    <div id="home-card-ei-icon" class="display-4 text-warning mb-3">
                         <i class="bi bi-rulers"></i>
                     </div>
-                    <h5 class="card-title">Единицы измерения</h5>
-                    <p class="card-text text-muted small">Справочник единиц измерения</p>
-                    <a href="{% url 'ei:add' %}" class="btn btn-outline-warning stretched-link">
+                    <h5 id="home-card-ei-title" class="card-title">Единицы измерения</h5>
+                    <p id="home-card-ei-text" class="card-text text-muted small">Справочник единиц измерения</p>
+                    <a id="home-card-ei-btn" href="{% url 'ei:add' %}" class="btn btn-outline-warning stretched-link">
                         <i class="bi bi-plus-circle"></i> Добавить единицу
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 col-lg-4">
+        <div id="home-card-params" class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm text-center">
                 <div class="card-body">
-                    <div class="display-4 text-info mb-3">
+                    <div id="home-card-params-icon" class="display-4 text-info mb-3">
                         <i class="bi bi-sliders2"></i>
                     </div>
-                    <h5 class="card-title">Параметры</h5>
-                    <p class="card-text text-muted small">Управление параметрами изделий</p>
-                    <a href="{% url 'parametr:add' %}" class="btn btn-outline-info stretched-link">
+                    <h5 id="home-card-params-title" class="card-title">Параметры</h5>
+                    <p id="home-card-params-text" class="card-text text-muted small">Управление параметрами изделий</p>
+                    <a id="home-card-params-btn" href="{% url 'parametr:add' %}" class="btn btn-outline-info stretched-link">
                         <i class="bi bi-plus-circle"></i> Добавить параметр
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 col-lg-4">
+        <div id="home-card-enum-values" class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm text-center">
                 <div class="card-body">
-                    <div class="display-4 text-secondary mb-3">
+                    <div id="home-card-enum-values-icon" class="display-4 text-secondary mb-3">
                         <i class="bi bi-tags"></i>
                     </div>
-                    <h5 class="card-title">Значения перечислений</h5>
-                    <p class="card-text text-muted small">Добавление значений в перечисления</p>
-                    <a href="{% url 'enums:add' %}" class="btn btn-outline-secondary stretched-link">
+                    <h5 id="home-card-enum-values-title" class="card-title">Значения перечислений</h5>
+                    <p id="home-card-enum-values-text" class="card-text text-muted small">Добавление значений в перечисления</p>
+                    <a id="home-card-enum-values-btn" href="{% url 'enums:add' %}" class="btn btn-outline-secondary stretched-link">
                         <i class="bi bi-plus-circle"></i> Добавить значение
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 col-lg-4">
+        <div id="home-card-products" class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm text-center">
                 <div class="card-body">
-                    <div class="display-4 text-danger mb-3">
+                    <div id="home-card-products-icon" class="display-4 text-danger mb-3">
                         <i class="bi bi-box-seam"></i>
                     </div>
-                    <h5 class="card-title">Изделия</h5>
-                    <p class="card-text text-muted small">Управление каталогом изделий</p>
-                    <a href="{% url 'products:add' %}" class="btn btn-outline-danger stretched-link">
+                    <h5 id="home-card-products-title" class="card-title">Изделия</h5>
+                    <p id="home-card-products-text" class="card-text text-muted small">Управление каталогом изделий</p>
+                    <a id="home-card-products-btn" href="{% url 'products:add' %}" class="btn btn-outline-danger stretched-link">
                         <i class="bi bi-plus-circle"></i> Добавить изделие
                     </a>
                 </div>
@@ -106,9 +105,9 @@
         </div>
     </div>
 
-    <div class="text-center mt-5 text-muted small">
-        <hr>
-        <p>Выберите раздел для добавления новой записи</p>
+    <div id="home-footer" class="text-center mt-5 text-muted small">
+        <hr id="home-divider">
+        <p id="home-footer-text">Выберите раздел для добавления новой записи</p>
     </div>
 </div>
 {% endblock content %}
