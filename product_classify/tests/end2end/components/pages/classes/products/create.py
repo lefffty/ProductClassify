@@ -67,4 +67,18 @@ class ProdClassCreatePage(BasePage):
 
     def check_cancel_btn_text_is_correct(self, text: str):
         expect(self.prod_class_cancel_btn).to_have_text(text)
-    
+
+    def cancel(self):
+        from tests.end2end.components.pages.classes.index import IndexPage
+        self.prod_class_cancel_btn.click(force=True)
+        return IndexPage(self._page)
+
+    def submit(self, data: dict):
+        from tests.end2end.components.pages.classes.index import IndexPage
+        for (name, field_type), field in self.fields.items():
+            if field_type == "input":
+                field.fill(data[name])
+            elif field_type == "select":
+                field.select_option(index=data[name])
+        self.prod_class_submit_btn.click(force=True)
+        return IndexPage(self._page)
