@@ -1,6 +1,12 @@
 from playwright.sync_api import Page, expect
 
 from tests.end2end.components.pages.base import BasePage
+from tests.end2end.components.pages.ei.create import EiCreatePage
+from tests.end2end.components.pages.products.create import ProductCreatePage
+from tests.end2end.components.pages.parametr.create import ParametrCreatePage
+from tests.end2end.components.pages.enums.create import EnumCreatePage
+from tests.end2end.components.pages.classes.enums.create import EnumClassCreatePage
+from tests.end2end.components.pages.classes.products.create import ProdClassCreatePage
 
 
 class IndexPage(BasePage):
@@ -156,3 +162,27 @@ class IndexPage(BasePage):
 
     def check_products_btn_text_is_correct(self, text: str):
         expect(self.home_card_products_btn).to_have_text(text)
+
+    def add_prod_class(self):
+        self.home_card_classes_btn.click(force=True)
+        return ProdClassCreatePage(self._page)
+
+    def add_enum_class(self):
+        self.home_card_enums_btn.click(force=True)
+        return EnumClassCreatePage(self._page)
+
+    def add_ei(self):
+        self.home_card_ei_btn.click(force=True)
+        return EiCreatePage(self._page)
+
+    def add_parameter(self):
+        self.home_card_params_btn.click(force=True)
+        return ParametrCreatePage(self._page)
+
+    def add_enum(self):
+        self.home_card_enum_values_btn.click(force=True)
+        return EnumCreatePage(self._page)
+
+    def add_product(self):
+        self.home_card_products_btn.click(force=True)
+        return ProductCreatePage(self._page)
