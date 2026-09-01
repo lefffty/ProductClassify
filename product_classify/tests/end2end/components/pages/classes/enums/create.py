@@ -68,3 +68,18 @@ class EnumClassCreatePage(BasePage):
     def check_form_fields_are_visible(self):
         for field in self.fields.values():
             expect(field).to_be_visible()
+
+    def cancel(self):
+        from tests.end2end.components.pages.classes.index import IndexPage
+        self.enum_class_cancel_btn.click(force=True)
+        return IndexPage(self._page)
+
+    def submit(self, data: dict):
+        from tests.end2end.components.pages.classes.index import IndexPage
+        for (field_name, field_type), field in self.fields.items():
+            if field_type == 'input':
+                field.fill(data[field_name])
+            elif field_type == 'select':
+                field.select_option(index=data[field_name])
+        self.enum_class_submit_btn.click(force=True)
+        return IndexPage(self._page)
