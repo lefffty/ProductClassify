@@ -906,3 +906,186 @@ class ModificationCreateViewTest(BaseUnitTestCase):
     def test_empty_name_validation_error_is_shown_on_page(self):
         response = self.client.post(self.url, data=self.invalid_data)
         self.assertContains(response, ProdErrors.EMPTY_NAME_FIELD)
+
+
+
+class ClassProductsViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.base_ei = Ei.objects.first()
+
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.int_par_type = ClassStruct.objects.get(pk=ParamIds.INT)
+        cls.int_enum_type = ClassStruct.objects.get(pk=EnumsIds.INT)
+
+        cls.nuts_subclass = ClassStruct.objects.create(
+            name=cls.faker.name()[:ProdClassConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.nuts_class,
+            base_ei=cls.base_ei
+        )
+        cls.enum_subclass = ClassStruct.objects.create(
+            name="enum class",
+            short_name="class",
+            main_class=cls.int_enum_type,
+            base_ei=cls.base_ei,
+        )
+
+        cls.prod1 = Prod.objects.create(
+            name="test prod1",
+            short_name="prod1",
+            class_field=cls.nuts_subclass,
+            image=None,
+            cost=200,
+            modification=None,
+            ei=cls.base_ei
+        )
+        cls.prod2 = Prod.objects.create(
+            name="test prod2",
+            short_name="prod2",
+            class_field=cls.nuts_subclass,
+            image=None,
+            cost=200,
+            modification=None,
+            ei=cls.base_ei
+        )
+
+        cls.par1 = Parametr.objects.create(
+            name="test parametr1",
+            short_name="parametr1",
+            parametr_type=cls.int_par_type,
+            par_ei=cls.base_ei,
+        )
+        cls.par2 = Parametr.objects.create(
+            name="test parametr2",
+            short_name="parametr2",
+            parametr_type=cls.int_enum_type,
+            par_ei=cls.base_ei,
+        )
+
+        cls.enum1 = Enums.objects.create(
+            enum=cls.enum_subclass,
+            num=1,
+            name=None,
+            short_name=None,
+            double_value=None,
+            int_value=2,
+            image=None,
+        )
+        cls.enum2 = Enums.objects.create(
+            enum=cls.enum_subclass,
+            num=2,
+            name=None,
+            short_name=None,
+            double_value=None,
+            int_value=4,
+            image=None,
+        )
+
+        cls.parclass1 = ParClass.objects.create(
+            class_field=cls.nuts_subclass,
+            parametr=cls.par1,
+            num=1,
+            min_value=100,
+            max_value=200
+        )
+        cls.parclass2 = ParClass.objects.create(
+            class_field=cls.nuts_subclass,
+            parametr=cls.par2,
+            num=2,
+            min_value=None,
+            max_value=None
+        )
+
+        cls.parprod1_1 = ParProd.objects.create(
+            prod=cls.prod1,
+            par=cls.par1,
+            int_value=150,
+            double_value=None,
+            enum_val=None,
+        )
+        cls.parprod1_2 = ParProd.objects.create(
+            prod=cls.prod1,
+            par=cls.par2,
+            int_value=None,
+            double_value=None,
+            enum_val=cls.enum1,
+        )
+
+        cls.parprod2_1 = ParProd.objects.create(
+            prod=cls.prod2,
+            par=cls.par1,
+            int_value=120,
+            double_value=None,
+            enum_val=None,
+        )
+        cls.parprod2_2 = ParProd.objects.create(
+            prod=cls.prod2,
+            par=cls.par2,
+            int_value=None,
+            double_value=None,
+            enum_val=cls.enum2,
+        )
+
+        cls.url = reverse("products:class_products", kwargs={
+            "main_class_id": cls.nuts_class.pk,
+            "class_id": cls.nuts_subclass.pk,
+        })
+
+    def test_class_products_view_uses_list_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "products/list.html")
+
+    def test_class_products_view_renders_search_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("search_form", response.context)
+
+    def test_class_products_has_fastener_classes_in_context(self):
+        response = self.client.get(self.url)
+        self.assertIn("fastener_classes", response.context)
+
+    def test_renders_all_class_products_if_search_filter_is_not_specified(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.context["products"].count(), 2)
+
+    def test_renders_only_suitable_class_products_if_search_filter_numeric_field_is_specified(self):
+        response = self.client.get(self.url, data={
+            "test parametr1": "140 - 150",
+        })
+        self.assertEqual(response.context["products"].count(), 1)
+        self.assertEqual(response.context["products"][0].pk, self.prod1.pk)
+
+    def test_renders_only_suitable_class_products_if_search_filter_enum_field_is_specified(self):
+        response = self.client.get(self.url,data={
+            "test parametr2": str(self.enum1.pk)
+        })
+        self.assertEqual(response.context["products"].count(), 1)
+
+    def test_renders_one_class_product_if_search_filter_fits_both_filter_fields(self):
+        response = self.client.get(self.url, data={
+            "test parametr1": "140 - 150",
+            "test parametr2": str(self.enum1.pk),
+        })
+        self.assertEqual(response.context["products"].count(), 1)
+
+
+    def test_renders_no_class_products_if_search_filter_does_not_fit_products_parameters(self):
+        response = self.client.get(self.url, data={
+            "test parametr1": "160 - 200",
+            "test parametr2": str(self.enum1.pk),
+        })
+        self.assertEqual(response.context["products"].count(), 0)
+
+    def test_renders_all_products_if_form_data_numeric_field_is_invalid(self):
+        response = self.client.get(self.url, data={
+            "test parametr1": "160 ; 200",
+        })
+        self.assertEqual(response.context["products"].count(), 2)
+
+    def test_renders_all_products_if_form_data_enum_field_is_invalid(self):
+        response = self.client.get(self.url, data={
+            "test parametr2": str(4),
+        })
+        self.assertEqual(response.context["products"].count(), 2)
