@@ -31,10 +31,10 @@ from products.models import (
 
 def class_products(request: HttpRequest, main_class_id: int, class_id: int):
     main_cls = get_object_or_404(ClassStruct, pk=main_class_id)
-    cls = get_object_or_404(ClassStruct, pk=class_id)
+    class_ = get_object_or_404(ClassStruct, pk=class_id)
 
     fastener_classes = ClassStruct.objects.filter(main_class__exact=ProductsConsts.FASTENER_ID)
-    search_form = SearchForm(request.GET, cls=cls)
+    search_form = SearchForm(request.GET, cls=class_)
 
     products_qs = Prod.objects.filter(class_field=class_id)
 
@@ -55,7 +55,7 @@ def class_products(request: HttpRequest, main_class_id: int, class_id: int):
         "products": products_qs,
         "products_no_params": products_no_params,
         "main_cls": main_cls,
-        "cls": cls,
+        "cls": class_,
         "prod_count": prod_count,
         "fastener_classes": fastener_classes,
     }
