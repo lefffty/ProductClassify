@@ -1,4 +1,5 @@
 from django.db.models import (
+    FloatField,
     Model,
     CharField,
     CASCADE,
@@ -6,9 +7,10 @@ from django.db.models import (
     PositiveSmallIntegerField
 )
 
+from products.models import Prod
+from enums.models import Enums
 from classes.models import ClassStruct
-
-from route_tech.constants import EASConsts, GWCConsts
+from route_tech.constants import EASConsts, GWCConsts, ProdOperConsts
 
 
 class EconomicActivitySubject(Model):
@@ -86,3 +88,66 @@ class GroupWorkingCenter(Model):
 
     def __str__(self):
         return self.name
+
+
+class ProdOperation(Model):
+    prod = ForeignKey(
+        Prod,
+        on_delete=CASCADE,
+        verbose_name="Изделие",
+        related_name="prod_operations",
+        null=False,
+        blank=False,
+    )
+    tech_oper = ForeignKey(
+        ClassStruct,
+        on_delete=CASCADE,
+        verbose_name="Операция",
+        related_name="tech_operations",
+        null=False,
+        blank=False,
+    )
+    profession = ForeignKey(
+        ClassStruct,
+        on_delete=CASCADE,
+        verbose_name="Профессия рабочего",
+        related_name="profession_operations",
+        null=False,
+        blank=False,
+    )
+    center = ForeignKey(
+        GroupWorkingCenter,
+        on_delete=CASCADE,
+        verbose_name="Групповой рабочий центр",
+        related_name="center_operations",
+        null=False,
+        blank=False,
+    )
+    qualification = ForeignKey(
+        ClassStruct,
+        on_delete=CASCADE,
+        verbose_name="Квалификация рабочего",
+        related_name="qualification_operations",
+        null=False,
+        blank=False,
+    )
+    num_of_workers = PositiveSmallIntegerField(
+        verbose_name="Количество исполнителей, занятых при выполнении операции",
+        null=False,
+        blank=True,
+    )
+    t_pz = FloatField(
+        verbose_name="Норма подготовительно-заключительного времени на операцию",
+        default=ProdOperConsts.T_PZ_DEFAULT,
+    )
+    t_sht = FloatField(
+        verbose_name="Норма штучного времени на операцию",
+        default=ProdOperConsts.T_SHT_DEFAULT,
+    )
+
+    class Meta:
+        verbose_name = "Пара класса <Изделие-операция>"
+        verbose_name_plural = "Пары класса <Изделие-операция>"
+
+    def __str__(self):
+        return f"{self.prod.name} - {self.tech_oper.name}"

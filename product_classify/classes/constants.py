@@ -66,7 +66,21 @@ class MetaConsts(IntEnum):
     ENTERPRISE = 32
     WORKSHOP = 33
     MEANS_OF_LABOR = 35
+    PROFESSION = 36
+    OPERATION = 37
+    TECH_OPERATION = 38
 
+
+class ProfessionConsts(IntEnum):
+    WELDER = 48
+
+
+class OperationConsts(IntEnum):
+    WELDING = 39
+
+
+class QualificationConsts(IntEnum):
+    FIRST_RANK = 1
 
 
 ENUMS_IDS = [item.value for item in EnumsIds]

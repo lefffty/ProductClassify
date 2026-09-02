@@ -200,11 +200,311 @@
     }
   },
   {
-    "model":"classes.classstruct",
+    "model": "classes.classstruct",
     "pk": 35,
     "fields": {
       "name": "Средства труда",
       "short_name": "Ср. труда",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 36,
+    "fields": {
+      "name": "Профессия",
+      "short_name": "Проф.",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 37,
+    "fields": {
+      "name": "Операция",
+      "short_name": "Опер.",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 38,
+    "fields": {
+      "name": "Технологическая операция",
+      "short_name": "Техн. опер.",
+      "base_ei": null,
+      "main_class": 37
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 39,
+    "fields": {
+      "name": "СБОРКА",
+      "short_name": "СБОРКА",
+      "base_ei": null,
+      "main_class": 38
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 40,
+    "fields": {
+      "name": "ШТАМПОВКА",
+      "short_name": "ШТАМПОВКА",
+      "base_ei": null,
+      "main_class": 38
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 41,
+    "fields": {
+      "name": "ШЛИФОВКА",
+      "short_name": "ШЛИФОВКА",
+      "base_ei": null,
+      "main_class": 38
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 42,
+    "fields": {
+      "name": "РЕЗКА",
+      "short_name": "РЕЗКА",
+      "base_ei": null,
+      "main_class": 38
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 43,
+    "fields": {
+      "name": "СВАРКА",
+      "short_name": "СВАРКА",
+      "base_ei": null,
+      "main_class": 38
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 44,
+    "fields": {
+      "name": "МОНТАЖ",
+      "short_name": "МОНТАЖ",
+      "base_ei": null,
+      "main_class": 38
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 45,
+    "fields": {
+      "name": "ФРЕЗЕРОВКА",
+      "short_name": "ФРЕЗЕРОВКА",
+      "base_ei": null,
+      "main_class": 38
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 46,
+    "fields": {
+      "name": "ОБРАБОТКА",
+      "short_name": "ОБРАБОТКА",
+      "base_ei": null,
+      "main_class": 38
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 47,
+    "fields": {
+      "name": "СВЕРЛЕНИЕ",
+      "short_name": "СВЕРЛЕНИЕ",
+      "base_ei": null,
+      "main_class": 38
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 48,
+    "fields": {
+      "name": "Операция",
+      "short_name": "Опер.",
+      "base_ei": null,
+      "main_class": 37
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 48,
+    "fields": {
+      "name": "СВАРЩИК",
+      "short_name": "СВАРЩИК",
+      "base_ei": null,
+      "main_class": 37
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 49,
+    "fields": {
+      "name": "ШТАМПОВЩИК",
+      "short_name": "ШТАМПОВЩИК",
+      "base_ei": null,
+      "main_class": 37
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 50,
+    "fields": {
+      "name": "ШЛИФОВЩИК",
+      "short_name": "ШЛИФОВЩИК",
+      "base_ei": null,
+      "main_class": 37
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 51,
+    "fields": {
+      "name": "ТОКАРЬ",
+      "short_name": "ТОКАРЬ",
+      "base_ei": null,
+      "main_class": 37
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 52,
+    "fields": {
+      "name": "МОНТАЖНИК",
+      "short_name": "МОНТАЖНИК",
+      "base_ei": null,
+      "main_class": 37
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 53,
+    "fields": {
+      "name": "ФРЕЗЕРОВЩИК",
+      "short_name": "ФРЕЗЕРОВЩИК",
+      "base_ei": null,
+      "main_class": 37
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 54,
+    "fields": {
+      "name": "СТАНОЧНИК",
+      "short_name": "СТАНОЧНИК",
+      "base_ei": null,
+      "main_class": 37
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 55,
+    "fields": {
+      "name": "СВЕРЛОВЩИК",
+      "short_name": "СВЕРЛОВЩИК",
+      "base_ei": null,
+      "main_class": 37
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 55,
+    "fields": {
+      "name": "СВЕРЛОВЩИК",
+      "short_name": "СВЕРЛОВЩИК",
+      "base_ei": null,
+      "main_class": 37
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 56,
+    "fields": {
+      "name": "Квалификация",
+      "short_name": "Квал.",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 57,
+    "fields": {
+      "name": "1 разряд",
+      "short_name": "I",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 58,
+    "fields": {
+      "name": "2 разряд",
+      "short_name": "II",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 59,
+    "fields": {
+      "name": "3 разряд",
+      "short_name": "III",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 60,
+    "fields": {
+      "name": "4 разряд",
+      "short_name": "IV",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 61,
+    "fields": {
+      "name": "5 разряд",
+      "short_name": "V",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 62,
+    "fields": {
+      "name": "6 разряд",
+      "short_name": "VI",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 63,
+    "fields": {
+      "name": "7 разряд",
+      "short_name": "VII",
       "base_ei": null,
       "main_class": 13
     }
