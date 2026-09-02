@@ -1,4 +1,5 @@
 from django.db.models import (
+    DecimalField,
     FloatField,
     Model,
     CharField,
@@ -6,11 +7,11 @@ from django.db.models import (
     ForeignKey,
     PositiveSmallIntegerField
 )
+from django.core.validators import MinValueValidator
 
 from products.models import Prod
-from enums.models import Enums
 from classes.models import ClassStruct
-from route_tech.constants import EASConsts, GWCConsts, ProdOperConsts
+from route_tech.constants import EASConsts, GWCConsts, ProdOperConsts, ProdOperationPosConsts
 
 
 class EconomicActivitySubject(Model):
@@ -151,3 +152,49 @@ class ProdOperation(Model):
 
     def __str__(self):
         return f"{self.prod.name} - {self.tech_oper.name}"
+
+
+class ProdOperationPos(Model):
+    input_prod_oper = ForeignKey(
+        ProdOperation,
+        on_delete=CASCADE,
+        verbose_name="Входная пара <Изделие-операция>",
+        related_name="input_prod_oper_positions",
+        blank=False,
+        null=False,
+    )
+    output_prod_oper = ForeignKey(
+        ProdOperation,
+        on_delete=CASCADE,
+        verbose_name="Выходная пара <Изделие-операция>",
+        related_name="output_prod_oper_positions",
+        blank=False,
+        null=False,
+    )
+    input_quantity = DecimalField(
+        verbose_name="Расход входного ресурса",
+        blank=False,
+        null=False,
+        validators=[
+            MinValueValidator(ProdOperationPosConsts.MIN_VALUE)
+        ],
+        max_digits=ProdOperationPosConsts.MAX_DIGITS,
+        decimal_places=ProdOperationPosConsts.DECIMAL_PLACES
+    )
+    output_quantity = DecimalField(
+        verbose_name="Количество выходного ресурса",
+        blank=False,
+        null=False,
+        validators=[
+            MinValueValidator(ProdOperationPosConsts.MIN_VALUE)
+        ],
+        max_digits=ProdOperationPosConsts.MAX_DIGITS,
+        decimal_places=ProdOperationPosConsts.DECIMAL_PLACES
+    )
+
+    class Meta:
+        verbose_name = "Позиция входного ресурса"
+        verbose_name_plural = "Позиции входных ресурсов"
+
+    def __str__(self):
+        return f"<{self.input_prod_oper}> - <{self.output_prod_oper}> ({self.input_quantity} -> {self.output_quantity})"

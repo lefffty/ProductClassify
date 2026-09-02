@@ -1,4 +1,6 @@
 from django.db import IntegrityError
+from django.core.exceptions import ValidationError
+
 from faker import Faker
 
 from classes.models import ClassStruct
@@ -7,16 +9,19 @@ from classes.constants import (
     OperationConsts,
     ProductsConsts,
     ProfessionConsts,
+    ClassStructConsts,
     QualificationConsts,
 )
+from products.constants import ProdConsts
 from products.models import Prod
 
 from route_tech.models import (
     EconomicActivitySubject,
     GroupWorkingCenter,
     ProdOperation,
+    ProdOperationPos
 )
-from route_tech.constants import ProdOperConsts
+from route_tech.constants import ProdOperConsts, ProdOperationPosConsts
 
 from tests.unit.base import BaseUnitTestCase
 
@@ -267,11 +272,6 @@ class GroupWorkingCenterTest(BaseUnitTestCase):
 
 
 class ProdOperationTest(BaseUnitTestCase):
-    fixtures = [
-        "ei.json",
-        "classes.json",
-    ]
-
     @classmethod
     def setUpTestData(cls):
         cls.faker = Faker()
@@ -286,8 +286,8 @@ class ProdOperationTest(BaseUnitTestCase):
         )
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.faker.name(),
-            short_name=cls.faker.name(),
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=None,
             main_class=cls.nuts_class
         )
@@ -463,4 +463,169 @@ class ProdOperationTest(BaseUnitTestCase):
         prod_oper = self._create_instance()
         expected = f"{self.product.name} - {self.operation.name}"
 
+        self.assertEqual(str(prod_oper), expected)
+
+
+class ProdOperationPosTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
+        cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
+        cls.eas = EconomicActivitySubject.objects.create(
+            name="Цех 01",
+            short_name="01",
+            main_class=cls.enterprise,
+            main_subject=None,
+        )
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.nuts_subclass = ClassStruct.objects.create(
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=None,
+            main_class=cls.nuts_class
+        )
+        # product
+        prod_name = cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH]
+        cls.product1 = Prod.objects.create(
+            name=prod_name,
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            class_field=cls.nuts_subclass,
+            image=None,
+            cost=None,
+            modification=None,
+            ei=None,
+        )
+        prod_name = cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH]
+        cls.product2 = Prod.objects.create(
+            name=prod_name,
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            class_field=cls.nuts_subclass,
+            image=None,
+            cost=None,
+            modification=None,
+            ei=None,
+        )
+        # profession
+        cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
+        # operation
+        cls.operation = ClassStruct.objects.get(pk=OperationConsts.WELDING)
+        # group working center
+        cls.gwc = GroupWorkingCenter.objects.create(
+            name="СБОРОЧНЫЙ СТЕНД",
+            short_name="B-4000 HV",
+            main_class=cls.means_of_labor,
+            eas=cls.eas,
+            place=1,
+        )
+        # qualification
+        cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
+        cls.num_of_workers = 1
+        cls.t_pz = 1.0
+        cls.t_sht = 1.0
+
+        cls.prod_oper1 = ProdOperation.objects.create(
+            prod=cls.product1,
+            tech_oper=cls.operation,
+            profession=cls.profession,
+            center=cls.gwc,
+            qualification=cls.qualification,
+            num_of_workers=cls.num_of_workers,
+            t_pz=cls.t_pz,
+            t_sht=cls.t_sht,
+        )
+        cls.prod_oper2 = ProdOperation.objects.create(
+            prod=cls.product2,
+            tech_oper=cls.operation,
+            profession=cls.profession,
+            center=cls.gwc,
+            qualification=cls.qualification,
+            num_of_workers=cls.num_of_workers,
+            t_pz=cls.t_pz,
+            t_sht=cls.t_sht,
+        )
+        cls.input_quantity = ProdOperationPosConsts.MIN_VALUE + 1
+        cls.output_quantity = cls.input_quantity + 1
+        cls.n_input_quantity = ProdOperationPosConsts.MIN_VALUE - 2
+        cls.n_output_quantity = cls.n_input_quantity + 1
+
+    def _create_instance(self):
+        position = ProdOperationPos.objects.create(
+            input_prod_oper=self.prod_oper1,
+            output_prod_oper=self.prod_oper2,
+            input_quantity=self.input_quantity,
+            output_quantity=self.output_quantity
+        )
+        return position
+
+    def test_input_prod_oper_is_required(self):
+        with self.assertRaises(IntegrityError):
+            ProdOperationPos.objects.create(
+                input_prod_oper=None,
+                output_prod_oper=self.prod_oper2,
+                input_quantity=self.input_quantity,
+                output_quantity=self.output_quantity
+            )
+
+    def test_output_prod_oper_is_required(self):
+        with self.assertRaises(IntegrityError):
+            ProdOperationPos.objects.create(
+                input_prod_oper=self.prod_oper1,
+                output_prod_oper=None,
+                input_quantity=self.input_quantity,
+                output_quantity=self.output_quantity
+            )
+
+    def test_input_quantity_is_required(self):
+        with self.assertRaises(IntegrityError):
+            ProdOperationPos.objects.create(
+                input_prod_oper=self.prod_oper1,
+                output_prod_oper=self.prod_oper2,
+                input_quantity=None,
+                output_quantity=self.output_quantity
+            )
+
+    def test_output_quantity_is_required(self):
+        with self.assertRaises(IntegrityError):
+            ProdOperationPos.objects.create(
+                input_prod_oper=self.prod_oper1,
+                output_prod_oper=self.prod_oper2,
+                input_quantity=self.input_quantity,
+                output_quantity=None
+            )
+
+    def test_input_quantity_should_be_positive(self):
+        pos = ProdOperationPos(
+            input_prod_oper=self.prod_oper1,
+            output_prod_oper=self.prod_oper2,
+            input_quantity=self.n_input_quantity,
+            output_quantity=self.output_quantity
+        )
+        with self.assertRaises(ValidationError):
+            pos.full_clean()
+
+    def test_output_quantity_should_be_positive(self):
+        pos = ProdOperationPos(
+            input_prod_oper=self.prod_oper1,
+            output_prod_oper=self.prod_oper2,
+            input_quantity=self.input_quantity,
+            output_quantity=self.n_output_quantity
+        )
+        with self.assertRaises(ValidationError):
+            pos.full_clean()
+
+    def test_input_prod_oper_deletion_causes_cascade_deletion_of_child_objects(self):
+        self._create_instance()
+        self.prod_oper1.delete()
+        self.assertEqual(ProdOperationPos.objects.count(), 0)
+
+    def test_output_prod_oper_deletion_causes_cascade_deletion_of_child_objects(self):
+        self._create_instance()
+        self.prod_oper2.delete()
+        self.assertEqual(ProdOperationPos.objects.count(), 0)
+
+    def test_string_representation(self):
+        prod_oper = self._create_instance()
+        expected = f"<{self.product1.name} - {self.operation.name}> - <{self.product2.name} - {self.operation.name}> ({self.input_quantity} -> {self.output_quantity})"
         self.assertEqual(str(prod_oper), expected)

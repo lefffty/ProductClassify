@@ -1,4 +1,5 @@
 from enum import IntEnum
+from decimal import Decimal
 
 
 class EASConsts(IntEnum):
@@ -14,3 +15,9 @@ class GWCConsts(IntEnum):
 class ProdOperConsts(IntEnum):
     T_PZ_DEFAULT = 1.0
     T_SHT_DEFAULT = 1.0
+
+
+class ProdOperationPosConsts(IntEnum):
+    MIN_VALUE = Decimal("0.0")
+    DECIMAL_PLACES = 6
+    MAX_DIGITS = 12
