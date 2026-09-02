@@ -61,6 +61,11 @@ class ProductsConsts(IntEnum):
     NUTS_ID = 5
 
 
+class MetaConsts(IntEnum):
+    SUBJECT_AREA_CLASS = 13
+
+
+
 ENUMS_IDS = [item.value for item in EnumsIds]
 PARAMS_IDS = [item.value for item in ParamIds]
 NUMERIC_PARAMS = [
