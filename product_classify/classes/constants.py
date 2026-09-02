@@ -63,6 +63,9 @@ class ProductsConsts(IntEnum):
 
 class MetaConsts(IntEnum):
     SUBJECT_AREA_CLASS = 13
+    ENTERPRISE = 32
+    WORKSHOP = 33
+    MEANS_OF_LABOR = 35
 
 
 

@@ -158,5 +158,55 @@
       "base_ei": null,
       "main_class": 13
     }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 31,
+    "fields": {
+      "name": "СУБЪЕКТ ХОЗЯЙСТВЕННОЙ ДЕЯТЕЛЬНОСТИ",
+      "short_name": "СУБ. ХОЗ. Д..",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 32,
+    "fields": {
+      "name": "ПРОИЗВОДСТВЕННОЕ ПРЕДПРИЯТИЕ",
+      "short_name": "ПР. ПРЕД.",
+      "base_ei": null,
+      "main_class": 31
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 33,
+    "fields": {
+      "name": "ЦЕХ",
+      "short_name": "ЦЕХ",
+      "base_ei": null,
+      "main_class": 31
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 34,
+    "fields": {
+      "name": "УЧАСТОК",
+      "short_name": "УЧ.",
+      "base_ei": null,
+      "main_class": 31
+    }
+  },
+  {
+    "model":"classes.classstruct",
+    "pk": 35,
+    "fields": {
+      "name": "Средства труда",
+      "short_name": "Ср. труда",
+      "base_ei": null,
+      "main_class": 13
+    }
   }
 ]
