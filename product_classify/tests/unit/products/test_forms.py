@@ -3,6 +3,7 @@ from django.db.models import QuerySet
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from PIL import Image
+from decimal import Decimal
 from io import BytesIO
 from faker import Faker
 
@@ -36,6 +37,7 @@ class ProdFormTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.NUTS_CLASS = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.INVALID_CLASS = ClassStruct.objects.get(pk=EnumsIds.STRING)
+        cls.EI = Ei.objects.first()
 
         cls.PNG_IMAGE = create_image("png")
         cls.JPG_IMAGE = create_image("jpg")
@@ -109,6 +111,26 @@ class ProdFormTest(BaseUnitTestCase):
             "image": self.PNG_IMAGE,
         }
         form = ProdForm(data=form_data, files=form_files)
+        self.assertTrue(form.is_valid())
+
+    def test_cost_field_is_optional(self):
+        form_data = {
+            "class_field": self.NUTS_CLASS,
+            "name": self.PROD_NAME,
+            "short_name": self.PROD_SHORT_NAME,
+            "cost": Decimal("1.0"),
+        }
+        form = ProdForm(form_data)
+        self.assertTrue(form.is_valid())
+
+    def test_ei_field_is_optional(self):
+        form_data = {
+            "class_field": self.NUTS_CLASS,
+            "name": self.PROD_NAME,
+            "short_name": self.PROD_SHORT_NAME,
+            "ei": self.EI,
+        }
+        form = ProdForm(form_data)
         self.assertTrue(form.is_valid())
 
     def test_image_field_is_optional_accepts_none(self):
@@ -215,6 +237,8 @@ class ProdFormTest(BaseUnitTestCase):
             "class_field": self.NUTS_CLASS,
             "name": self.PROD_NAME,
             "short_name": self.PROD_SHORT_NAME,
+            "cost": Decimal("1.0"),
+            "ei": self.EI,
         }
         form_files = {
             "image": self.PNG_IMAGE,
@@ -228,6 +252,8 @@ class ProdFormTest(BaseUnitTestCase):
             "class_field": self.NUTS_CLASS,
             "name": self.PROD_NAME,
             "short_name": self.PROD_SHORT_NAME,
+            "ei": self.EI,
+            "cost": Decimal("1.0"),
         }
         form_files = {
             "image": self.PNG_IMAGE,
@@ -240,6 +266,8 @@ class ProdFormTest(BaseUnitTestCase):
         self.assertEqual(obj.name, form_data["name"])
         self.assertEqual(obj.short_name, form_data["short_name"])
         self.assertEqual(obj.class_field, form_data["class_field"])
+        self.assertEqual(obj.ei, form_data["ei"])
+        self.assertEqual(obj.cost, form_data["cost"])
         self.assertNotEqual(obj.image.name, form_files["image"])
 
     def test_class_field_relationship(self):
@@ -256,6 +284,29 @@ class ProdFormTest(BaseUnitTestCase):
         obj = form.save()
 
         self.assertIn(obj, self.NUTS_CLASS.class_products.all())
+
+    def test_ei_relationship(self):
+        form_data = {
+            "class_field": self.NUTS_CLASS,
+            "name": self.PROD_NAME,
+            "short_name": self.PROD_SHORT_NAME,
+            "ei": self.EI
+        }
+        form = ProdForm(form_data)
+        self.assertTrue(form.is_valid())
+        obj = form.save()
+
+        self.assertIn(obj, self.EI.prod_set.all())
+
+    def test_negative_cost_field_value_raises_validation_error(self):
+        form_data = {
+            "class_field": self.NUTS_CLASS,
+            "name": self.PROD_NAME,
+            "short_name": self.PROD_SHORT_NAME,
+            "cost": Decimal("-1.0")
+        }
+        form = ProdForm(form_data)
+        self.assertFalse(form.is_valid())
 
     def test_edit_existing_object_updates_fields(self):
         """Проверяет, что при редактировании существующего объекта все поля обновляются корректно."""

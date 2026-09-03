@@ -1,6 +1,7 @@
 from django.forms import (
     ModelChoiceField,
     IntegerField,
+    DecimalField,
     FloatField,
     ImageField,
     ModelForm,
@@ -14,6 +15,7 @@ from django.core.exceptions import ValidationError
 from classes.models import ClassStruct, ParClass
 from classes.constants import ParamIds, ENUMS_IDS, NUMERIC_PARAMS, ENUM_PARAMS
 from enums.models import Enums
+from ei.models import Ei
 
 from products.models import Parametr, ParProd, Prod
 from products.constants import ProdConsts
@@ -53,6 +55,19 @@ class ProdForm(ModelForm):
         required=False,
         validators=[FileExtensionValidator(["jpg", "png"])],
     )
+    ei = ModelChoiceField(
+        label="Единица измерения изделия",
+        required=False,
+        queryset=Ei.objects.all()
+    )
+    cost = DecimalField(
+        label="Стоимость изделия",
+        required=False,
+        max_digits=ProdConsts.MAX_DIGITS,
+        decimal_places=ProdConsts.DECIMAL_PLACES,
+        min_value=ProdConsts.MIN_COST,
+        initial=ProdConsts.MIN_COST
+    )
 
     class Meta:
         model = Prod
@@ -61,6 +76,8 @@ class ProdForm(ModelForm):
             "short_name",
             "class_field",
             "image",
+            "cost",
+            "ei"
         )
         labels = {
             "name": "Название изделия",

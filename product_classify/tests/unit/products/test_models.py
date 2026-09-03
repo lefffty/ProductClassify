@@ -4,6 +4,7 @@ from django.db import IntegrityError
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from faker import Faker
+from decimal import Decimal
 
 from ei.models import Ei
 from enums.models import Enums
@@ -31,6 +32,7 @@ class ProdModelTest(BaseUnitTestCase):
             b"content",
             content_type="image/jpeg",
         )
+        cls.ei = Ei.objects.first()
 
     def test_create_with_minimal_requirements(self):
         prod = Prod.objects.create(
@@ -68,6 +70,28 @@ class ProdModelTest(BaseUnitTestCase):
         )
         self.assertEqual(prod.class_field, self.main_class)
         self.assertIn(prod, self.main_class.class_products.all())
+
+    def test_ei_relationship(self):
+        prod = Prod.objects.create(
+            name="test",
+            short_name="test",
+            class_field=self.main_class,
+            image=self.image,
+            ei=self.ei
+        )
+        self.assertIn(prod, self.ei.prod_set.all())
+
+    def test_negative_cost_value_raises_intergity_error(self):
+        prod = Prod(
+            name="test",
+            short_name="test",
+            class_field=self.main_class,
+            image=self.image,
+            cost=Decimal("-1.0"),
+            ei=None,
+        )
+        with self.assertRaises(ValidationError):
+            prod.full_clean()
 
     def test_create_modification(self):
         fake = Faker()

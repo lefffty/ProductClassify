@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models, connection
 
 from collections import namedtuple
@@ -10,6 +11,7 @@ from core.queries import ProdQueries
 from enums.models import Enums
 from ei.models import Ei
 from products.constants import ProdConsts
+
 
 ModificationResult = namedtuple(
     "ModificationResult",
@@ -45,22 +47,29 @@ class Prod(models.Model):
         null=False,
         upload_to="product_images/",
     )
-    cost = models.FloatField(
+    cost = models.DecimalField(
         blank=True,
         null=True,
-        verbose_name="Стоимость изделия"
+        verbose_name="Стоимость изделия",
+        max_digits=ProdConsts.MAX_DIGITS,
+        decimal_places=ProdConsts.DECIMAL_PLACES,
+        validators=[
+            MinValueValidator(ProdConsts.MIN_COST)
+        ],
     )
     modification = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
+        verbose_name="Базовое изделие",
     )
     ei = models.ForeignKey(
         Ei,
         on_delete=models.SET_NULL,
         blank=False,
         null=True,
+        verbose_name="Единица измерения изделия",
     )
 
     class Meta:
