@@ -148,7 +148,7 @@ class SpecificationLogsTest(BaseUnitTestCase):
         self.assertEqual(actual_representation, expected_representation)
 
     def test_get_changelog(self):
-        log_string = f'Количество изделия "{self.component.name}" для изделия "{self.prod.name}" изменилось с {self.logs1.old_quantity} на {self.logs1.new_quantity}'
+        log_string = f'Количество изделия "{self.component.name}" для изделия "{self.prod.name}" изменилось с 12.0000000000 на 24.0000000000'
         changelog = SpecificationLogs.get_changelog(self.prod.pk)
         self.assertEqual(len(changelog), 1)
         record = changelog[0]

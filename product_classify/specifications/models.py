@@ -7,6 +7,8 @@ from core.queries import ProdComponentQueries, SpecificationLogsQueries
 
 from products.models import Prod
 
+from specifications.constants import ProdComponentConsts
+
 
 TotalCostRatioResult = namedtuple(
     "TotalCostRatioResult",
@@ -59,8 +61,10 @@ class ProdComponent(models.Model):
     num = models.SmallIntegerField(
         verbose_name="Позиция дочернего изделия к родительскому"
     )
-    quantity = models.FloatField(
-        verbose_name="Количество дочернего изделия"
+    quantity = models.DecimalField(
+        verbose_name="Количество дочернего изделия",
+        max_digits=ProdComponentConsts.MAX_DIGITS,
+        decimal_places=ProdComponentConsts.DECIMAL_PLACES,
     )
 
     class Meta:
@@ -113,15 +117,19 @@ class SpecificationLogs(models.Model):
         auto_now_add=True,
         verbose_name="Дата и время внесения изменения",
     )
-    old_quantity = models.FloatField(
+    old_quantity = models.DecimalField(
         blank=False,
         null=False,
-        verbose_name="Старое количество изделия"
+        verbose_name="Старое количество изделия",
+        max_digits=ProdComponentConsts.MAX_DIGITS,
+        decimal_places=ProdComponentConsts.DECIMAL_PLACES,
     )
-    new_quantity = models.FloatField(
+    new_quantity = models.DecimalField(
         blank=False,
         null=False,
-        verbose_name="Новое количество изделия"
+        verbose_name="Новое количество изделия",
+        max_digits=ProdComponentConsts.MAX_DIGITS,
+        decimal_places=ProdComponentConsts.DECIMAL_PLACES,
     )
 
     class Meta:

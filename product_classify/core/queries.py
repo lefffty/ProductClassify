@@ -249,9 +249,9 @@ class DatabaseFunctions:
                 parent_prod_name character varying,
                 child_id bigint,
                 child_prod_name character varying,
-                quantity double precision,
+                quantity NUMERIC,
                 ei_short_name character varying,
-                total_cost double precision,
+                total_cost NUMERIC,
                 level integer
             )
             LANGUAGE plpgsql
@@ -299,7 +299,7 @@ class DatabaseFunctions:
                     child_prod."name" AS child_prod_name,
                     grouped_r.gr_quantity AS quantity,
                     e.short_name AS ei_short_name,
-                    ROUND((child_prod.cost * grouped_r.gr_quantity * NUM_OF_PRODUCTS)::NUMERIC, 2)::DOUBLE PRECISION AS total_cost,
+                    ROUND((child_prod.cost * grouped_r.gr_quantity * NUM_OF_PRODUCTS)::NUMERIC, 2)::NUMERIC AS total_cost,
                     grouped_r.gr_level AS level
                 FROM grouped_r
                 JOIN products_prod parent_prod ON grouped_r.gr_parent_id = parent_prod.id
@@ -449,7 +449,7 @@ class DatabaseFunctions:
                 parent_id bigint,
                 child_id bigint,
                 prod_num smallint,
-                quantity double precision
+                quantity numeric
             )
             language plpgsql
         as
