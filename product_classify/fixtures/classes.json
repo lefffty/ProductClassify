@@ -333,20 +333,10 @@
     "model": "classes.classstruct",
     "pk": 48,
     "fields": {
-      "name": "Операция",
-      "short_name": "Опер.",
-      "base_ei": null,
-      "main_class": 37
-    }
-  },
-  {
-    "model": "classes.classstruct",
-    "pk": 48,
-    "fields": {
       "name": "СВАРЩИК",
       "short_name": "СВАРЩИК",
       "base_ei": null,
-      "main_class": 37
+      "main_class": 36
     }
   },
   {
@@ -356,7 +346,7 @@
       "name": "ШТАМПОВЩИК",
       "short_name": "ШТАМПОВЩИК",
       "base_ei": null,
-      "main_class": 37
+      "main_class": 36
     }
   },
   {
@@ -366,7 +356,7 @@
       "name": "ШЛИФОВЩИК",
       "short_name": "ШЛИФОВЩИК",
       "base_ei": null,
-      "main_class": 37
+      "main_class": 36
     }
   },
   {
@@ -376,7 +366,7 @@
       "name": "ТОКАРЬ",
       "short_name": "ТОКАРЬ",
       "base_ei": null,
-      "main_class": 37
+      "main_class": 36
     }
   },
   {
@@ -386,7 +376,7 @@
       "name": "МОНТАЖНИК",
       "short_name": "МОНТАЖНИК",
       "base_ei": null,
-      "main_class": 37
+      "main_class": 36
     }
   },
   {
@@ -396,7 +386,7 @@
       "name": "ФРЕЗЕРОВЩИК",
       "short_name": "ФРЕЗЕРОВЩИК",
       "base_ei": null,
-      "main_class": 37
+      "main_class": 36
     }
   },
   {
@@ -406,7 +396,7 @@
       "name": "СТАНОЧНИК",
       "short_name": "СТАНОЧНИК",
       "base_ei": null,
-      "main_class": 37
+      "main_class": 36
     }
   },
   {
@@ -416,7 +406,7 @@
       "name": "СВЕРЛОВЩИК",
       "short_name": "СВЕРЛОВЩИК",
       "base_ei": null,
-      "main_class": 37
+      "main_class": 36
     }
   },
   {
@@ -426,7 +416,7 @@
       "name": "СВЕРЛОВЩИК",
       "short_name": "СВЕРЛОВЩИК",
       "base_ei": null,
-      "main_class": 37
+      "main_class": 36
     }
   },
   {
@@ -446,7 +436,7 @@
       "name": "1 разряд",
       "short_name": "I",
       "base_ei": null,
-      "main_class": 13
+      "main_class": 56
     }
   },
   {
@@ -456,7 +446,7 @@
       "name": "2 разряд",
       "short_name": "II",
       "base_ei": null,
-      "main_class": 13
+      "main_class": 56
     }
   },
   {
@@ -466,7 +456,7 @@
       "name": "3 разряд",
       "short_name": "III",
       "base_ei": null,
-      "main_class": 13
+      "main_class": 56
     }
   },
   {
@@ -476,7 +466,7 @@
       "name": "4 разряд",
       "short_name": "IV",
       "base_ei": null,
-      "main_class": 13
+      "main_class": 56
     }
   },
   {
@@ -486,7 +476,7 @@
       "name": "5 разряд",
       "short_name": "V",
       "base_ei": null,
-      "main_class": 13
+      "main_class": 56
     }
   },
   {
@@ -496,7 +486,7 @@
       "name": "6 разряд",
       "short_name": "VI",
       "base_ei": null,
-      "main_class": 13
+      "main_class": 56
     }
   },
   {
@@ -506,7 +496,7 @@
       "name": "7 разряд",
       "short_name": "VII",
       "base_ei": null,
-      "main_class": 13
+      "main_class": 56
     }
   }
 ]

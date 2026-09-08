@@ -11,8 +11,9 @@ from classes.constants import (
     ClassStructConsts,
     ParClassConsts,
     ProductsConsts,
+    MetaConsts,
     ParamIds,
-    ENUMS_IDS
+    ENUMS_IDS,
 )
 from classes.errors import ParClassErrors
 
@@ -135,6 +136,27 @@ class ClassStruct(models.Model):
             )
             is_cycle = cursor.fetchone()[0]
         return is_cycle
+
+    @classmethod
+    def technological_operations(cls):
+        operations = ClassStruct.objects.filter(
+            main_class__exact=MetaConsts.TECH_OPERATION
+        )
+        return operations
+
+    @classmethod
+    def professions(cls):
+        professions = ClassStruct.objects.filter(
+            main_class__exact=MetaConsts.PROFESSION
+        )
+        return professions
+
+    @classmethod
+    def qualifications(cls):
+        qualifications = ClassStruct.objects.filter(
+            main_class__exact=MetaConsts.QUALIFICATION
+        )
+        return qualifications
 
 
 class ParClass(models.Model):

@@ -292,10 +292,10 @@ class ProdOperationTest(BaseUnitTestCase):
             main_class=cls.nuts_class
         )
         # product
-        prod_name = cls.faker.name()
+        prod_name = cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH]
         cls.product = Prod.objects.create(
             name=prod_name,
-            short_name=cls.faker.name(),
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=None,
             cost=None,

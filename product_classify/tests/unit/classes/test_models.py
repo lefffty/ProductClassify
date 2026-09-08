@@ -140,6 +140,21 @@ class ClassStructModelTest(BaseUnitTestCase):
         self.assertIsInstance(all_enum_classes, QuerySet, msg1)
         self.assertEqual(all_enum_classes.model, ClassStruct, msg2)
 
+    def test_technological_operations(self):
+        technological_operations = ClassStruct.technological_operations()
+        self.assertIsInstance(technological_operations, QuerySet)
+        self.assertEqual(len(technological_operations), 9)
+
+    def test_professions(self):
+        professions = ClassStruct.professions()
+        self.assertIsInstance(professions, QuerySet)
+        self.assertEqual(len(professions), 8)
+
+    def test_qualifications(self):
+        qualifications = ClassStruct.qualifications()
+        self.assertIsInstance(qualifications, QuerySet)
+        self.assertEqual(len(qualifications), 7)
+
 
 class ParClassModelTest(BaseUnitTestCase):
     @classmethod

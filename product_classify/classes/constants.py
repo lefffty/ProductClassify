@@ -69,6 +69,7 @@ class MetaConsts(IntEnum):
     PROFESSION = 36
     OPERATION = 37
     TECH_OPERATION = 38
+    QUALIFICATION = 56
 
 
 class ProfessionConsts(IntEnum):
