@@ -82,7 +82,7 @@ class OperationConsts(IntEnum):
 
 
 class QualificationConsts(IntEnum):
-    FIRST_RANK = 1
+    FIRST_RANK = 57
 
 
 ENUMS_IDS = [item.value for item in EnumsIds]
