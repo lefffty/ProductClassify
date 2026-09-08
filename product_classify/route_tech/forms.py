@@ -5,8 +5,10 @@ from django.forms import (
     CharField,
     NumberInput,
     IntegerField,
+    DecimalField,
     ModelChoiceField,
 )
+from django.core.exceptions import ValidationError
 
 from classes.models import ClassStruct
 from products.models import Prod
@@ -16,17 +18,20 @@ from route_tech.models import (
     EconomicActivitySubject,
 )
 from route_tech.models import (
-    ProdOperation
+    ProdOperation,
+    ProdOperationPos
 )
 from route_tech.errors import (
     GWCErrors,
     EASErrors,
     ProdOperErrors,
+    ProdOperationPosErrors,
 )
 from route_tech.constants import (
     GWCConsts,
     EASConsts,
-    ProdOperConsts
+    ProdOperConsts,
+    ProdOperationPosConsts,
 )
 
 
@@ -191,3 +196,65 @@ class ProdOperationForm(ModelForm):
         self.fields['tech_oper'].queryset = ClassStruct.technological_operations()
         self.fields['profession'].queryset = ClassStruct.professions()
         self.fields['qualification'].queryset = ClassStruct.qualifications()
+
+
+class ProdOperationPosForm(ModelForm):
+    input_quantity = DecimalField(
+        max_digits=ProdOperationPosConsts.MAX_DIGITS,
+        decimal_places=ProdOperationPosConsts.DECIMAL_PLACES,
+        min_value=ProdOperationPosConsts.MIN_VALUE,
+        required=True,
+        label="Расход входного ресурса",
+        help_text=f"Минимальное значение: {ProdOperationPosConsts.MIN_VALUE}",
+        widget=NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        error_messages={
+            'required': ProdOperationPosErrors.EMPTY_INPUT_QUANTITY,
+            'min_value': ProdOperationPosErrors.INVALID_INPUT_QUANTITY,
+        }
+    )
+    output_quantity = DecimalField(
+        max_digits=ProdOperationPosConsts.MAX_DIGITS,
+        decimal_places=ProdOperationPosConsts.DECIMAL_PLACES,
+        min_value=ProdOperationPosConsts.MIN_VALUE,
+        required=True,
+        label="Количество выходного ресурса",
+        help_text=f"Минимальное значение: {ProdOperationPosConsts.MIN_VALUE}",
+        widget=NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        error_messages={
+            'required': ProdOperationPosErrors.EMPTY_OUTPUT_QUANTITY,
+            'min_value': ProdOperationPosErrors.INVALID_OUTPUT_QUANTITY,
+        }
+    )
+    
+    class Meta:
+        model = ProdOperationPos
+        fields = [
+            'input_prod_oper',
+            'output_prod_oper',
+            'input_quantity',
+            'output_quantity',
+        ]
+        labels = {
+            'input_prod_oper': 'Входная пара <Изделие-операция>',
+            'output_prod_oper': 'Выходная пара <Изделие-операция>',
+        }
+        widgets = {
+            'input_prod_oper': Select(attrs={'class': 'form-control'}),
+            'output_prod_oper': Select(attrs={'class': 'form-control'}),
+        }
+        error_messages = {
+            'input_prod_oper': {'required': ProdOperationPosErrors.EMPTY_INPUT_PROD_OPER},
+            'output_prod_oper': {'required': ProdOperationPosErrors.EMPTY_OUTPUT_PROD_OPER},
+        }
+
+    def clean_input_quantity(self):
+        data = self.cleaned_data.get('input_quantity')
+        if data is not None and data < ProdOperationPosConsts.MIN_VALUE:
+            raise ValidationError(ProdOperationPosErrors.INVALID_INPUT_QUANTITY)
+        return data
+
+    def clean_output_quantity(self):
+        data = self.cleaned_data.get('output_quantity')
+        if data is not None and data < ProdOperationPosConsts.MIN_VALUE:
+            raise ValidationError(ProdOperationPosErrors.INVALID_OUTPUT_QUANTITY)
+        return data

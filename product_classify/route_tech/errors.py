@@ -1,5 +1,7 @@
 from enum import StrEnum
 
+from route_tech.constants import ProdOperationPosConsts
+
 
 class EASErrors(StrEnum):
     EMPTY_NAME = "Поле названия субъекта экономической деятельности необходимо заполнить"
@@ -22,3 +24,12 @@ class ProdOperErrors:
     EMPTY_CENTER = "Поле для группового рабочего центра необходимо заполнить"
     EMPTY_QUALIFICATION = "Поле для квалификации рабочего необходимо заполнить"
     EMPTY_NUM_WORKERS = "Поле для количества исполнителей необходимо заполнить"
+
+
+class ProdOperationPosErrors:
+    EMPTY_INPUT_PROD_OPER = "Поле для входной пары <Изделие-операция> необходимо заполнить"
+    EMPTY_OUTPUT_PROD_OPER = "Поле для выходной пары <Изделие-операция> необходимо заполнить"
+    EMPTY_INPUT_QUANTITY = "Поле для расхода входного ресурса необходимо заполнить"
+    EMPTY_OUTPUT_QUANTITY = "Поле для количества выходного ресурса необходимо заполнить"
+    INVALID_INPUT_QUANTITY = f"Значение не может быть меньше {ProdOperationPosConsts.MIN_VALUE}"
+    INVALID_OUTPUT_QUANTITY = f"Значение не может быть меньше {ProdOperationPosConsts.MIN_VALUE}"
