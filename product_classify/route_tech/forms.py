@@ -1,18 +1,24 @@
 from django.forms import (
+    Select,
+    TextInput,
     ModelForm,
     CharField,
+    NumberInput,
     ModelChoiceField,
 )
 
 from classes.models import ClassStruct
 
 from route_tech.models import (
-    EconomicActivitySubject
+    GroupWorkingCenter,
+    EconomicActivitySubject,
 )
 from route_tech.errors import (
+    GWCErrors,
     EASErrors
 )
 from route_tech.constants import (
+    GWCConsts,
     EASConsts
 )
 
@@ -61,3 +67,60 @@ class EconomicActivitySubjectForm(ModelForm):
             "main_class",
             "main_subject",
         )
+
+
+class GroupWorkingCenterForm(ModelForm):
+    class Meta:
+        model = GroupWorkingCenter
+        fields = [
+            'name',
+            'short_name',
+            'main_class',
+            'eas',
+            'place',
+        ]
+        labels = {
+            'name': 'Название группового рабочего центра',
+            'short_name': 'Сокращённое название',
+            'main_class': 'Родительский класс',
+            'eas': 'Субъект экономической деятельности',
+            'place': 'Количество рабочих мест',
+        }
+        help_texts = {
+            'name': 'Максимальная длина — {} символов'.format(
+                GroupWorkingCenter._meta.get_field('name').max_length
+            ),
+            'short_name': 'Максимальная длина — {} символов'.format(
+                GroupWorkingCenter._meta.get_field('short_name').max_length
+            ),
+            'place': 'Целое положительное число',
+        }
+        widgets = {
+            'name': TextInput(attrs={'class': 'form-control'}),
+            'short_name': TextInput(attrs={'class': 'form-control'}),
+            'main_class': Select(attrs={'class': 'form-control'}),
+            'eas': Select(attrs={'class': 'form-control'}),
+            'place': NumberInput(attrs={'class': 'form-control', 'min': 1}),
+        }
+        error_messages = {
+            'name': {
+                'required': GWCErrors.EMPTY_NAME,
+            },
+            'short_name': {
+                'required': GWCErrors.EMPTY_SHORT_NAME,
+            },
+            'main_class': {
+                'required': GWCErrors.EMPTY_MAIN_CLASS,
+            },
+            'eas': {
+                'required': GWCErrors.EMPTY_EAS,
+            },
+            'place': {
+                'required': GWCErrors.EMPTY_PLACE,
+            },
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['main_class'].queryset = ClassStruct.means_of_labor()
+        self.fields['eas'].queryset = EconomicActivitySubject.objects.all()

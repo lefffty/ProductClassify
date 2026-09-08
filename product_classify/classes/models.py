@@ -165,6 +165,13 @@ class ClassStruct(models.Model):
         )
         return subjects
 
+    @classmethod
+    def means_of_labor(self):
+        means_of_labor = ClassStruct.objects.filter(
+            main_class__exact=MetaConsts.MEANS_OF_LABOR
+        )
+        return means_of_labor
+
 
 class ParClass(models.Model):
     """Модель параметра класса

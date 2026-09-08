@@ -83,7 +83,7 @@ class GroupWorkingCenter(Model):
         null=False,
     )
     place = PositiveSmallIntegerField(
-        verbose_name="Количество рабочих мест на групповом рабочим центре",
+        verbose_name="Количество рабочих мест на групповом рабочем центре",
         null=False,
         blank=False,
     )

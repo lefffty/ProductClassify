@@ -159,6 +159,11 @@ class ClassStructModelTest(BaseUnitTestCase):
         subjects = ClassStruct.economic_activity_subjects()
         self.assertIsInstance(subjects, QuerySet)
         self.assertEqual(len(subjects), 3)
+    
+    def test_means_of_labor(self):
+        means_of_labor = ClassStruct.means_of_labor()
+        self.assertIsInstance(means_of_labor, QuerySet)
+        self.assertEqual(len(means_of_labor), 0)
 
 
 class ParClassModelTest(BaseUnitTestCase):
