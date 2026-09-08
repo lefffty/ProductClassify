@@ -62,6 +62,7 @@ class ProductsConsts(IntEnum):
 
 
 class MetaConsts(IntEnum):
+    ECONOMIC_ACTIVITY_SUBJECT = 31
     SUBJECT_AREA_CLASS = 13
     ENTERPRISE = 32
     WORKSHOP = 33

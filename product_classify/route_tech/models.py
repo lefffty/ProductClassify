@@ -1,17 +1,22 @@
 from django.db.models import (
-    DecimalField,
-    FloatField,
     Model,
     CharField,
-    CASCADE,
     ForeignKey,
-    PositiveSmallIntegerField
+    FloatField,
+    DecimalField,
+    PositiveSmallIntegerField,
+    CASCADE,
 )
 from django.core.validators import MinValueValidator
 
 from products.models import Prod
 from classes.models import ClassStruct
-from route_tech.constants import EASConsts, GWCConsts, ProdOperConsts, ProdOperationPosConsts
+from route_tech.constants import (
+    GWCConsts, 
+    EASConsts,
+    ProdOperConsts,
+    ProdOperationPosConsts
+)
 
 
 class EconomicActivitySubject(Model):

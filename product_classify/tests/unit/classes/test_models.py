@@ -155,6 +155,11 @@ class ClassStructModelTest(BaseUnitTestCase):
         self.assertIsInstance(qualifications, QuerySet)
         self.assertEqual(len(qualifications), 7)
 
+    def test_economic_activity_subjects(self):
+        subjects = ClassStruct.economic_activity_subjects()
+        self.assertIsInstance(subjects, QuerySet)
+        self.assertEqual(len(subjects), 3)
+
 
 class ParClassModelTest(BaseUnitTestCase):
     @classmethod

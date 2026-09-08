@@ -158,6 +158,13 @@ class ClassStruct(models.Model):
         )
         return qualifications
 
+    @classmethod
+    def economic_activity_subjects(self):
+        subjects = ClassStruct.objects.filter(
+            main_class__exact=MetaConsts.ECONOMIC_ACTIVITY_SUBJECT
+        )
+        return subjects
+
 
 class ParClass(models.Model):
     """Модель параметра класса
