@@ -3,7 +3,11 @@ from django.urls import reverse_lazy
 
 from core.mixins import CommonContextMixin
 
-from route_tech.forms import EconomicActivitySubjectForm, GroupWorkingCenterForm, ProdOperationForm
+from route_tech.forms import (
+    EconomicActivitySubjectForm,
+    GroupWorkingCenterForm,
+    ProdOperationForm,
+)
 from route_tech.models import EconomicActivitySubject, GroupWorkingCenter, ProdOperation
 
 
@@ -81,4 +85,12 @@ class ProdOperationCreateView(CommonContextMixin, CreateView):
     template_name = "route_tech/prod_operation/prod_operation.html"
     model = ProdOperation
     form_class = ProdOperationForm
+    success_url = reverse_lazy("classes:index")
+
+
+class ProdOperationDeleteView(CommonContextMixin, DeleteView):
+    template_name = "route_tech/prod_operation/prod_operation.html"
+    model = ProdOperation
+    context_object_name = "instance"
+    pk_url_kwarg = "prod_oper_id"
     success_url = reverse_lazy("classes:index")

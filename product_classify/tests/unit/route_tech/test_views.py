@@ -6,7 +6,14 @@ from decimal import Decimal
 from faker import Faker
 
 from classes.models import ClassStruct
-from classes.constants import MetaConsts, ClassStructConsts, ProductsConsts
+from classes.constants import (
+    MetaConsts,
+    ProductsConsts,
+    OperationConsts,
+    ProfessionConsts,
+    ClassStructConsts,
+    QualificationConsts,
+)
 
 from ei.models import Ei
 from products.constants import ProdConsts
@@ -679,3 +686,93 @@ class ProdOperationCreateViewTest(BaseUnitTestCase):
     def test_invalid_num_of_workers_validation_error_is_shown_on_page(self):
         response = self.client.post(self.url, self.invalid_num_of_workers_data)
         self.assertContains(response, ProdOperErrors.INVALID_NUM_OF_WORKERS)
+
+
+class ProdOperationDeleteViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.tech_oper = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
+        cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
+        cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
+
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.product_class = ClassStruct.objects.create(
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=None,
+            main_class=cls.nuts_class,
+        )
+        cls.ei = Ei.objects.first()
+        cls.image = SimpleUploadedFile("test.jpg", b"content", content_type="image/jpeg")
+
+        cls.prod = Prod.objects.create(
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            class_field=cls.product_class,
+            image=cls.image,
+            cost=Decimal('100.00'),
+            ei=cls.ei,
+            modification=None,
+        )
+
+        cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
+        cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
+        cls.stand = ClassStruct.objects.create(
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=None,
+            main_class=cls.means_of_labor,
+        )
+        cls.eas = EconomicActivitySubject.objects.create(
+            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.enterprise,
+            main_subject=None,
+        )
+        cls.center = GroupWorkingCenter.objects.create(
+            name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.stand,
+            eas=cls.eas,
+            place=cls.faker.random_int(min=1, max=100),
+        )
+
+        cls.prod_operation = ProdOperation.objects.create(
+            prod=cls.prod,
+            tech_oper=cls.tech_oper,
+            profession=cls.profession,
+            center=cls.center,
+            qualification=cls.qualification,
+            num_of_workers=cls.faker.random_int(min=1, max=10),
+            t_pz=cls.faker.random_number(digits=2),
+            t_sht=cls.faker.random_number(digits=2),
+        )
+
+        cls.url = reverse("route_tech:delete_prod_operation", args=[cls.prod_operation.pk])
+        cls.redirect_url = reverse("classes:index")
+
+    def test_prod_operation_delete_view_uses_prod_operation_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "route_tech/prod_operation/prod_operation.html")
+
+    def test_prod_operation_delete_view_renders_information_about_removable_object(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, self.prod_operation.pk)
+        self.assertContains(response, self.prod_operation.prod.name)
+        self.assertContains(response, self.prod_operation.tech_oper.name)
+        self.assertContains(response, self.prod_operation.profession.name)
+        self.assertContains(response, self.prod_operation.center.name)
+        self.assertContains(response, self.prod_operation.qualification.name)
+        self.assertContains(response, self.prod_operation.num_of_workers)
+        self.assertContains(response, self.prod_operation.t_pz)
+        self.assertContains(response, self.prod_operation.t_sht)
+
+    def test_prod_operation_delete_view_can_save_a_POST_request(self):
+        self.client.post(self.url)
+        self.assertEqual(ProdOperation.objects.count(), 0)
+
+    def test_prod_operation_delete_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url)
+        self.assertRedirects(response, self.redirect_url)
