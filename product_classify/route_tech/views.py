@@ -50,3 +50,20 @@ class GWCCreateView(CommonContextMixin, CreateView):
     model = GroupWorkingCenter
     form_class = GroupWorkingCenterForm
     success_url = reverse_lazy("classes:index")
+
+
+class GWCUpdateView(CommonContextMixin, UpdateView):
+    model = GroupWorkingCenter
+    pk_url_kwarg = "gwc_id"
+    form_class = GroupWorkingCenterForm
+    template_name = "route_tech/gwc/gwc.html"
+
+    def get_success_url(self):
+        pk = self.get_object().pk
+        return reverse_lazy("route_tech:detail_gwc", kwargs={"gwc_id": pk})
+
+
+class GWCDetailView(CommonContextMixin, DetailView):
+    template_name = "route_tech/gwc/detail.html"
+    model = GroupWorkingCenter
+    pk_url_kwarg = "gwc_id"
