@@ -434,3 +434,57 @@ class GWCUpdateViewTest(BaseUnitTestCase):
     def test_gwc_update_view_redirects_after_POST_request(self):
         response = self.client.post(self.url, self.valid_update_data)
         self.assertRedirects(response, self.redirect_url)
+
+
+class GWCDeleteViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
+        cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
+        cls.stand = ClassStruct.objects.create(
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=None,
+            main_class=cls.means_of_labor,
+        )
+
+        cls.eas = EconomicActivitySubject.objects.create(
+            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.enterprise,
+            main_subject=None
+        )
+
+        cls.gwc = GroupWorkingCenter.objects.create(
+            name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.stand,
+            eas=cls.eas,
+            place=cls.faker.random_int(min=1, max=100)
+        )
+
+        cls.url = reverse("route_tech:delete_gwc", args=[cls.gwc.pk])
+        cls.redirect_url = reverse("classes:index")
+
+    def test_gwc_delete_view_uses_gwc_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "route_tech/gwc/gwc.html")
+
+    def test_gwc_delete_view_renders_information_about_removable_object(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, self.gwc.pk)
+        self.assertContains(response, self.gwc.name)
+        self.assertContains(response, self.gwc.short_name)
+        self.assertContains(response, self.gwc.main_class.name)
+        self.assertContains(response, self.gwc.eas.name)
+        self.assertContains(response, self.gwc.place)
+
+    def test_gwc_delete_view_can_save_a_POST_request(self):
+        self.client.post(self.url)
+        self.assertEqual(GroupWorkingCenter.objects.count(), 0)
+
+    def test_gwc_delete_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url)
+        self.assertRedirects(response, self.redirect_url)

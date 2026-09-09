@@ -67,3 +67,11 @@ class GWCDetailView(CommonContextMixin, DetailView):
     template_name = "route_tech/gwc/detail.html"
     model = GroupWorkingCenter
     pk_url_kwarg = "gwc_id"
+
+
+class GWCDeleteView(CommonContextMixin, DeleteView):
+    model = GroupWorkingCenter
+    pk_url_kwarg = "gwc_id"
+    template_name = "route_tech/gwc/gwc.html"
+    success_url = reverse_lazy("classes:index")
+    context_object_name = "center"

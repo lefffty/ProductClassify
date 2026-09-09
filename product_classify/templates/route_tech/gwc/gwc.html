@@ -36,22 +36,22 @@
 
                     <dl id="gwc-delete-info" class="row mb-4">
                         <dt id="gwc-delete-id-help" class="col-sm-3 fw-semibold">ID</dt>
-                        <dd id="gwc-delete-id" class="col-sm-9">{{ instance.id }}</dd>
+                        <dd id="gwc-delete-id" class="col-sm-9">{{ center.id }}</dd>
 
                         <dt id="gwc-delete-name-help" class="col-sm-3 fw-semibold">Название</dt>
-                        <dd id="gwc-delete-name" class="col-sm-9">{{ instance.name }}</dd>
+                        <dd id="gwc-delete-name" class="col-sm-9">{{ center.name }}</dd>
 
                         <dt id="gwc-delete-short-help" class="col-sm-3 fw-semibold">Сокращение</dt>
-                        <dd id="gwc-delete-short" class="col-sm-9">{{ instance.short_name|default:"—" }}</dd>
+                        <dd id="gwc-delete-short" class="col-sm-9">{{ center.short_name|default:"—" }}</dd>
 
                         <dt id="gwc-delete-main-class-help" class="col-sm-3 fw-semibold">Класс</dt>
-                        <dd id="gwc-delete-main-class" class="col-sm-9">{{ instance.main_class.name|default:"—" }}</dd>
+                        <dd id="gwc-delete-main-class" class="col-sm-9">{{ center.main_class.name|default:"—" }}</dd>
 
                         <dt id="gwc-delete-eas-help" class="col-sm-3 fw-semibold">Субъект экономической деятельности</dt>
-                        <dd id="gwc-delete-eas" class="col-sm-9">{{ instance.eas.name|default:"—" }}</dd>
+                        <dd id="gwc-delete-eas" class="col-sm-9">{{ center.eas.name|default:"—" }}</dd>
 
                         <dt id="gwc-delete-place-help" class="col-sm-3 fw-semibold">Количество рабочих мест</dt>
-                        <dd id="gwc-delete-place" class="col-sm-9">{{ instance.place|default:"—" }}</dd>
+                        <dd id="gwc-delete-place" class="col-sm-9">{{ center.place|default:"—" }}</dd>
                     </dl>
 
                     <button id="gwc-form-submit-btn" type="submit" class="btn btn-danger">
