@@ -19,8 +19,8 @@ from classes.errors import ParClassErrors
 
 
 class ClassStruct(models.Model):
-    """Модель классификатора
-    """
+    """Модель классификатора"""
+
     name = models.CharField(
         verbose_name="Название класса",
         null=False,
@@ -75,9 +75,7 @@ class ClassStruct(models.Model):
     def terminal_enum_classes(cls) -> QuerySet:
         """Returns QuerySet of terminal enum classes"""
         with connection.cursor() as cursor:
-            cursor.execute(
-                ClassStructQueries.GET_TERMINAL_CLASSES, [EnumsIds.PARENT]
-            )
+            cursor.execute(ClassStructQueries.GET_TERMINAL_CLASSES, [EnumsIds.PARENT])
             terminal_enum_classes = cursor.fetchall()
             terminal_enum_classes_ids = [
                 element[0] for element in terminal_enum_classes
@@ -174,8 +172,8 @@ class ClassStruct(models.Model):
 
 
 class ParClass(models.Model):
-    """Модель параметра класса
-    """
+    """Модель параметра класса"""
+
     class_field = models.ForeignKey(
         ClassStruct,
         verbose_name="Класс",
@@ -236,18 +234,23 @@ class ParClass(models.Model):
         if self.parametr.parametr_type.id in enum_param_type_ids and (
             self.min_value or self.max_value
         ):
-            raise ValidationError(ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(self.parametr.name))
+            raise ValidationError(
+                ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(self.parametr.name)
+            )
 
         # если указаны поля min_value и max_value и min_value > max_value,
         # то выбрасываем исключение
         if self.min_value and self.max_value:
             if self.min_value > self.max_value:
-                raise ValidationError({
-                    "min_value": ParClassErrors.MIN_GE_MAX,
-                })
+                raise ValidationError(
+                    {
+                        "min_value": ParClassErrors.MIN_GE_MAX,
+                    }
+                )
 
     def delete(self, *args, **kwargs):
-        from products.models import ParProd        
+        from products.models import ParProd
+
         ParProd.objects.filter(par=self.parametr).delete()
         super().delete(*args, **kwargs)
 

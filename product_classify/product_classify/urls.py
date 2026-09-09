@@ -35,7 +35,7 @@ urlpatterns = [
     path("agregat/", include("agregat.urls")),
     path("enums/", include("enums.urls")),
     path("specifications/", include("specifications.urls")),
-    path("route_tech/", include("route_tech.urls"))
+    path("route_tech/", include("route_tech.urls")),
 ]
 
 if settings.DEBUG:

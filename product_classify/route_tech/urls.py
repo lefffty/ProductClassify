@@ -2,7 +2,6 @@ from django.urls import path, include
 
 from . import views
 
-
 app_name = "route_tech"
 
 eas_patterns = [

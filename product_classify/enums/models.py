@@ -5,7 +5,13 @@ from classes.models import ClassStruct
 from classes.constants import EnumsIds, ENUMS_IDS
 
 from enums.constants import EnumsConsts
-from enums.errors import StringEnumErrors, ImageEnumErrors, IntEnumErrors, DoubleEnumErrors, EnumsErrors
+from enums.errors import (
+    StringEnumErrors,
+    ImageEnumErrors,
+    IntEnumErrors,
+    DoubleEnumErrors,
+    EnumsErrors,
+)
 
 
 class Enums(models.Model):
@@ -110,7 +116,10 @@ class Enums(models.Model):
 
     def __str__(self):
         # если данное значение перечисления является перечислением строк или изображений
-        if self.enum.main_class.id == EnumsIds.STRING or self.enum.main_class.id == EnumsIds.IMAGE:
+        if (
+            self.enum.main_class.id == EnumsIds.STRING
+            or self.enum.main_class.id == EnumsIds.IMAGE
+        ):
             return self.short_name
         # если данное значение перечисления является перечислением вещественных чисел
         elif self.enum.main_class.id == EnumsIds.DOUBLE:

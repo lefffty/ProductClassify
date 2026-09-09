@@ -13,13 +13,21 @@ from ei.models import Ei
 from parametr.models import Parametr
 
 from classes.models import ClassStruct, ParClass
-from classes.constants import ProdClassConsts, ParClassConsts, EnumClassConsts, EnumsIds, ParamIds, NUMERIC_PARAMS, ENUM_PARAMS
+from classes.constants import (
+    ProdClassConsts,
+    ParClassConsts,
+    EnumClassConsts,
+    EnumsIds,
+    ParamIds,
+    NUMERIC_PARAMS,
+    ENUM_PARAMS,
+)
 from classes.errors import ClassStructErrors, ParClassErrors, ChangeParClassErrors
 
 
 class ProdClassForm(ModelForm):
-    """Форма для создания класса изделия
-    """
+    """Форма для создания класса изделия"""
+
     base_ei = ModelChoiceField(
         label="Единица измерения",
         empty_label="Выберите единицу измерения",
@@ -78,31 +86,27 @@ class ProdClassForm(ModelForm):
             is_cycle = ClassStruct.check_class_struct_cycles(cls_id, main_cls_id)
             # выбрасываем исключение, если образовался цикл
             if is_cycle:
-                raise ValidationError(
-                    ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR
-                )
+                raise ValidationError(ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR)
             return super().clean()
         else:
             return super().clean()
 
 
 class EnumClassForm(ModelForm):
-    """Форма для создания класса перечисления
-    """
+    """Форма для создания класса перечисления"""
+
     main_class = ModelChoiceField(
         label="Родительский класс",
         queryset=ClassStruct.objects.none(),
         empty_label="Выберите родительский класс",
         required=True,
-        error_messages={
-            "required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR
-        },
+        error_messages={"required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR},
     )
     name = CharField(
         max_length=EnumClassConsts.NAME_MAX_LENGTH,
         required=True,
         label="Название класса",
-        error_messages={"required": ClassStructErrors.EMPTY_NAME_ERROR}
+        error_messages={"required": ClassStructErrors.EMPTY_NAME_ERROR},
     )
     short_name = CharField(
         max_length=EnumClassConsts.SHORT_NAME_MAX_LENGTH,
@@ -144,23 +148,19 @@ class EnumClassForm(ModelForm):
 
 
 class ParClassForm(ModelForm):
-    """Форма для создания параметра класса
-    """
+    """Форма для создания параметра класса"""
+
     class_field = ModelChoiceField(
         label="Класс изделия",
         queryset=ClassStruct.objects.none(),
         required=True,
-        error_messages={
-            "required": ParClassErrors.EMPTY_CLASS_FIELD
-        }
+        error_messages={"required": ParClassErrors.EMPTY_CLASS_FIELD},
     )
     parametr = ModelChoiceField(
         label="Параметр",
         queryset=Parametr.objects.none(),
         required=True,
-        error_messages={
-            "required": ParClassErrors.EMPTY_PAR_FIELD
-        }
+        error_messages={"required": ParClassErrors.EMPTY_PAR_FIELD},
     )
     min_value = FloatField(
         label="Минимальное значение параметра класса",
@@ -214,10 +214,12 @@ class ParClassForm(ModelForm):
         max_val = cleaned_data.get("max_value")
 
         # если параметр является перечислением и значения max_value или min_value не None,
-        # то выбрасываем исключение с сообщением об этой ошибке 
+        # то выбрасываем исключение с сообщением об этой ошибке
         if param_tp in ENUM_PARAMS:
             if min_val or max_val:
-                raise ValidationError(ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(parametr.name))
+                raise ValidationError(
+                    ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(parametr.name)
+                )
         # если параметр является численным и минимальное значение больше максимального значения параметра,
         # то выбрасываем исключение с сообщением об этой ошибке
         elif param_tp in NUMERIC_PARAMS:
@@ -248,8 +250,8 @@ class ParClassForm(ModelForm):
 
 
 class ChangeParClassNumForm(Form):
-    """Форма для изменения позиции параметра класса
-    """
+    """Форма для изменения позиции параметра класса"""
+
     def __init__(self, *args, **kwargs):
         class_id = kwargs.pop("class_id", None)
         super().__init__(*args, **kwargs)
@@ -258,14 +260,14 @@ class ChangeParClassNumForm(Form):
             label="Класс изделия 1",
             error_messages={
                 "required": ChangeParClassErrors.EMPTY_FIRST_PAR,
-            }
+            },
         )
         self.fields["cls_2"] = ModelChoiceField(
             queryset=ParClass.objects.filter(class_field__id=class_id),
             label="Класс изделия 2",
             error_messages={
                 "required": ChangeParClassErrors.EMPTY_SECOND_PAR,
-            }
+            },
         )
 
     def clean(self):
@@ -300,5 +302,5 @@ class ChangeParClassNumForm(Form):
             cls_2.num = old_num_1
             cls_1.save(update_fields=["num"])
             cls_2.save(update_fields=["num"])
-        
+
         return cleaned_data

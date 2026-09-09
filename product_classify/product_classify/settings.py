@@ -155,6 +155,4 @@ MEDIA_URL = "/media/"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-FIXTURE_DIRS = [
-    BASE_DIR / "fixtures"
-]
+FIXTURE_DIRS = [BASE_DIR / "fixtures"]

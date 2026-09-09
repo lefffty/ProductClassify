@@ -42,9 +42,7 @@ class AgregatDetailView(
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         agregat = self.get_object()
-        agregat_parametrs = Agregat.objects.filter(agr=agregat).order_by(
-            "num"
-        )
+        agregat_parametrs = Agregat.objects.filter(agr=agregat).order_by("num")
         context["agr_parametrs"] = agregat_parametrs
         context["agregat"] = agregat
         return context
@@ -111,19 +109,14 @@ class AgregatParametrDeleteView(
         num = instance.num
         instance.delete()
 
-        for par_agr in Agregat.objects.filter(
-            Q(agr=agregat_id) & Q(num__gt=num)
-        ):
+        for par_agr in Agregat.objects.filter(Q(agr=agregat_id) & Q(num__gt=num)):
             par_agr.num = par_agr.num - 1
             par_agr.save()
-                
+
         return super().form_valid(form)
 
 
-class ChangeAgregatNumView(
-    CommonContextMixin,
-    FormView
-):
+class ChangeAgregatNumView(CommonContextMixin, FormView):
     model = Agregat
     template_name = "agregat/change_agr_num.html"
     form_class = ChangeAgregatNumForm
@@ -141,8 +134,5 @@ class ChangeAgregatNumView(
 
     def get_success_url(self):
         return reverse_lazy(
-            "agregat:detail",
-            kwargs={
-                "agregat_id": self.kwargs.get("agregat_id")
-            }
+            "agregat:detail", kwargs={"agregat_id": self.kwargs.get("agregat_id")}
         )

@@ -9,7 +9,6 @@ from products.models import Prod
 
 from specifications.constants import ProdComponentConsts
 
-
 TotalCostRatioResult = namedtuple(
     "TotalCostRatioResult",
     field_names=[
@@ -20,7 +19,7 @@ TotalCostRatioResult = namedtuple(
         "quantity",
         "ei_short_name",
         "total_cost",
-        "level"
+        "level",
     ],
 )
 SpecificationRecordResult = namedtuple(
@@ -31,7 +30,7 @@ SpecificationRecordResult = namedtuple(
         "child_id",
         "prod_num",
         "quantity",
-    ]
+    ],
 )
 SpecificationLogResult = namedtuple(
     "SpecificationLogResult",
@@ -41,7 +40,7 @@ SpecificationLogResult = namedtuple(
         "comp_id",
         "updated_at",
         "log_string",
-    ]
+    ],
 )
 
 
@@ -56,7 +55,7 @@ class ProdComponent(models.Model):
         Prod,
         related_name="child_prod",
         verbose_name="Дочернее изделие",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
     num = models.SmallIntegerField(
         verbose_name="Позиция дочернего изделия к родительскому"
@@ -77,19 +76,17 @@ class ProdComponent(models.Model):
     @classmethod
     def is_parent_prod(cls, product_id: int) -> int:
         with connection.cursor() as cursor:
-            cursor.execute(
-                ProdComponentQueries.IS_PARENT_PROD,
-                params=[product_id]
-            )
+            cursor.execute(ProdComponentQueries.IS_PARENT_PROD, params=[product_id])
             is_parent = cursor.fetchone()[0]
         return is_parent
 
     @classmethod
-    def total_cost_ratio(cls, product_id: int, quantity: int) -> List[TotalCostRatioResult]:
+    def total_cost_ratio(
+        cls, product_id: int, quantity: int
+    ) -> List[TotalCostRatioResult]:
         with connection.cursor() as cursor:
             cursor.execute(
-                ProdComponentQueries.TOTAL_COST_RATIO,
-                params=[product_id, quantity]
+                ProdComponentQueries.TOTAL_COST_RATIO, params=[product_id, quantity]
             )
             rows = cursor.fetchall()
         return [TotalCostRatioResult(*row) for row in rows]
@@ -98,8 +95,7 @@ class ProdComponent(models.Model):
     def product_specification(cls, product_id: int) -> List[SpecificationRecordResult]:
         with connection.cursor() as cursor:
             cursor.execute(
-                ProdComponentQueries.PRODUCT_SPECIFICATION,
-                params=[product_id]
+                ProdComponentQueries.PRODUCT_SPECIFICATION, params=[product_id]
             )
             rows = cursor.fetchall()
         return [SpecificationRecordResult(*row) for row in rows]
@@ -111,7 +107,7 @@ class SpecificationLogs(models.Model):
         models.SET_NULL,
         blank=False,
         null=True,
-        verbose_name="Пара <Родительское изделие - Дочернее изделие>"
+        verbose_name="Пара <Родительское изделие - Дочернее изделие>",
     )
     updated_at = models.DateTimeField(
         auto_now_add=True,
@@ -142,9 +138,6 @@ class SpecificationLogs(models.Model):
     @classmethod
     def get_changelog(cls, product_id: int) -> List[SpecificationLogResult]:
         with connection.cursor() as cursor:
-            cursor.execute(
-                SpecificationLogsQueries.GET_CHANGE_LOG,
-                params=[product_id]
-            )
+            cursor.execute(SpecificationLogsQueries.GET_CHANGE_LOG, params=[product_id])
             rows = cursor.fetchall()
         return [SpecificationLogResult(*row) for row in rows]

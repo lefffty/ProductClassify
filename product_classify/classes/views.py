@@ -25,13 +25,12 @@ from classes.forms import (
 from classes.constants import ENUMS_IDS
 
 
-
 class MainPageTemplateView(
     CommonContextMixin,
     TemplateView,
 ):
-    """Представление для главной страницы
-    """
+    """Представление для главной страницы"""
+
     template_name = "classes/index.html"
 
 
@@ -39,8 +38,8 @@ class CategoryClassesListView(
     CommonContextMixin,
     ListView,
 ):
-    """Представление для категории изделия(болты, гайки, кронштейны)
-    """
+    """Представление для категории изделия(болты, гайки, кронштейны)"""
+
     template_name = "classes/category.html"
     model = ClassStruct
     context_object_name = "classes"
@@ -66,8 +65,8 @@ class ProdClassCreateView(
     CommonContextMixin,
     CreateView,
 ):
-    """Представление для создания нового класса изделия
-    """
+    """Представление для создания нового класса изделия"""
+
     form_class = ProdClassForm
     success_url = reverse_lazy("classes:index")
     template_name = "classes/prod_class.html"
@@ -77,8 +76,8 @@ class EnumClassCreateView(
     CommonContextMixin,
     CreateView,
 ):
-    """Представление для создания нового класса перечисления
-    """
+    """Представление для создания нового класса перечисления"""
+
     form_class = EnumClassForm
     success_url = reverse_lazy("classes:index")
     template_name = "classes/enum_class.html"
@@ -88,8 +87,8 @@ class ClassUpdateView(
     CommonContextMixin,
     UpdateView,
 ):
-    """Представление для изменения экземпляра класса
-    """
+    """Представление для изменения экземпляра класса"""
+
     def get_object(self):
         class_id = self.kwargs.get("class_id")
         class_ = ClassStruct.objects.get(pk=class_id)
@@ -120,10 +119,7 @@ class ClassUpdateView(
         )
 
 
-class ClassDeleteView(
-    CommonContextMixin,
-    DeleteView
-):
+class ClassDeleteView(CommonContextMixin, DeleteView):
     template_name = "classes/enum_class.html"
     context_object_name = "instance"
 
@@ -144,8 +140,8 @@ class ClassParamsListView(
     CommonContextMixin,
     ListView,
 ):
-    """Представление для вывода списка параметров класса
-    """
+    """Представление для вывода списка параметров класса"""
+
     template_name = "classes/params.html"
     context_object_name = "params"
 
@@ -159,9 +155,7 @@ class ClassParamsListView(
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         class_id = self.kwargs.get("class_id")
-        class_ = ClassStruct.objects.get(
-            pk=class_id
-        )
+        class_ = ClassStruct.objects.get(pk=class_id)
         context["class"] = class_
         return context
 
@@ -170,8 +164,8 @@ class ClassParamCreateView(
     CommonContextMixin,
     CreateView,
 ):
-    """Представление для добавления нового параметра класса
-    """
+    """Представление для добавления нового параметра класса"""
+
     template_name = "classes/param_class.html"
     form_class = ParClassForm
     context_object_name = "instance"
@@ -189,10 +183,7 @@ class ClassParamCreateView(
         )
 
 
-class ClassParamUpdateView(
-    CommonContextMixin,
-    UpdateView
-):
+class ClassParamUpdateView(CommonContextMixin, UpdateView):
     template_name = "classes/param_class.html"
     form_class = ParClassForm
     context_object_name = "instance"
@@ -207,17 +198,11 @@ class ClassParamUpdateView(
 
     def get_success_url(self):
         return reverse_lazy(
-            "classes:params_list",
-            kwargs={
-                "class_id": self.kwargs.get("class_id")
-            }
+            "classes:params_list", kwargs={"class_id": self.kwargs.get("class_id")}
         )
 
 
-class ClassParamDeleteView(
-    CommonContextMixin,
-    DeleteView
-):
+class ClassParamDeleteView(CommonContextMixin, DeleteView):
     model = ParClass
     template_name = "classes/param_class.html"
     context_object_name = "instance"
@@ -229,16 +214,10 @@ class ClassParamDeleteView(
         )
 
     def get_success_url(self):
-        return reverse_lazy(
-            "classes:params_list",
-            args=[self.kwargs.get("class_id")]
-        )
+        return reverse_lazy("classes:params_list", args=[self.kwargs.get("class_id")])
 
 
-class ChangeParClassNumView(
-    CommonContextMixin,
-    FormView
-):
+class ChangeParClassNumView(CommonContextMixin, FormView):
     model = ParClass
     template_name = "classes/change_num.html"
     form_class = ChangeParClassNumForm

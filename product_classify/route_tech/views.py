@@ -7,20 +7,14 @@ from route_tech.forms import EconomicActivitySubjectForm
 from route_tech.models import EconomicActivitySubject
 
 
-class EASCreateView(
-    CommonContextMixin,
-    CreateView
-):
+class EASCreateView(CommonContextMixin, CreateView):
     template_name = "route_tech/eas/eas.html"
     model = EconomicActivitySubject
     form_class = EconomicActivitySubjectForm
     success_url = reverse_lazy("classes:index")
 
 
-class EASUpdateView(
-    CommonContextMixin,
-    UpdateView
-):
+class EASUpdateView(CommonContextMixin, UpdateView):
     model = EconomicActivitySubject
     template_name = "route_tech/eas/eas.html"
     form_class = EconomicActivitySubjectForm
@@ -36,18 +30,12 @@ class EASUpdateView(
         )
 
 
-class EASDetailView(
-    CommonContextMixin,
-    DetailView
-):
+class EASDetailView(CommonContextMixin, DetailView):
     model = EconomicActivitySubject
     pk_url_kwarg = "eas_id"
     template_name = "route_tech/eas/detail.html"
     context_object_name = "subject"
 
 
-class EASDeleteView(
-    CommonContextMixin,
-    DeleteView
-):
+class EASDeleteView(CommonContextMixin, DeleteView):
     pass

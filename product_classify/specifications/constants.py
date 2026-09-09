@@ -26,11 +26,7 @@ class TotalCostRatioConsts:
     TITLE_SPACEAFTER = 20
     SIGNATURE_FONTSIZE = 9
     SIGNATURE_SPACEBEFORE = 10
-    SIGNATURE_COL_WIDTHS = [
-        200,
-        200,
-        200
-    ]
+    SIGNATURE_COL_WIDTHS = [200, 200, 200]
 
 
 class ChangeLogConsts:
@@ -43,13 +39,7 @@ class ChangeLogConsts:
     TITLE_FONTSIZE = 20
     TITLE_ALIGNMENT = 1
     TITLE_SPACEAFTER = 20
-    COL_WIDTHS = [
-        60,
-        60,
-        60,
-        180,
-        430
-    ]
+    COL_WIDTHS = [60, 60, 60, 180, 430]
     DATE_FONTSIZE = 8
     DATE_ALIGNMENT = 2
     SPACER = (1, 20)

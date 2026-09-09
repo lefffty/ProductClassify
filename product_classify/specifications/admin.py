@@ -22,7 +22,7 @@ class ProdComponentAdmin(admin.ModelAdmin):
                     "num",
                     "quantity",
                 )
-            }
+            },
         ),
     )
 
@@ -45,9 +45,7 @@ class SpecificationLogsAdmin(admin.ModelAdmin):
                     "old_quantity",
                     "new_quantity",
                 ),
-            }
+            },
         ),
     )
-    readonly_fields = (
-        "updated_at",
-    )
+    readonly_fields = ("updated_at",)

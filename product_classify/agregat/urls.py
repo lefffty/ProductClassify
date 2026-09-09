@@ -5,11 +5,7 @@ from . import views
 app_name = "agregat"
 
 urlpatterns = [
-    path(
-        "list/",
-        views.AgregatListView.as_view(),
-        name="list"
-    ),
+    path("list/", views.AgregatListView.as_view(), name="list"),
     path(
         "<int:agregat_id>/",
         views.AgregatDetailView.as_view(),

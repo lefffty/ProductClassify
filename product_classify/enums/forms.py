@@ -153,7 +153,7 @@ class ChangeNumForm(Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        
+
         enum_1: Enums = cleaned_data.get("enum_1", None)
         enum_2: Enums = cleaned_data.get("enum_2", None)
 
@@ -169,7 +169,7 @@ class ChangeNumForm(Form):
         if enum_1.enum.pk != enum_2.enum.pk:
             raise ValidationError(ChangeNumErrors.NON_SAME_CLASS)
 
-        with transaction.atomic():        
+        with transaction.atomic():
             old_num_1 = enum_1.num
             old_num_2 = enum_2.num
 
@@ -177,12 +177,12 @@ class ChangeNumForm(Form):
             temp_num_2 = EnumsConsts.MAX_NUM_VALUE - 1
             enum_1.num = temp_num_1
             enum_2.num = temp_num_2
-            enum_1.save(update_fields=['num'])
-            enum_2.save(update_fields=['num'])
+            enum_1.save(update_fields=["num"])
+            enum_2.save(update_fields=["num"])
 
             enum_1.num = old_num_2
             enum_2.num = old_num_1
-            enum_1.save(update_fields=['num'])
-            enum_2.save(update_fields=['num'])
+            enum_1.save(update_fields=["num"])
+            enum_2.save(update_fields=["num"])
 
         return cleaned_data

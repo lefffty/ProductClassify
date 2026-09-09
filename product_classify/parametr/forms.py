@@ -78,11 +78,11 @@ class ParametrForm(ModelForm):
 
         if parametr_tp == str_enum and par_ei is not None:
             raise ValidationError(ParametrErrors.STRING_ENUM)
-        
+
         elif parametr_tp == img_enum and par_ei is not None:
             raise ValidationError(ParametrErrors.IMAGE_ENUM)
-        
+
         elif parametr_tp == agregat_type and par_ei is not None:
             raise ValidationError(ParametrErrors.AGREGAT)
-        
+
         return cleaned_data

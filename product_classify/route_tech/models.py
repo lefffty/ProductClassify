@@ -12,10 +12,10 @@ from django.core.validators import MinValueValidator
 from products.models import Prod
 from classes.models import ClassStruct
 from route_tech.constants import (
-    GWCConsts, 
+    GWCConsts,
     EASConsts,
     ProdOperConsts,
-    ProdOperationPosConsts
+    ProdOperationPosConsts,
 )
 
 
@@ -180,21 +180,17 @@ class ProdOperationPos(Model):
         verbose_name="Расход входного ресурса",
         blank=False,
         null=False,
-        validators=[
-            MinValueValidator(ProdOperationPosConsts.MIN_VALUE)
-        ],
+        validators=[MinValueValidator(ProdOperationPosConsts.MIN_VALUE)],
         max_digits=ProdOperationPosConsts.MAX_DIGITS,
-        decimal_places=ProdOperationPosConsts.DECIMAL_PLACES
+        decimal_places=ProdOperationPosConsts.DECIMAL_PLACES,
     )
     output_quantity = DecimalField(
         verbose_name="Количество выходного ресурса",
         blank=False,
         null=False,
-        validators=[
-            MinValueValidator(ProdOperationPosConsts.MIN_VALUE)
-        ],
+        validators=[MinValueValidator(ProdOperationPosConsts.MIN_VALUE)],
         max_digits=ProdOperationPosConsts.MAX_DIGITS,
-        decimal_places=ProdOperationPosConsts.DECIMAL_PLACES
+        decimal_places=ProdOperationPosConsts.DECIMAL_PLACES,
     )
 
     class Meta:

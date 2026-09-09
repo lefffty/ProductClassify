@@ -10,4 +10,5 @@ class EiConsts(IntEnum):
     DECIMAL_PLACES = 10
     MAX_DIGITS = 20
 
+
 KILOGRAM_ID = 4

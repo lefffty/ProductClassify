@@ -14,10 +14,12 @@ from ei.errors import EiErrors
 class EiForm(ModelForm):
     convert_factor = FloatField(
         label="Множитель для перевода",
-        validators=[MinValueValidator(
-            EiConsts.CONVERT_FACTOR_MIN_VALUE,
-            message=EiErrors.NEGATIVE_FACTOR,
-        )],
+        validators=[
+            MinValueValidator(
+                EiConsts.CONVERT_FACTOR_MIN_VALUE,
+                message=EiErrors.NEGATIVE_FACTOR,
+            )
+        ],
         required=True,
         error_messages={
             "required": EiErrors.EMPTY_FACTOR,
@@ -27,9 +29,7 @@ class EiForm(ModelForm):
         max_length=EiConsts.NAME_MAX_LENGTH,
         required=True,
         label="Название единицы измерения",
-        error_messages={
-            "required": EiErrors.EMPTY_NAME
-        },
+        error_messages={"required": EiErrors.EMPTY_NAME},
     )
     short_name = CharField(
         max_length=EiConsts.SHORT_NAME_MAX_LENGTH,

@@ -49,5 +49,5 @@ class Ei(models.Model):
                 new_main = child_eis.first()
                 child_eis.exclude(pk=new_main.pk).update(main_class=new_main)
                 new_main.main_class = None
-                new_main.save(update_fields=["main_class"]) 
+                new_main.save(update_fields=["main_class"])
             return super().delete(*args, **kwargs)

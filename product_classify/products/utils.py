@@ -6,9 +6,11 @@ from classes.constants import ENUM_PARAMS, NUMERIC_PARAMS, ParamIds
 from products.models import ParProd, Prod
 
 
-def get_filtered_products(products_qs: QuerySet[Prod], form_data: dict, class_id: int) -> QuerySet:
+def get_filtered_products(
+    products_qs: QuerySet[Prod], form_data: dict, class_id: int
+) -> QuerySet:
     par_classes = ParClass.objects.filter(class_field=class_id).select_related(
-        'parametr__parametr_type'
+        "parametr__parametr_type"
     )
     conditions = []
 
@@ -27,16 +29,16 @@ def get_filtered_products(products_qs: QuerySet[Prod], form_data: dict, class_id
                         if param_type_id == ParamIds.DOUBLE:
                             mn_val, mx_val = float(mn_val), float(mx_val)
                             condition = Q(
-                                par=par_class.parametr, 
+                                par=par_class.parametr,
                                 double_value__gte=mn_val,
-                                double_value__lte=mx_val
+                                double_value__lte=mx_val,
                             )
                         elif param_type_id == ParamIds.INT:
                             mn_val, mx_val = int(mn_val), int(mx_val)
                             condition = Q(
                                 par=par_class.parametr,
                                 int_value__gte=mn_val,
-                                int_value__lte=mx_val
+                                int_value__lte=mx_val,
                             )
                     except (ValueError, TypeError) as e:
                         print("CAUGHT CONVERSION ERROR:", e)
@@ -44,7 +46,7 @@ def get_filtered_products(products_qs: QuerySet[Prod], form_data: dict, class_id
                 continue
 
             conditions.append(
-                Exists(ParProd.objects.filter(prod=OuterRef('pk')).filter(condition))
+                Exists(ParProd.objects.filter(prod=OuterRef("pk")).filter(condition))
             )
 
     for cond in conditions:

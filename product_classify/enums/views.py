@@ -97,10 +97,7 @@ class EnumsUpdateView(
         )
 
 
-class ChangeEnumsNumView(
-    CommonContextMixin,
-    FormView
-):
+class ChangeEnumsNumView(CommonContextMixin, FormView):
     template_name = "enums/change_num.html"
     form_class = ChangeNumForm
 

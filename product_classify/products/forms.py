@@ -24,7 +24,7 @@ from products.errors import (
     EnumsParErrors,
     IntParErrors,
     DoubleParErrors,
-    CommonParProdErrors
+    CommonParProdErrors,
 )
 
 
@@ -33,17 +33,13 @@ class ProdForm(ModelForm):
         label="Родительский класс",
         queryset=ClassStruct.objects.none(),
         required=True,
-        error_messages={
-            "required": ProdErrors.EMPTY_CLASS_FIELD
-        },
+        error_messages={"required": ProdErrors.EMPTY_CLASS_FIELD},
     )
     name = CharField(
         label="Название изделия",
         max_length=ProdConsts.NAME_MAX_LENGTH,
         required=True,
-        error_messages={
-            "required": ProdErrors.EMPTY_NAME_FIELD
-        },
+        error_messages={"required": ProdErrors.EMPTY_NAME_FIELD},
     )
     short_name = CharField(
         label="Сокращенное название изделия",
@@ -56,9 +52,7 @@ class ProdForm(ModelForm):
         validators=[FileExtensionValidator(["jpg", "png"])],
     )
     ei = ModelChoiceField(
-        label="Единица измерения изделия",
-        required=False,
-        queryset=Ei.objects.all()
+        label="Единица измерения изделия", required=False, queryset=Ei.objects.all()
     )
     cost = DecimalField(
         label="Стоимость изделия",
@@ -66,19 +60,12 @@ class ProdForm(ModelForm):
         max_digits=ProdConsts.MAX_DIGITS,
         decimal_places=ProdConsts.DECIMAL_PLACES,
         min_value=ProdConsts.MIN_COST,
-        initial=ProdConsts.MIN_COST
+        initial=ProdConsts.MIN_COST,
     )
 
     class Meta:
         model = Prod
-        fields = (
-            "name",
-            "short_name",
-            "class_field",
-            "image",
-            "cost",
-            "ei"
-        )
+        fields = ("name", "short_name", "class_field", "image", "cost", "ei")
         labels = {
             "name": "Название изделия",
             "short_name": "Сокращенное название изделия",
@@ -98,7 +85,7 @@ class ParProdForm(ModelForm):
         required=True,
         error_messages={
             "required": CommonParProdErrors.EMPTY_PROD_FIELD,
-        }
+        },
     )
     par = ModelChoiceField(
         queryset=Parametr.objects.none(),
@@ -106,7 +93,7 @@ class ParProdForm(ModelForm):
         required=True,
         error_messages={
             "required": CommonParProdErrors.EMPTY_PAR_FIELD,
-        }
+        },
     )
     enum_val = ModelChoiceField(
         queryset=Enums.objects.none(),
@@ -174,7 +161,9 @@ class ParProdForm(ModelForm):
 
         # проверяем, что параметр входит в число параметров родительского класса
         if par.id not in class_params_ids:
-            raise ValidationError(CommonParProdErrors.INVALID_PAR.format(par.name, prod.class_field.name))
+            raise ValidationError(
+                CommonParProdErrors.INVALID_PAR.format(par.name, prod.class_field.name)
+            )
 
         # отыскиваем параметр класса в таблице ParClass
         par_class = ParClass.objects.get(
@@ -206,8 +195,10 @@ class ParProdForm(ModelForm):
 
                 # если значение целочисленного параметра не входит в заданный диапазон
                 if not mn_value <= cleaned_data[int_key] <= mx_value:
-                    raise ValidationError(IntParErrors.INVALID_RANGE.format(int(mn_value), int(mx_value)))
-                
+                    raise ValidationError(
+                        IntParErrors.INVALID_RANGE.format(int(mn_value), int(mx_value))
+                    )
+
             # если параметр является вещественным
             else:
                 # если для вещественного параметра изделия указано значение поля int_value
@@ -223,9 +214,14 @@ class ParProdForm(ModelForm):
                     raise ValidationError(DoubleParErrors.DOUBLE_FIELD_EMPTY)
 
                 # если значение вещественного параметра не входит в заданный диапазон
-                if cleaned_data[double_key] < mn_value or cleaned_data[double_key] > mx_value:
-                    raise ValidationError(DoubleParErrors.INVALID_RANGE.format(mn_value, mx_value))
-                
+                if (
+                    cleaned_data[double_key] < mn_value
+                    or cleaned_data[double_key] > mx_value
+                ):
+                    raise ValidationError(
+                        DoubleParErrors.INVALID_RANGE.format(mn_value, mx_value)
+                    )
+
         # если параметр является параметром-перечислением
         elif par.parametr_type.id in ENUMS_IDS:
 
@@ -277,7 +273,7 @@ class SearchForm(Form):
                 self.fields[f"{par_name}"] = RangeField(
                     label=f"{par_name}",
                     required=False,
-                    help_text=f"""Вводить в формате "min-max" (например, "10.0-20.0").<br>Границы диапазоны: {min_value}-{max_value}"""
+                    help_text=f"""Вводить в формате "min-max" (например, "10.0-20.0").<br>Границы диапазоны: {min_value}-{max_value}""",
                 )
             elif (
                 par_type in ENUM_PARAMS
@@ -297,9 +293,7 @@ class ModificationForm(Form):
         label="Название модификации",
         max_length=ProdConsts.NAME_MAX_LENGTH,
         required=True,
-        error_messages={
-            "required": ProdErrors.EMPTY_NAME_FIELD
-        },
+        error_messages={"required": ProdErrors.EMPTY_NAME_FIELD},
     )
     short_name = CharField(
         label="Сокращенное название модификации",

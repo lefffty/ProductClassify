@@ -65,17 +65,13 @@ class ChangeAgregatNumForm(Form):
             queryset=Agregat.objects.filter(agr=agr),
             label="Параметр 1",
             required=True,
-            error_messages={
-                "required": AgregatErrors.EMPTY_FIRST_PARAM
-            }
+            error_messages={"required": AgregatErrors.EMPTY_FIRST_PARAM},
         )
         self.fields["par_2"] = ModelChoiceField(
             queryset=Agregat.objects.filter(agr=agr),
             label="Параметр 2",
             required=True,
-            error_messages={
-                "required": AgregatErrors.EMPTY_SECOND_PARAM
-            }
+            error_messages={"required": AgregatErrors.EMPTY_SECOND_PARAM},
         )
 
     def clean(self):

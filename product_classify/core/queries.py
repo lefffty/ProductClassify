@@ -484,7 +484,9 @@ class DatabaseFunctions:
     """
 
     DROP_CHECK_CYCLE = "DROP FUNCTION check_class_struct_cycles(integer, integer);"
-    DROP_DELETE_CLASS_AND_DESCENDANTS = "DROP FUNCTION delete_class_and_descendants(integer);"
+    DROP_DELETE_CLASS_AND_DESCENDANTS = (
+        "DROP FUNCTION delete_class_and_descendants(integer);"
+    )
     DROP_FIND_GR_GR = "DROP FUNCTION find_gr_gr(integer);"
     DROP_GET_TERMINAL_CLASSES = "DROP FUNCTION get_terminal_classes(integer);"
     DROP_ADD_PARAMETR_TO_CLASS = "DROP FUNCTION add_parametr_to_class(integer, integer, double precision, double precision);"
@@ -492,4 +494,6 @@ class DatabaseFunctions:
     DROP_TOTAL_COST_RATIO = "DROP FUNCTION total_cost_ratio(root_prod integer, num_of_products double precision);"
     DROP_GET_CHANGE_LOG = "DROP FUNCTION get_changelog(target_product_id integer);"
     DROP_CREATE_MODIFICATION = "DROP FUNCTION create_modification(base_product_id integer, modified_product_name character varying, modified_product_short_name character varying);"
-    DROP_PRODUCT_SPECIFICATION = "DROP FUNCTION product_specification(root_prod integer);"
+    DROP_PRODUCT_SPECIFICATION = (
+        "DROP FUNCTION product_specification(root_prod integer);"
+    )

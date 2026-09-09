@@ -33,7 +33,9 @@ def class_products(request: HttpRequest, main_class_id: int, class_id: int):
     main_cls = get_object_or_404(ClassStruct, pk=main_class_id)
     class_ = get_object_or_404(ClassStruct, pk=class_id)
 
-    fastener_classes = ClassStruct.objects.filter(main_class__exact=ProductsConsts.FASTENER_ID)
+    fastener_classes = ClassStruct.objects.filter(
+        main_class__exact=ProductsConsts.FASTENER_ID
+    )
     search_form = SearchForm(request.GET, cls=class_)
 
     products_qs = Prod.objects.filter(class_field=class_id)
@@ -43,7 +45,7 @@ def class_products(request: HttpRequest, main_class_id: int, class_id: int):
         products_qs = get_filtered_products(products_qs, form_data, class_id)
 
     products_no_params = Prod.objects.filter(class_field=class_id).exclude(
-        id__in=ParProd.objects.filter(prod=OuterRef('pk')).values('prod')
+        id__in=ParProd.objects.filter(prod=OuterRef("pk")).values("prod")
     )
 
     prod_count = products_qs.count() + products_no_params.count()
@@ -196,10 +198,7 @@ class ProductParamCreateView(
         return context
 
 
-class ModificationCreateView(
-    CommonContextMixin,
-    FormView
-):
+class ModificationCreateView(CommonContextMixin, FormView):
     template_name = "products/modification.html"
     form_class = ModificationForm
 
@@ -208,12 +207,7 @@ class ModificationCreateView(
         name = cleaned_data.get("name")
         short_name = cleaned_data.get("short_name")
         modification = Prod.create_modification(
-            self.kwargs.get("product_id"),
-            name,
-            short_name
+            self.kwargs.get("product_id"), name, short_name
         )
         modification_id = modification.modification_id
-        return redirect(
-            "products:detail",
-            product_id=modification_id
-        )
+        return redirect("products:detail", product_id=modification_id)
