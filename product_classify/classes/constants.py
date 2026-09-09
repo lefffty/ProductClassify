@@ -76,14 +76,17 @@ class MetaConsts(IntEnum):
 
 class ProfessionConsts(IntEnum):
     WELDER = 48
+    PRESSMAN = 49
 
 
 class OperationConsts(IntEnum):
     WELDING = 39
+    STAMPING = 40
 
 
 class QualificationConsts(IntEnum):
     FIRST_RANK = 57
+    SECOND_RANK = 58
 
 
 ENUMS_IDS = [item.value for item in EnumsIds]

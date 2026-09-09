@@ -508,9 +508,9 @@ class ProdOperationCreateViewTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.faker = Faker()
 
-        cls.tech_oper = ClassStruct.objects.get(pk=39)
-        cls.profession = ClassStruct.objects.get(pk=48)
-        cls.qualification = ClassStruct.objects.get(pk=57)
+        cls.tech_oper = ClassStruct.objects.get(pk=OperationConsts.WELDING)
+        cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
+        cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
 
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.product_class = ClassStruct.objects.create(
@@ -693,7 +693,7 @@ class ProdOperationDeleteViewTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.faker = Faker()
 
-        cls.tech_oper = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
+        cls.tech_oper = ClassStruct.objects.get(pk=OperationConsts.WELDING)
         cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
         cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
 
@@ -775,4 +775,128 @@ class ProdOperationDeleteViewTest(BaseUnitTestCase):
 
     def test_prod_operation_delete_view_redirects_after_POST_request(self):
         response = self.client.post(self.url)
+        self.assertRedirects(response, self.redirect_url)
+
+
+class ProdOperationUpdateViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.tech_oper = ClassStruct.objects.get(pk=OperationConsts.WELDING)
+        cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
+        cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
+
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.product_class = ClassStruct.objects.create(
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=None,
+            main_class=cls.nuts_class,
+        )
+        cls.ei = Ei.objects.first()
+        cls.image = SimpleUploadedFile("test.jpg", b"content", content_type="image/jpeg")
+
+        cls.prod = Prod.objects.create(
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            class_field=cls.product_class,
+            image=cls.image,
+            cost=Decimal('100.00'),
+            ei=cls.ei,
+            modification=None,
+        )
+
+        cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
+        cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
+        cls.stand = ClassStruct.objects.create(
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=None,
+            main_class=cls.means_of_labor,
+        )
+        cls.eas = EconomicActivitySubject.objects.create(
+            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.enterprise,
+            main_subject=None,
+        )
+        cls.center = GroupWorkingCenter.objects.create(
+            name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.stand,
+            eas=cls.eas,
+            place=cls.faker.random_int(min=1, max=100),
+        )
+
+        cls.prod_operation = ProdOperation.objects.create(
+            prod=cls.prod,
+            tech_oper=cls.tech_oper,
+            profession=cls.profession,
+            center=cls.center,
+            qualification=cls.qualification,
+            num_of_workers=cls.faker.random_int(min=1, max=10),
+            t_pz=cls.faker.random_number(digits=2),
+            t_sht=cls.faker.random_number(digits=2),
+        )
+
+        cls.new_prod = Prod.objects.create(
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            class_field=cls.product_class,
+            image=cls.image,
+            cost=Decimal('200.00'),
+            ei=cls.ei,
+            modification=None,
+        )
+        cls.new_tech_oper = ClassStruct.objects.get(pk=OperationConsts.STAMPING)
+        cls.new_profession = ClassStruct.objects.get(pk=ProfessionConsts.PRESSMAN)
+        cls.new_center = GroupWorkingCenter.objects.create(
+            name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.stand,
+            eas=cls.eas,
+            place=cls.faker.random_int(min=1, max=100),
+        )
+        cls.new_qualification = ClassStruct.objects.get(pk=QualificationConsts.SECOND_RANK)
+        cls.new_num_of_workers = cls.faker.random_int(min=2, max=20)
+        cls.new_t_pz = cls.faker.random_number(digits=3)
+        cls.new_t_sht = cls.faker.random_number(digits=3)
+
+        cls.valid_update_data = {
+            "prod": cls.new_prod.pk,
+            "tech_oper": cls.new_tech_oper.pk,
+            "profession": cls.new_profession.pk,
+            "center": cls.new_center.pk,
+            "qualification": cls.new_qualification.pk,
+            "num_of_workers": cls.new_num_of_workers,
+            "t_pz": cls.new_t_pz,
+            "t_sht": cls.new_t_sht,
+        }
+
+        cls.url = reverse("route_tech:edit_prod_operation", args=[cls.prod_operation.pk])
+        cls.redirect_url = reverse("route_tech:detail_prod_operation", args=[cls.prod_operation.pk])
+
+    def test_prod_operation_update_view_uses_prod_operation_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "route_tech/prod_operation/prod_operation.html")
+
+    def test_prod_operation_update_view_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_prod_operation_update_view_can_save_a_POST_request(self):
+        response = self.client.post(self.url, self.valid_update_data)
+        prod_oper = ProdOperation.objects.last()
+        self.assertEqual(prod_oper.prod.pk, self.valid_update_data["prod"])
+        self.assertEqual(prod_oper.tech_oper.pk, self.valid_update_data["tech_oper"])
+        self.assertEqual(prod_oper.profession.pk, self.valid_update_data["profession"])
+        self.assertEqual(prod_oper.center.pk, self.valid_update_data["center"])
+        self.assertEqual(prod_oper.qualification.pk, self.valid_update_data["qualification"])
+        self.assertEqual(prod_oper.num_of_workers, self.valid_update_data["num_of_workers"])
+        self.assertEqual(prod_oper.t_pz, self.valid_update_data["t_pz"])
+        self.assertEqual(prod_oper.t_sht, self.valid_update_data["t_sht"])
+
+    def test_prod_operation_update_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url, self.valid_update_data)
         self.assertRedirects(response, self.redirect_url)

@@ -94,3 +94,25 @@ class ProdOperationDeleteView(CommonContextMixin, DeleteView):
     context_object_name = "instance"
     pk_url_kwarg = "prod_oper_id"
     success_url = reverse_lazy("classes:index")
+
+
+class ProdOperationUpdateView(CommonContextMixin, UpdateView):
+    template_name = "route_tech/prod_operation/prod_operation.html"
+    model = ProdOperation
+    pk_url_kwarg = "prod_oper_id"
+    form_class = ProdOperationForm
+
+    def get_success_url(self):
+        pk = self.get_object().pk
+        return reverse_lazy(
+            "route_tech:detail_prod_operation",
+            kwargs={
+                "prod_oper_id": pk,
+            },
+        )
+
+
+class ProdOperationDetailView(CommonContextMixin, DetailView):
+    model = ProdOperation
+    pk_url_kwarg = "prod_oper_id"
+    template_name = "route_tech/prod_operation/prod_operation.html"
