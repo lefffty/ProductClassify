@@ -1,4 +1,4 @@
-from django.views.generic import CreateView, UpdateView, DetailView
+from django.views.generic import CreateView, UpdateView, DetailView, DeleteView
 from django.urls import reverse_lazy
 
 from core.mixins import CommonContextMixin
@@ -11,7 +11,7 @@ class EASCreateView(
     CommonContextMixin,
     CreateView
 ):
-    template_name = "route_tech/eas.html"
+    template_name = "route_tech/eas/eas.html"
     model = EconomicActivitySubject
     form_class = EconomicActivitySubjectForm
     success_url = reverse_lazy("classes:index")
@@ -22,7 +22,7 @@ class EASUpdateView(
     UpdateView
 ):
     model = EconomicActivitySubject
-    template_name = "route_tech/eas.html"
+    template_name = "route_tech/eas/eas.html"
     form_class = EconomicActivitySubjectForm
     pk_url_kwarg = "eas_id"
 
@@ -42,4 +42,12 @@ class EASDetailView(
 ):
     model = EconomicActivitySubject
     pk_url_kwarg = "eas_id"
-    template_name = "route_tech/eas.html"
+    template_name = "route_tech/eas/detail.html"
+    context_object_name = "subject"
+
+
+class EASDeleteView(
+    CommonContextMixin,
+    DeleteView
+):
+    pass

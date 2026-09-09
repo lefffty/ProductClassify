@@ -71,7 +71,7 @@ class EASCreateViewTest(BaseUnitTestCase):
 
     def test_eas_create_view_uses_eas_template(self):
         response = self.client.get(self.url)
-        self.assertTemplateUsed(response, "route_tech/eas.html")
+        self.assertTemplateUsed(response, "route_tech/eas/eas.html")
 
     def test_eas_create_view_uses_renders_form(self):
         response = self.client.get(self.url)
@@ -148,7 +148,7 @@ class EASUpdateViewTest(BaseUnitTestCase):
 
     def test_eas_update_view_uses_eas_template(self):
         response = self.client.get(self.url)
-        self.assertTemplateUsed(response, "route_tech/eas.html")
+        self.assertTemplateUsed(response, "route_tech/eas/eas.html")
 
     def test_eas_update_view_renders_form(self):
         response = self.client.get(self.url)
@@ -165,3 +165,40 @@ class EASUpdateViewTest(BaseUnitTestCase):
     def test_eas_update_view_redirects_after_POST_request(self):
         response = self.client.post(self.url, self.valid_update_data)
         self.assertRedirects(response, self.redirect_url)
+
+
+class EASDetailViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+        cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
+
+        cls.parent_subject = EconomicActivitySubject.objects.create(
+            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.enterprise,
+            main_subject=None
+        )
+
+        cls.subject = EconomicActivitySubject.objects.create(
+            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.enterprise,
+            main_subject=cls.parent_subject
+        )
+
+        cls.url = reverse("route_tech:detail_eas", args=[cls.subject.pk])
+
+    def test_eas_detail_view_uses_eas_detail_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "route_tech/eas/detail.html")
+
+    def test_eas_detail_view_renders_correct_information(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, self.subject.name)
+        self.assertContains(response, self.subject.short_name)
+        self.assertContains(response, self.subject.main_subject)
+        children: list[EconomicActivitySubject] = self.subject.children.all()
+        for child in children:
+            self.assertContains(response, child.name)
+            self.assertContains(response, child.short_name)
