@@ -111,3 +111,57 @@ class EASCreateViewTest(BaseUnitTestCase):
     def test_empty_main_class_validation_error_is_shown_on_page(self):
         response = self.client.post(self.url, self.empty_main_class_data)
         self.assertContains(response, escape(EASErrors.EMPTY_MAIN_CLASS))
+
+
+class EASUpdateViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+        cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
+
+        cls.parent_subject = EconomicActivitySubject.objects.create(
+            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.enterprise,
+            main_subject=None
+        )
+
+        cls.subject = EconomicActivitySubject.objects.create(
+            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.enterprise,
+            main_subject=cls.parent_subject
+        )
+
+        cls.new_name = cls.faker.name()[:EASConsts.NAME_MAX_LENGTH]
+        cls.new_short_name = cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH]
+
+        cls.valid_update_data = {
+            "name": cls.new_name,
+            "short_name": cls.new_short_name,
+            "main_class": cls.enterprise.pk,
+            "main_subject": cls.parent_subject.pk
+        }
+
+        cls.url = reverse("route_tech:edit_eas", args=[cls.subject.pk])
+        cls.redirect_url = reverse("route_tech:detail_eas", args=[cls.subject.pk])
+
+    def test_eas_update_view_uses_eas_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "route_tech/eas.html")
+
+    def test_eas_update_view_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_eas_update_view_can_save_a_POST_request(self):
+        self.client.post(self.url, self.valid_update_data)
+        eas = EconomicActivitySubject.objects.last()
+        self.assertEqual(eas.name, self.valid_update_data["name"])
+        self.assertEqual(eas.short_name, self.valid_update_data["short_name"])
+        self.assertEqual(eas.main_class.pk, MetaConsts.ENTERPRISE)
+        self.assertEqual(eas.main_subject.pk, self.parent_subject.pk)
+
+    def test_eas_update_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url, self.valid_update_data)
+        self.assertRedirects(response, self.redirect_url)
