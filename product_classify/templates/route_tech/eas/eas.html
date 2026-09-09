@@ -36,19 +36,19 @@
 
                     <dl id="eas-delete-info" class="row mb-4">
                         <dt id="eas-delete-id-help" class="col-sm-3 fw-semibold">ID</dt>
-                        <dd id="eas-delete-id" class="col-sm-9">{{ instance.id }}</dd>
+                        <dd id="eas-delete-id" class="col-sm-9">{{ subject.id }}</dd>
 
                         <dt id="eas-delete-name-help" class="col-sm-3 fw-semibold">Название</dt>
-                        <dd id="eas-delete-name" class="col-sm-9">{{ instance.name }}</dd>
+                        <dd id="eas-delete-name" class="col-sm-9">{{ subject.name }}</dd>
 
                         <dt id="eas-delete-short-help" class="col-sm-3 fw-semibold">Сокращение</dt>
-                        <dd id="eas-delete-short" class="col-sm-9">{{ instance.short_name|default:"—" }}</dd>
+                        <dd id="eas-delete-short" class="col-sm-9">{{ subject.short_name|default:"—" }}</dd>
 
                         <dt id="eas-delete-main_class-help" class="col-sm-3 fw-semibold">Класс</dt>
-                        <dd id="eas-delete-main_class" class="col-sm-9">{{ instance.main_class.name|default:"—" }}</dd>
+                        <dd id="eas-delete-main_class" class="col-sm-9">{{ subject.main_class.name|default:"—" }}</dd>
 
                         <dt id="eas-delete-main_subject-help" class="col-sm-3 fw-semibold">Родительский субъект</dt>
-                        <dd id="eas-delete-main_subject" class="col-sm-9">{{ instance.main_subject.name|default:"—" }}</dd>
+                        <dd id="eas-delete-main_subject" class="col-sm-9">{{ subject.main_subject.name|default:"—" }}</dd>
                     </dl>
 
                     <button id="eas-form-submit-btn" type="submit" class="btn btn-danger">

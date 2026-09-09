@@ -38,4 +38,8 @@ class EASDetailView(CommonContextMixin, DetailView):
 
 
 class EASDeleteView(CommonContextMixin, DeleteView):
-    pass
+    model = EconomicActivitySubject
+    pk_url_kwarg = "eas_id"
+    template_name = "route_tech/eas/eas.html"
+    success_url = reverse_lazy("classes:index")
+    context_object_name = "subject"

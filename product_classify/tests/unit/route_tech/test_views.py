@@ -1,6 +1,7 @@
 from django.urls import reverse
 from django.utils.html import escape
 
+from http import HTTPStatus
 from faker import Faker
 
 from classes.models import ClassStruct
@@ -202,3 +203,32 @@ class EASDetailViewTest(BaseUnitTestCase):
         for child in children:
             self.assertContains(response, child.name)
             self.assertContains(response, child.short_name)
+
+
+class EASDeleteViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+        cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
+
+        cls.subject = EconomicActivitySubject.objects.create(
+            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.enterprise,
+            main_subject=None
+        )
+
+        cls.url = reverse("route_tech:delete_eas", args=[cls.subject.pk])
+        cls.redirect_url = reverse("classes:index")
+
+    def test_eas_delete_view_uses_eas_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "route_tech/eas/eas.html")
+
+    def test_eas_delete_view_can_save_a_POST_request(self):
+        self.client.post(self.url)
+        self.assertEqual(EconomicActivitySubject.objects.count(), 0)
+
+    def test_eas_delete_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url)
+        self.assertRedirects(response, self.redirect_url)
