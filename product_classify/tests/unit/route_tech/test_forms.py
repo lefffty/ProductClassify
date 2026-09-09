@@ -11,6 +11,7 @@ from classes.constants import MetaConsts, ProfessionConsts, QualificationConsts,
 from classes.constants import ProductsConsts
 
 from products.models import Prod
+from products.constants import ProdConsts
 
 from route_tech.constants import EASConsts, GWCConsts, ProdOperationPosConsts
 from route_tech.errors import EASErrors, GWCErrors, ProdOperErrors, ProdOperationPosErrors
@@ -366,7 +367,6 @@ class ProdOperationFormTest(BaseUnitTestCase):
         cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
         cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
         
-        # Создаем субъект экономической деятельности (для GroupWorkingCenter)
         cls.eas = EconomicActivitySubject.objects.create(
             name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
             short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
@@ -374,7 +374,6 @@ class ProdOperationFormTest(BaseUnitTestCase):
             main_subject=None,
         )
         
-        # Создаем GroupWorkingCenter
         cls.center = GroupWorkingCenter.objects.create(
             name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
             short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
@@ -383,15 +382,13 @@ class ProdOperationFormTest(BaseUnitTestCase):
             place=cls.faker.random_int(min=1, max=20),
         )
         
-        # Создаем изделие (Prod)
         cls.prod = Prod.objects.create(
-            name=cls.faker.name()[:100],
-            short_name=cls.faker.name()[:50],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=create_image(),
         )
         
-        # Генерируем данные для формы
         cls.num_of_workers = cls.faker.random_int(min=1, max=5)
         cls.t_pz = round(cls.faker.random_number(digits=2, fix_len=False) + 0.1, 2)
         cls.t_sht = round(cls.faker.random_number(digits=2, fix_len=False) + 0.1, 2)
@@ -418,7 +415,6 @@ class ProdOperationFormTest(BaseUnitTestCase):
             "t_sht": cls.t_sht + 0.5,
         }
         
-        # Данные с пустыми значениями для проверки required
         cls.empty_prod_data = {
             "prod": None,
             "tech_oper": cls.tech_oper.pk,
@@ -679,14 +675,14 @@ class ProdOperationPosFormTest(BaseUnitTestCase):
         )
 
         cls.prod_input = Prod.objects.create(
-            name=cls.faker.name()[:100],
-            short_name=cls.faker.name()[:50],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=create_image(),
         )
         cls.prod_output = Prod.objects.create(
-            name=cls.faker.name()[:100],
-            short_name=cls.faker.name()[:50],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=create_image(),
         )

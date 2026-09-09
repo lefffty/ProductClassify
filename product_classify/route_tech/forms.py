@@ -28,9 +28,7 @@ from route_tech.errors import (
     ProdOperationPosErrors,
 )
 from route_tech.constants import (
-    GWCConsts,
     EASConsts,
-    ProdOperConsts,
     ProdOperationPosConsts,
 )
 

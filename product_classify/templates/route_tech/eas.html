@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+    {% if '/delete/' in request.path %}
+        Удаление субъекта экономической деятельности
+    {% elif '/edit/' in request.path %}
+        Редактирование субъекта экономической деятельности
+    {% else %}
+        Добавление субъекта экономической деятельности
+    {% endif %}
+{% endblock title %}
+
+{% block content %}
+<div id="eas-form-container" class="container py-4">
+    <div id="eas-form-card" class="card shadow-sm">
+        <div class="card-body">
+            <h2 id="eas-form-header" class="card-title h4 mb-4">
+                {% if '/delete/' in request.path %}
+                    <i class="bi bi-trash text-danger"></i> Удаление субъекта экономической деятельности
+                {% elif '/edit/' in request.path %}
+                    <i class="bi bi-pencil text-warning"></i> Редактирование субъекта экономической деятельности
+                {% else %}
+                    <i class="bi bi-plus-circle text-primary"></i> Добавление субъекта экономической деятельности
+                {% endif %}
+            </h2>
+
+            <form id="eas-form" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if '/delete/' in request.path %}
+                    <div id="eas-delete-alert" class="alert alert-danger">
+                        <p id="eas-delete-warning" class="mb-1"><strong>Вы действительно хотите удалить этот субъект экономической деятельности?</strong></p>
+                        <p id="eas-delete-hint" class="mb-0">Это действие необратимо.</p>
+                    </div>
+
+                    <dl id="eas-delete-info" class="row mb-4">
+                        <dt id="eas-delete-id-help" class="col-sm-3 fw-semibold">ID</dt>
+                        <dd id="eas-delete-id" class="col-sm-9">{{ instance.id }}</dd>
+
+                        <dt id="eas-delete-name-help" class="col-sm-3 fw-semibold">Название</dt>
+                        <dd id="eas-delete-name" class="col-sm-9">{{ instance.name }}</dd>
+
+                        <dt id="eas-delete-short-help" class="col-sm-3 fw-semibold">Сокращение</dt>
+                        <dd id="eas-delete-short" class="col-sm-9">{{ instance.short_name|default:"—" }}</dd>
+
+                        <dt id="eas-delete-main_class-help" class="col-sm-3 fw-semibold">Класс</dt>
+                        <dd id="eas-delete-main_class" class="col-sm-9">{{ instance.main_class.name|default:"—" }}</dd>
+
+                        <dt id="eas-delete-main_subject-help" class="col-sm-3 fw-semibold">Родительский субъект</dt>
+                        <dd id="eas-delete-main_subject" class="col-sm-9">{{ instance.main_subject.name|default:"—" }}</dd>
+                    </dl>
+
+                    <button id="eas-form-submit-btn" type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Удалить
+                    </button>
+                    <a id="eas-form-cancel-btn" href="{% url 'classes:index' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Отмена
+                    </a>
+
+                {% else %}
+                    {% if form.non_field_errors %}
+                        <div id="eas-form-non-field-errors" class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <p class="mb-0">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                        <div class="mb-3">
+                            {% bootstrap_field field show_label=True show_help=False %}
+                            {% if field.help_text %}
+                                <div id="eas-field-{{ field.name }}-help" class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div id="eas-field-{{ field.name }}-errors" class="invalid-feedback d-block">
+                                    {% for error in field.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <button id="eas-form-submit-btn" type="submit" class="btn btn-primary">
+                        {% if '/edit/' in request.path %}
+                            <i class="bi bi-save"></i> Сохранить
+                        {% else %}
+                            <i class="bi bi-plus-circle"></i> Добавить
+                        {% endif %}
+                    </button>
+                    <a id="eas-form-cancel-btn" href="{% url 'classes:index' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Отмена
+                    </a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
