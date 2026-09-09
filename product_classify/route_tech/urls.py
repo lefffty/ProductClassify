@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path
 
 from . import views
 
@@ -11,5 +11,9 @@ eas_patterns = [
     path("eas/delete/<int:eas_id>/", views.EASDeleteView.as_view(), name="delete_eas"),
 ]
 
+gwc_patterns = [
+    path("gwc/add/", views.GWCCreateView.as_view(), name="add_gwc"),
+]
 
-urlpatterns = eas_patterns
+
+urlpatterns = eas_patterns + gwc_patterns

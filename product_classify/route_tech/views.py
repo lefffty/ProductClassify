@@ -3,8 +3,8 @@ from django.urls import reverse_lazy
 
 from core.mixins import CommonContextMixin
 
-from route_tech.forms import EconomicActivitySubjectForm
-from route_tech.models import EconomicActivitySubject
+from route_tech.forms import EconomicActivitySubjectForm, GroupWorkingCenterForm
+from route_tech.models import EconomicActivitySubject, GroupWorkingCenter
 
 
 class EASCreateView(CommonContextMixin, CreateView):
@@ -43,3 +43,10 @@ class EASDeleteView(CommonContextMixin, DeleteView):
     template_name = "route_tech/eas/eas.html"
     success_url = reverse_lazy("classes:index")
     context_object_name = "subject"
+
+
+class GWCCreateView(CommonContextMixin, CreateView):
+    template_name = "route_tech/gwc/gwc.html"
+    model = GroupWorkingCenter
+    form_class = GroupWorkingCenterForm
+    success_url = reverse_lazy("classes:index")

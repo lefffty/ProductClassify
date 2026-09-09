@@ -8,6 +8,7 @@ from django.forms import (
     DecimalField,
     ModelChoiceField,
 )
+from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 
 from classes.models import ClassStruct
@@ -26,6 +27,7 @@ from route_tech.errors import (
 )
 from route_tech.constants import (
     EASConsts,
+    GWCConsts,
     ProdOperationPosConsts,
 )
 
@@ -77,21 +79,26 @@ class EconomicActivitySubjectForm(ModelForm):
 
 
 class GroupWorkingCenterForm(ModelForm):
+    place = IntegerField(
+        label="Количество рабочих мест",
+        help_text="Целое положительное число",
+        required=True,
+        validators=[MinValueValidator(GWCConsts.MIN_PLACE)],
+        widget=NumberInput(attrs={"class": "form-control", "min": GWCConsts.MIN_PLACE}),
+        error_messages={
+            "required": GWCErrors.EMPTY_PLACE,
+            "min_value": GWCErrors.INVALID_PLACE,
+        },
+    )
+
     class Meta:
         model = GroupWorkingCenter
-        fields = [
-            "name",
-            "short_name",
-            "main_class",
-            "eas",
-            "place",
-        ]
+        fields = ["name", "short_name", "main_class", "eas", "place"]
         labels = {
             "name": "Название группового рабочего центра",
             "short_name": "Сокращённое название",
             "main_class": "Родительский класс",
             "eas": "Субъект экономической деятельности",
-            "place": "Количество рабочих мест",
         }
         help_texts = {
             "name": "Максимальная длина — {} символов".format(
@@ -100,14 +107,12 @@ class GroupWorkingCenterForm(ModelForm):
             "short_name": "Максимальная длина — {} символов".format(
                 GroupWorkingCenter._meta.get_field("short_name").max_length
             ),
-            "place": "Целое положительное число",
         }
         widgets = {
             "name": TextInput(attrs={"class": "form-control"}),
             "short_name": TextInput(attrs={"class": "form-control"}),
             "main_class": Select(attrs={"class": "form-control"}),
             "eas": Select(attrs={"class": "form-control"}),
-            "place": NumberInput(attrs={"class": "form-control", "min": 1}),
         }
         error_messages = {
             "name": {
@@ -121,9 +126,6 @@ class GroupWorkingCenterForm(ModelForm):
             },
             "eas": {
                 "required": GWCErrors.EMPTY_EAS,
-            },
-            "place": {
-                "required": GWCErrors.EMPTY_PLACE,
             },
         }
 

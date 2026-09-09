@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+    {% if '/delete/' in request.path %}
+        Удаление группового рабочего центра
+    {% elif '/edit/' in request.path %}
+        Редактирование группового рабочего центра
+    {% else %}
+        Добавление группового рабочего центра
+    {% endif %}
+{% endblock title %}
+
+{% block content %}
+<div id="gwc-form-container" class="container py-4">
+    <div id="gwc-form-card" class="card shadow-sm">
+        <div class="card-body">
+            <h2 id="gwc-form-header" class="card-title h4 mb-4">
+                {% if '/delete/' in request.path %}
+                    <i class="bi bi-trash text-danger"></i> Удаление группового рабочего центра
+                {% elif '/edit/' in request.path %}
+                    <i class="bi bi-pencil text-warning"></i> Редактирование группового рабочего центра
+                {% else %}
+                    <i class="bi bi-plus-circle text-primary"></i> Добавление группового рабочего центра
+                {% endif %}
+            </h2>
+
+            <form id="gwc-form" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if '/delete/' in request.path %}
+                    <div id="gwc-delete-alert" class="alert alert-danger">
+                        <p id="gwc-delete-warning" class="mb-1"><strong>Вы действительно хотите удалить этот групповой рабочий центр?</strong></p>
+                        <p id="gwc-delete-hint" class="mb-0">Это действие необратимо.</p>
+                    </div>
+
+                    <dl id="gwc-delete-info" class="row mb-4">
+                        <dt id="gwc-delete-id-help" class="col-sm-3 fw-semibold">ID</dt>
+                        <dd id="gwc-delete-id" class="col-sm-9">{{ instance.id }}</dd>
+
+                        <dt id="gwc-delete-name-help" class="col-sm-3 fw-semibold">Название</dt>
+                        <dd id="gwc-delete-name" class="col-sm-9">{{ instance.name }}</dd>
+
+                        <dt id="gwc-delete-short-help" class="col-sm-3 fw-semibold">Сокращение</dt>
+                        <dd id="gwc-delete-short" class="col-sm-9">{{ instance.short_name|default:"—" }}</dd>
+
+                        <dt id="gwc-delete-main-class-help" class="col-sm-3 fw-semibold">Класс</dt>
+                        <dd id="gwc-delete-main-class" class="col-sm-9">{{ instance.main_class.name|default:"—" }}</dd>
+
+                        <dt id="gwc-delete-eas-help" class="col-sm-3 fw-semibold">Субъект экономической деятельности</dt>
+                        <dd id="gwc-delete-eas" class="col-sm-9">{{ instance.eas.name|default:"—" }}</dd>
+
+                        <dt id="gwc-delete-place-help" class="col-sm-3 fw-semibold">Количество рабочих мест</dt>
+                        <dd id="gwc-delete-place" class="col-sm-9">{{ instance.place|default:"—" }}</dd>
+                    </dl>
+
+                    <button id="gwc-form-submit-btn" type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Удалить
+                    </button>
+                    <a id="gwc-form-cancel-btn" href="{% url 'classes:index' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Отмена
+                    </a>
+
+                {% else %}
+                    {% if form.non_field_errors %}
+                        <div id="gwc-form-non-field-errors" class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <p class="mb-0">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                        <div class="mb-3">
+                            {% bootstrap_field field show_label=True show_help=False %}
+                            {% if field.help_text %}
+                                <div id="gwc-field-{{ field.name }}-help" class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div id="gwc-field-{{ field.name }}-errors" class="invalid-feedback d-block">
+                                    {% for error in field.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <button id="gwc-form-submit-btn" type="submit" class="btn btn-primary">
+                        {% if '/edit/' in request.path %}
+                            <i class="bi bi-save"></i> Сохранить
+                        {% else %}
+                            <i class="bi bi-plus-circle"></i> Добавить
+                        {% endif %}
+                    </button>
+                    <a id="gwc-form-cancel-btn" href="{% url 'classes:index' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Отмена
+                    </a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

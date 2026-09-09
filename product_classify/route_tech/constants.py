@@ -10,6 +10,7 @@ class EASConsts(IntEnum):
 class GWCConsts(IntEnum):
     NAME_MAX_LENGTH = 100
     SHORT_NAME_MAX_LENGTH = 16
+    MIN_PLACE = 1
 
 
 class ProdOperConsts(IntEnum):
