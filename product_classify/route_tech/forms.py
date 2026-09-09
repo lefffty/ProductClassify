@@ -140,7 +140,10 @@ class ProdOperationForm(ModelForm):
         required=True,
         min_value=1,
         widget=NumberInput(attrs={"class": "form-control", "min": 1}),
-        error_messages={"required": ProdOperErrors.EMPTY_NUM_WORKERS},
+        error_messages={
+            "required": ProdOperErrors.EMPTY_NUM_WORKERS,
+            "min_value": ProdOperErrors.INVALID_NUM_OF_WORKERS,
+        },
     )
 
     class Meta:

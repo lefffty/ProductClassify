@@ -1,14 +1,20 @@
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils.html import escape
 
+from decimal import Decimal
 from faker import Faker
 
 from classes.models import ClassStruct
-from classes.constants import MetaConsts, ClassStructConsts
+from classes.constants import MetaConsts, ClassStructConsts, ProductsConsts
 
-from route_tech.models import EconomicActivitySubject, GroupWorkingCenter
+from ei.models import Ei
+from products.constants import ProdConsts
+from products.models import Prod
+
+from route_tech.models import EconomicActivitySubject, GroupWorkingCenter, ProdOperation
 from route_tech.constants import EASConsts, GWCConsts
-from route_tech.errors import EASErrors, GWCErrors
+from route_tech.errors import EASErrors, GWCErrors, ProdOperErrors
 
 from tests.unit.base import BaseUnitTestCase
 
@@ -488,3 +494,188 @@ class GWCDeleteViewTest(BaseUnitTestCase):
     def test_gwc_delete_view_redirects_after_POST_request(self):
         response = self.client.post(self.url)
         self.assertRedirects(response, self.redirect_url)
+
+
+class ProdOperationCreateViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.tech_oper = ClassStruct.objects.get(pk=39)
+        cls.profession = ClassStruct.objects.get(pk=48)
+        cls.qualification = ClassStruct.objects.get(pk=57)
+
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.product_class = ClassStruct.objects.create(
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=None,
+            main_class=cls.nuts_class,
+        )
+        cls.ei = Ei.objects.first()
+        cls.image = SimpleUploadedFile("test.jpg", b"content", content_type="image/jpeg")
+
+        cls.prod = Prod.objects.create(
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            class_field=cls.product_class,
+            image=cls.image,
+            cost=Decimal('100.00'),
+            ei=cls.ei,
+            modification=None,
+        )
+
+        cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
+        cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
+        cls.stand = ClassStruct.objects.create(
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            base_ei=None,
+            main_class=cls.means_of_labor,
+        )
+        cls.eas = EconomicActivitySubject.objects.create(
+            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.enterprise,
+            main_subject=None,
+        )
+        cls.center = GroupWorkingCenter.objects.create(
+            name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
+            main_class=cls.stand,
+            eas=cls.eas,
+            place=cls.faker.random_int(min=1, max=100),
+        )
+
+        cls.valid_num_of_workers = cls.faker.random_int(min=1, max=10)
+        cls.valid_t_pz = cls.faker.random_number(digits=2)
+        cls.valid_t_sht = cls.faker.random_number(digits=2)
+
+        cls.valid_data = {
+            "prod": cls.prod.pk,
+            "tech_oper": cls.tech_oper.pk,
+            "profession": cls.profession.pk,
+            "center": cls.center.pk,
+            "qualification": cls.qualification.pk,
+            "num_of_workers": cls.valid_num_of_workers,
+            "t_pz": cls.valid_t_pz,
+            "t_sht": cls.valid_t_sht,
+        }
+
+        cls.empty_prod_data = {
+            "prod": "",
+            "tech_oper": cls.tech_oper.pk,
+            "profession": cls.profession.pk,
+            "center": cls.center.pk,
+            "qualification": cls.qualification.pk,
+            "num_of_workers": cls.valid_num_of_workers,
+            "t_pz": cls.valid_t_pz,
+            "t_sht": cls.valid_t_sht,
+        }
+
+        cls.empty_tech_oper_data = {
+            "prod": cls.prod.pk,
+            "tech_oper": "",
+            "profession": cls.profession.pk,
+            "center": cls.center.pk,
+            "qualification": cls.qualification.pk,
+            "num_of_workers": cls.valid_num_of_workers,
+            "t_pz": cls.valid_t_pz,
+            "t_sht": cls.valid_t_sht,
+        }
+
+        cls.empty_profession_data = {
+            "prod": cls.prod.pk,
+            "tech_oper": cls.tech_oper.pk,
+            "profession": "",
+            "center": cls.center.pk,
+            "qualification": cls.qualification.pk,
+            "num_of_workers": cls.valid_num_of_workers,
+            "t_pz": cls.valid_t_pz,
+            "t_sht": cls.valid_t_sht,
+        }
+
+        cls.empty_center_data = {
+            "prod": cls.prod.pk,
+            "tech_oper": cls.tech_oper.pk,
+            "profession": cls.profession.pk,
+            "center": "",
+            "qualification": cls.qualification.pk,
+            "num_of_workers": cls.valid_num_of_workers,
+            "t_pz": cls.valid_t_pz,
+            "t_sht": cls.valid_t_sht,
+        }
+
+        cls.empty_qualification_data = {
+            "prod": cls.prod.pk,
+            "tech_oper": cls.tech_oper.pk,
+            "profession": cls.profession.pk,
+            "center": cls.center.pk,
+            "qualification": "",
+            "num_of_workers": cls.valid_num_of_workers,
+            "t_pz": cls.valid_t_pz,
+            "t_sht": cls.valid_t_sht,
+        }
+
+        cls.invalid_num_of_workers_data = {
+            "prod": cls.prod.pk,
+            "tech_oper": cls.tech_oper.pk,
+            "profession": cls.profession.pk,
+            "center": cls.center.pk,
+            "qualification": cls.qualification.pk,
+            "num_of_workers": 0,
+            "t_pz": cls.valid_t_pz,
+            "t_sht": cls.valid_t_sht,
+        }
+
+        cls.url = reverse("route_tech:add_prod_operation")
+        cls.redirect_url = reverse("classes:index")
+
+    def test_prod_operation_create_view_uses_prod_operation_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "route_tech/prod_operation/prod_operation.html")
+
+    def test_prod_operation_create_view_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_prod_operation_create_view_can_save_a_POST_request(self):
+        self.client.post(self.url, self.valid_data)
+        instance = ProdOperation.objects.last()
+        self.assertIsNotNone(instance.pk)
+        self.assertEqual(instance.prod.pk, self.valid_data["prod"])
+        self.assertEqual(instance.tech_oper.pk, self.valid_data["tech_oper"])
+        self.assertEqual(instance.profession.pk, self.valid_data["profession"])
+        self.assertEqual(instance.center.pk, self.valid_data["center"])
+        self.assertEqual(instance.qualification.pk, self.valid_data["qualification"])
+        self.assertEqual(instance.t_pz, self.valid_data["t_pz"])
+        self.assertEqual(instance.t_sht, self.valid_data["t_sht"])
+        self.assertEqual(instance.num_of_workers, self.valid_data["num_of_workers"])
+
+    def test_prod_operation_create_view_redirects_after_POST_request(self):
+        response = self.client.post(self.url, self.valid_data)
+        self.assertRedirects(response, self.redirect_url)
+
+    def test_empty_prod_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, self.empty_prod_data)
+        self.assertContains(response, ProdOperErrors.EMPTY_PROD)
+
+    def test_empty_tech_oper_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, self.empty_tech_oper_data)
+        self.assertContains(response, ProdOperErrors.EMPTY_TECH_OPER)
+
+    def test_empty_profession_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, self.empty_profession_data)
+        self.assertContains(response, ProdOperErrors.EMPTY_PROFESSION)
+
+    def test_empty_center_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, self.empty_center_data)
+        self.assertContains(response, ProdOperErrors.EMPTY_CENTER)
+
+    def test_empty_qualification_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, self.empty_qualification_data)
+        self.assertContains(response, ProdOperErrors.EMPTY_QUALIFICATION)
+
+    def test_invalid_num_of_workers_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.url, self.invalid_num_of_workers_data)
+        self.assertContains(response, ProdOperErrors.INVALID_NUM_OF_WORKERS)

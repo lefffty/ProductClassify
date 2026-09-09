@@ -18,8 +18,13 @@ gwc_patterns = [
     path("delete/<int:gwc_id>/", views.GWCDeleteView.as_view(), name="delete_gwc"),
 ]
 
+prod_operation_patterns = [
+    path("add/", views.ProdOperationCreateView.as_view(), name="add_prod_operation"),
+]
+
 
 urlpatterns = [
     path("eas/", include(eas_patterns)),
     path("gwc/", include(gwc_patterns)),
+    path("prod_oper/", include(prod_operation_patterns)),
 ]

@@ -111,7 +111,7 @@ class ProdOperation(Model):
         verbose_name="Операция",
         related_name="tech_operations",
         null=False,
-        blank=False,
+        blank=False,    
     )
     profession = ForeignKey(
         ClassStruct,
