@@ -1050,3 +1050,42 @@ class QualificationClassCreateViewTest(BaseUnitTestCase):
     def test_redirects_after_a_POST_request(self):
         response = self.client.post(self.url, self.valid_data)
         self.assertRedirects(response, self.redirect_url)
+
+
+class ProfessionClassCreateViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.profession = ClassStruct.objects.get(pk=MetaConsts.PROFESSION)
+
+        name = cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH]
+        short_name = cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
+
+        cls.valid_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": cls.profession.pk,
+        }
+
+        cls.url = reverse("classes:add_profession_class")
+        cls.redirect_url = reverse("classes:index")
+
+    def test_uses_profession_class_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "classes/profession_class.html")
+
+    def test_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_can_save_a_POST_request(self):
+        self.client.post(self.url, self.valid_data)
+        profession = ClassStruct.objects.last()
+        self.assertEqual(profession.name, self.valid_data["name"])
+        self.assertEqual(profession.short_name, self.valid_data["short_name"])
+        self.assertEqual(profession.main_class.pk, self.valid_data["main_class"])
+
+    def test_redirects_after_a_POST_request(self):
+        response = self.client.post(self.url, self.valid_data)
+        self.assertRedirects(response, self.redirect_url)

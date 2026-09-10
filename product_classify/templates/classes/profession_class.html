@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+    Добавление класса профессии
+{% endblock title %}
+
+{% block content %}
+<div id="profession-class-form-container" class="container py-4">
+    <div id="profession-class-form-card" class="card shadow-sm">
+        <div class="card-body">
+            <h2 id="profession-class-form-header" class="card-title h4 mb-4">
+                Добавление класса профессии
+            </h2>
+
+            <form id="profession-class-form" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div id="profession-class-form-non-field-errors" class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% for field in form %}
+                    <div class="mb-3">
+                        {% bootstrap_field field show_label=True show_help=False %}
+                        {% if field.help_text %}
+                            <div id="profession-class-field-{{ field.name }}-help" class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% if field.errors %}
+                            <div id="profession-class-field-{{ field.name }}-errors" class="invalid-feedback d-block">
+                                {% for error in field.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <button id="profession-class-submit-btn" type="submit" class="btn btn-primary">
+                    Добавить
+                </button>
+                <a id="profession-class-cancel-btn" href="{% url 'classes:index' %}" class="btn btn-outline-secondary">
+                    Отмена
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

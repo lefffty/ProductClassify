@@ -80,4 +80,9 @@ urlpatterns = [
         views.QualificationClassCreateView.as_view(),
         name="add_qualification_class",
     ),
+    path(
+        "add_profession_class/",
+        views.ProfessionClassCreateView.as_view(),
+        name="add_profession_class",
+    ),
 ]
