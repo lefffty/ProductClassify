@@ -22,3 +22,7 @@ class ProdOperationPosConsts(IntEnum):
     MIN_VALUE =                     Decimal("0.0")
     DECIMAL_PLACES =                6
     MAX_DIGITS =                    12
+
+
+class FormSetConsts(IntEnum):
+    EXTRA =                         0

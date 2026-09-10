@@ -67,6 +67,9 @@ class Prod(models.Model):
     class Meta:
         verbose_name = "Изделие"
         verbose_name_plural = "Изделия"
+        permissions = [
+            ("can_create_modification", "Может создавать модификации изделий"),
+        ]
 
     def __str__(self):
         return self.name

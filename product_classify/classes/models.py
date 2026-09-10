@@ -139,7 +139,8 @@ class ClassStruct(models.Model):
     def operations(cls):
         operations = ClassStruct.objects.filter(
             Q(main_class__exact=MetaConsts.TECH_OPERATION) |
-            Q(pk__exact=MetaConsts.OPERATION)
+            Q(pk__exact=MetaConsts.OPERATION) |
+            Q(main_class__exact=MetaConsts.OPERATION)
         )
         return operations
 

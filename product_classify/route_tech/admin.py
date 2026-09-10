@@ -6,6 +6,12 @@ from route_tech.models import (
     ProdOperation,
     ProdOperationPos
 )
+from route_tech.forms import (
+    EconomicActivitySubjectForm,
+    GroupWorkingCenterForm,
+    ProdOperationPosForm,
+    ProdOperationForm,
+)
 
 
 @register(EconomicActivitySubject)
@@ -16,6 +22,7 @@ class EconomicActivitySubjectAdmin(ModelAdmin):
         "main_class",
         "main_subject",
     )
+    form = EconomicActivitySubjectForm
     fieldsets = (
         (
             None,
@@ -40,6 +47,7 @@ class GroupWorkingCenterAdmin(ModelAdmin):
         "eas",
         "place",
     )
+    form = GroupWorkingCenterForm
     fieldsets = (
         (
             None,
@@ -68,6 +76,7 @@ class ProdOperationAdmin(ModelAdmin):
         "t_pz",
         "t_sht",
     )
+    form = ProdOperationForm
     fieldsets = (
         (
             None,
@@ -95,6 +104,7 @@ class ProdOperationPos(ModelAdmin):
         "input_quantity",
         "output_quantity",
     )
+    form = ProdOperationPosForm
     fieldsets = (
         (
             None,

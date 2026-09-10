@@ -69,6 +69,11 @@ class ProdComponent(models.Model):
     class Meta:
         verbose_name = "Строка спецификации изделия"
         verbose_name_plural = "Строки спецификации изделия"
+        permissions = [
+            ("can_get_total_cost_ratio", "Может производить расчет норм расхода материальных ресурсов"),
+            ("can_get_product_changelog", "Может получить историю изменений спецификации изделия"),
+            ("can_edit_specification", "Может редактировать спецификацию изделия"),
+        ]
 
     def __str__(self):
         return f"{self.parent_prod.name} - {self.component.name}"

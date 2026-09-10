@@ -271,6 +271,7 @@ ProdOperationPosFormSet = inlineformset_factory(
     form=ProdOperationPosForm,
     fk_name="input_prod_oper",
     fields=(
+        "output_prod_oper",
         "input_quantity",
         "output_quantity",
     ),
