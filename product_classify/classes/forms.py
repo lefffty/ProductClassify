@@ -214,6 +214,33 @@ class EconomicActivitySubjectClassForm(ModelForm):
         self.fields["main_class"].queryset = ClassStruct.objects.filter(pk=MetaConsts.ECONOMIC_ACTIVITY_SUBJECT)
 
 
+class MeansOfLaborClassForm(ModelForm):
+    class Meta:
+        model = ClassStruct
+        fields = (
+            "name",
+            "short_name",
+            "main_class"
+        )
+        labels = {
+            "name": "Название класса",
+            "short_name": "Сокращенное название класса",
+            "main_class": "Родитель класса",
+        }
+        error_messages = {
+            "main_class": {
+                "required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
+            },
+            "name": {
+                "required": ClassStructErrors.EMPTY_NAME_ERROR
+            }
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["main_class"].queryset = ClassStruct.objects.filter(pk=MetaConsts.MEANS_OF_LABOR)
+
+
 class ParClassForm(ModelForm):
     """Форма для создания параметра класса"""
 

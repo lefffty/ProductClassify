@@ -11,17 +11,20 @@ from parametr.models import Parametr
 
 from classes.constants import (
     ClassStructConsts,
+    MetaConsts,
     OperationConsts,
     ProductsConsts,
     ParamIds,
     EnumsIds
 )
-from classes.errors import ParClassErrors
+from classes.errors import ClassStructErrors, ParClassErrors
 from classes.models import (
     ClassStruct,
     ParClass
 )
 from classes.forms import (
+    EconomicActivitySubjectClassForm,
+    MeansOfLaborClassForm,
     ParClassForm,
     ProdClassForm,
     EnumClassForm,
@@ -1413,3 +1416,147 @@ class OperationClassFormTest(BaseUnitTestCase):
         self.assertEqual(instance.name, self.valid_data["name"])
         self.assertEqual(instance.short_name, self.valid_data["short_name"])
         self.assertEqual(instance.main_class.pk, self.valid_data["main_class"])
+
+
+class EconomicActivitySubjectClassFormTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.economic_activity_subject = ClassStruct.objects.get(
+            pk=MetaConsts.ECONOMIC_ACTIVITY_SUBJECT
+        )
+
+        cls.invalid_main_class = (
+            ClassStruct.objects
+            .exclude(pk=MetaConsts.ECONOMIC_ACTIVITY_SUBJECT)
+            .first()
+        )
+
+        name = cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH]
+        short_name = cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
+
+        cls.valid_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": cls.economic_activity_subject.pk,
+        }
+
+        cls.empty_name_data = {
+            "name": "",
+            "short_name": short_name,
+            "main_class": cls.economic_activity_subject.pk,
+        }
+
+        cls.empty_short_name_data = {
+            "name": name,
+            "short_name": "",
+            "main_class": cls.economic_activity_subject.pk,
+        }
+
+        cls.empty_main_class_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": "",
+        }
+
+        cls.invalid_main_class_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": cls.invalid_main_class.pk,
+        }
+
+    def test_valid_form(self):
+        form = EconomicActivitySubjectClassForm(data=self.valid_data)
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_empty_name(self):
+        form = EconomicActivitySubjectClassForm(data=self.empty_name_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("name", form.errors)
+        self.assertEqual(
+            form.errors["name"][0],
+            ClassStructErrors.EMPTY_NAME_ERROR,
+        )
+
+    def test_empty_short_name(self):
+        form = EconomicActivitySubjectClassForm(data=self.empty_short_name_data)
+        self.assertTrue(form.is_valid())
+
+    def test_empty_main_class(self):
+        form = EconomicActivitySubjectClassForm(data=self.empty_main_class_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("main_class", form.errors)
+        self.assertEqual(
+            form.errors["main_class"][0],
+            ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
+        )
+
+    def test_invalid_main_class(self):
+        form = EconomicActivitySubjectClassForm(data=self.invalid_main_class_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("main_class", form.errors)
+
+
+class MeansOfLaborClassFormTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.valid_main_class = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
+
+        cls.invalid_main_class = ClassStruct.objects.first()
+
+        name = cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH]
+        short_name = cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
+
+        cls.valid_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": cls.valid_main_class.pk,
+        }
+
+        cls.empty_name_data = {
+            "name": "",
+            "short_name": short_name,
+            "main_class": cls.valid_main_class.pk,
+        }
+
+        cls.empty_main_class_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": "",
+        }
+
+        cls.invalid_main_class_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": cls.invalid_main_class.pk,
+        }
+
+    def test_valid_form(self):
+        form = MeansOfLaborClassForm(data=self.valid_data)
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_empty_name(self):
+        form = MeansOfLaborClassForm(data=self.empty_name_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("name", form.errors)
+        self.assertEqual(
+            form.errors["name"][0],
+            ClassStructErrors.EMPTY_NAME_ERROR,
+        )
+
+    def test_empty_main_class(self):
+        form = MeansOfLaborClassForm(data=self.empty_main_class_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("main_class", form.errors)
+        self.assertEqual(
+            form.errors["main_class"][0],
+            ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
+        )
+
+    def test_invalid_main_class(self):
+        form = MeansOfLaborClassForm(data=self.invalid_main_class_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("main_class", form.errors)
