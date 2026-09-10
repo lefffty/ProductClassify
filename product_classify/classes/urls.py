@@ -60,4 +60,9 @@ urlpatterns = [
         views.ChangeParClassNumView.as_view(),
         name="change_num",
     ),
+    path(
+        "add_operation_class/",
+        views.OperationClassCreateView.as_view(),
+        name="add_operation_class",
+    ),
 ]

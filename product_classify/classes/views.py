@@ -18,6 +18,7 @@ from classes.models import (
 )
 from classes.forms import (
     ChangeParClassNumForm,
+    OperationClassForm,
     ProdClassForm,
     EnumClassForm,
     ParClassForm,
@@ -81,6 +82,15 @@ class EnumClassCreateView(
     form_class = EnumClassForm
     success_url = reverse_lazy("classes:index")
     template_name = "classes/enum_class.html"
+
+
+class OperationClassCreateView(
+    CommonContextMixin,
+    CreateView
+):
+    form_class = OperationClassForm
+    success_url = reverse_lazy("classes:index")
+    template_name = "classes/operation_class.html"
 
 
 class ClassUpdateView(
