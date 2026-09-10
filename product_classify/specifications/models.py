@@ -6,8 +6,8 @@ from typing import List
 from core.queries import ProdComponentQueries, SpecificationLogsQueries
 
 from products.models import Prod
-
 from specifications.constants import ProdComponentConsts
+
 
 TotalCostRatioResult = namedtuple(
     "TotalCostRatioResult",

@@ -13,7 +13,9 @@ class EiAdmin(admin.ModelAdmin):
         "convert_factor",
         "main_class",
     )
-    ordering = ("code",)
+    ordering = (
+        "code",
+    )
     fieldsets = (
         (
             None,

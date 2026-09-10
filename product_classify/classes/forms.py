@@ -17,8 +17,6 @@ from classes.constants import (
     ProdClassConsts,
     ParClassConsts,
     EnumClassConsts,
-    EnumsIds,
-    ParamIds,
     NUMERIC_PARAMS,
     ENUM_PARAMS,
 )
@@ -59,7 +57,12 @@ class ProdClassForm(ModelForm):
 
     class Meta:
         model = ClassStruct
-        fields = ("name", "short_name", "base_ei", "main_class")
+        fields = (
+            "name", 
+            "short_name", 
+            "base_ei", 
+            "main_class"
+        )
         labels = {
             "name": "Название класса",
             "short_name": "Сокращенное название класса",
@@ -116,7 +119,11 @@ class EnumClassForm(ModelForm):
 
     class Meta:
         model = ClassStruct
-        fields = ("name", "short_name", "main_class")
+        fields = (
+            "name", 
+            "short_name", 
+            "main_class"
+        )
         labels = {
             "name": "Название класса",
             "short_name": "Сокращенное название класса",
@@ -179,7 +186,12 @@ class ParClassForm(ModelForm):
 
     class Meta:
         model = ParClass
-        fields = ("class_field", "parametr", "min_value", "max_value")
+        fields = (
+            "class_field", 
+            "parametr", 
+            "min_value", 
+            "max_value"
+        )
         labels = {
             "class_field": "Класс изделия",
             "parametr": "Параметр",

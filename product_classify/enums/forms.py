@@ -16,7 +16,14 @@ from classes.constants import EnumsIds
 
 from enums.models import Enums
 from enums.constants import EnumsConsts
-from enums.errors import *
+from enums.errors import (
+    IntEnumErrors,
+    ImageEnumErrors,
+    ChangeNumErrors,
+    StringEnumErrors,
+    DoubleEnumErrors,
+    CommonEnumErrors,
+)
 
 
 def validate_positive_int(value):

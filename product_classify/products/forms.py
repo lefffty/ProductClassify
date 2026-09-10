@@ -65,7 +65,14 @@ class ProdForm(ModelForm):
 
     class Meta:
         model = Prod
-        fields = ("name", "short_name", "class_field", "image", "cost", "ei")
+        fields = (
+            "name",
+            "short_name",
+            "class_field", 
+            "image", 
+            "cost", 
+            "ei"
+        )
         labels = {
             "name": "Название изделия",
             "short_name": "Сокращенное название изделия",

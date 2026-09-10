@@ -886,7 +886,7 @@ class ProdOperationUpdateViewTest(BaseUnitTestCase):
         self.assertIn("form", response.context)
 
     def test_prod_operation_update_view_can_save_a_POST_request(self):
-        response = self.client.post(self.url, self.valid_update_data)
+        self.client.post(self.url, self.valid_update_data)
         prod_oper = ProdOperation.objects.last()
         self.assertEqual(prod_oper.prod.pk, self.valid_update_data["prod"])
         self.assertEqual(prod_oper.tech_oper.pk, self.valid_update_data["tech_oper"])

@@ -10,6 +10,7 @@ from django.forms import (
 )
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
+from django.forms import inlineformset_factory
 
 from classes.models import ClassStruct
 from products.models import Prod
@@ -262,3 +263,17 @@ class ProdOperationPosForm(ModelForm):
         if data is not None and data < ProdOperationPosConsts.MIN_VALUE:
             raise ValidationError(ProdOperationPosErrors.INVALID_OUTPUT_QUANTITY)
         return data
+
+
+ProdOperationPosFormSet = inlineformset_factory(
+    parent_model=ProdOperation,
+    model=ProdOperationPos,
+    form=ProdOperationPosForm,
+    fk_name="input_prod_oper",
+    fields=(
+        "input_quantity",
+        "output_quantity",
+    ),
+    extra=1,
+    can_delete=True
+)
