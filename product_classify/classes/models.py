@@ -258,7 +258,7 @@ class ParClass(models.Model):
 
     def delete(self, *args, **kwargs):
         from products.models import ParProd
-
+        
         ParProd.objects.filter(par=self.parametr).delete()
         super().delete(*args, **kwargs)
 
