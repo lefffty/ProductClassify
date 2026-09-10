@@ -17,6 +17,7 @@ from classes.models import (
     ParClass,
 )
 from classes.forms import (
+    EconomicActivitySubjectClassForm,
     ChangeParClassNumForm,
     OperationClassForm,
     ProdClassForm,
@@ -91,6 +92,15 @@ class OperationClassCreateView(
     form_class = OperationClassForm
     success_url = reverse_lazy("classes:index")
     template_name = "classes/operation_class.html"
+
+
+class EconomicSubjectActivityCreateView(
+    CommonContextMixin,
+    CreateView
+):
+    form_class = EconomicActivitySubjectClassForm
+    success_url = reverse_lazy("classes:index")
+    template_name = "classes/eas_class.html"
 
 
 class ClassUpdateView(

@@ -22,7 +22,7 @@ from classes.models import ClassStruct, ParClass
 from classes.forms import ProdClassForm, EnumClassForm
 from classes.errors import ClassStructErrors, ParClassErrors, ChangeParClassErrors
 from classes.constants import (
-    ProdClassConsts, EnumClassConsts, ProductsConsts, EnumsIds, ParamIds, NUMERIC_PARAMS
+    ClassStructConsts, MetaConsts, OperationConsts, ProdClassConsts, EnumClassConsts, ProductsConsts, EnumsIds, ParamIds, NUMERIC_PARAMS
 )
 
 
@@ -892,3 +892,83 @@ class ClassParamsListViewTest(BaseUnitTestCase):
             if parclass.parametr.parametr_type.pk in NUMERIC_PARAMS:
                 self.assertContains(response, parclass.min_value)
                 self.assertContains(response, parclass.max_value)
+
+
+class OperationClassCreateViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.welding = ClassStruct.objects.get(pk=OperationConsts.WELDING)
+
+        name = cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH]
+        short_name = cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
+
+        cls.valid_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": cls.welding.pk
+        }
+
+        cls.url = reverse("classes:add_operation_class")
+        cls.redirect_url = reverse("classes:index")
+
+    def test_uses_operation_class_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "classes/operation_class.html")
+
+    def test_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_can_save_a_POST_request(self):
+        self.client.post(self.url, self.valid_data)
+        operation = ClassStruct.objects.last()
+        self.assertEqual(operation.name, self.valid_data["name"])
+        self.assertEqual(operation.short_name, self.valid_data["short_name"])
+        self.assertEqual(operation.main_class.pk, self.valid_data["main_class"])
+
+    def test_redirects_after_a_POST_request(self):
+        response = self.client.post(self.url, self.valid_data)
+        self.assertRedirects(response, self.redirect_url)
+
+
+class EconomicSubjectActivityCreateViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.economic_activity_subject = ClassStruct.objects.get(
+            pk=MetaConsts.ECONOMIC_ACTIVITY_SUBJECT
+        )
+
+        name = cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH]
+        short_name = cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
+
+        cls.valid_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": cls.economic_activity_subject.pk,
+        }
+
+        cls.url = reverse("classes:add_eas_class")
+        cls.redirect_url = reverse("classes:index")
+
+    def test_uses_operation_class_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "classes/eas_class.html")
+
+    def test_renders_form(self):
+        response = self.client.get(self.url)
+        self.assertIn("form", response.context)
+
+    def test_can_save_a_POST_request(self):
+        self.client.post(self.url, self.valid_data)
+        subject = ClassStruct.objects.last()
+        self.assertEqual(subject.name, self.valid_data["name"])
+        self.assertEqual(subject.short_name, self.valid_data["short_name"])
+        self.assertEqual(subject.main_class.pk, self.valid_data["main_class"])
+
+    def test_redirects_after_a_POST_request(self):
+        response = self.client.post(self.url, self.valid_data)
+        self.assertRedirects(response, self.redirect_url)

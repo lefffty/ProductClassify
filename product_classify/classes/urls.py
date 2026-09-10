@@ -65,4 +65,9 @@ urlpatterns = [
         views.OperationClassCreateView.as_view(),
         name="add_operation_class",
     ),
+    path(
+        "add_eas_class/",
+        views.EconomicSubjectActivityCreateView.as_view(),
+        name="add_eas_class",
+    ),
 ]
