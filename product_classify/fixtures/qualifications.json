@@ -1,0 +1,82 @@
+[
+  {
+    "model": "classes.classstruct",
+    "pk": 56,
+    "fields": {
+      "name": "Квалификация",
+      "short_name": "Квал.",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 57,
+    "fields": {
+      "name": "1 разряд",
+      "short_name": "I",
+      "base_ei": null,
+      "main_class": 56
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 58,
+    "fields": {
+      "name": "2 разряд",
+      "short_name": "II",
+      "base_ei": null,
+      "main_class": 56
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 59,
+    "fields": {
+      "name": "3 разряд",
+      "short_name": "III",
+      "base_ei": null,
+      "main_class": 56
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 60,
+    "fields": {
+      "name": "4 разряд",
+      "short_name": "IV",
+      "base_ei": null,
+      "main_class": 56
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 61,
+    "fields": {
+      "name": "5 разряд",
+      "short_name": "V",
+      "base_ei": null,
+      "main_class": 56
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 62,
+    "fields": {
+      "name": "6 разряд",
+      "short_name": "VI",
+      "base_ei": null,
+      "main_class": 56
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 63,
+    "fields": {
+      "name": "7 разряд",
+      "short_name": "VII",
+      "base_ei": null,
+      "main_class": 56
+    }
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "model": "classes.classstruct",
+    "pk": 35,
+    "fields": {
+      "name": "Средства труда",
+      "short_name": "Ср. труда",
+      "base_ei": null,
+      "main_class": 13
+    }
+  }
+]

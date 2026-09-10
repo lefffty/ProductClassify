@@ -1,0 +1,102 @@
+[
+  {
+    "model": "classes.classstruct",
+    "pk": 36,
+    "fields": {
+      "name": "Профессия",
+      "short_name": "Проф.",
+      "base_ei": null,
+      "main_class": 13
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 48,
+    "fields": {
+      "name": "СВАРЩИК",
+      "short_name": "СВАРЩИК",
+      "base_ei": null,
+      "main_class": 36
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 49,
+    "fields": {
+      "name": "ШТАМПОВЩИК",
+      "short_name": "ШТАМПОВЩИК",
+      "base_ei": null,
+      "main_class": 36
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 50,
+    "fields": {
+      "name": "ШЛИФОВЩИК",
+      "short_name": "ШЛИФОВЩИК",
+      "base_ei": null,
+      "main_class": 36
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 51,
+    "fields": {
+      "name": "ТОКАРЬ",
+      "short_name": "ТОКАРЬ",
+      "base_ei": null,
+      "main_class": 36
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 52,
+    "fields": {
+      "name": "МОНТАЖНИК",
+      "short_name": "МОНТАЖНИК",
+      "base_ei": null,
+      "main_class": 36
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 53,
+    "fields": {
+      "name": "ФРЕЗЕРОВЩИК",
+      "short_name": "ФРЕЗЕРОВЩИК",
+      "base_ei": null,
+      "main_class": 36
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 54,
+    "fields": {
+      "name": "СТАНОЧНИК",
+      "short_name": "СТАНОЧНИК",
+      "base_ei": null,
+      "main_class": 36
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 55,
+    "fields": {
+      "name": "СВЕРЛОВЩИК",
+      "short_name": "СВЕРЛОВЩИК",
+      "base_ei": null,
+      "main_class": 36
+    }
+  },
+  {
+    "model": "classes.classstruct",
+    "pk": 55,
+    "fields": {
+      "name": "СВЕРЛОВЩИК",
+      "short_name": "СВЕРЛОВЩИК",
+      "base_ei": null,
+      "main_class": 36
+    }
+  }
+]

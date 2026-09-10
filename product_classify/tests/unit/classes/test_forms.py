@@ -2,18 +2,30 @@ from django.db.models import QuerySet
 
 from unittest.mock import patch
 
+from faker import Faker
+
 from tests.unit.base import BaseUnitTestCase
 
 from ei.models import Ei
 from parametr.models import Parametr
 
-from classes.constants import ProductsConsts, ParamIds, EnumsIds
+from classes.constants import (
+    ClassStructConsts,
+    OperationConsts,
+    ProductsConsts,
+    ParamIds,
+    EnumsIds
+)
 from classes.errors import ParClassErrors
-from classes.models import ClassStruct, ParClass
+from classes.models import (
+    ClassStruct,
+    ParClass
+)
 from classes.forms import (
+    ParClassForm,
     ProdClassForm,
     EnumClassForm,
-    ParClassForm,
+    OperationClassForm,
     ChangeParClassNumForm,
 )
 
@@ -1329,3 +1341,75 @@ class ChangeParClassNumFormTest(BaseUnitTestCase):
         self.parclass_2.refresh_from_db()
         self.assertEqual(self.parclass_1.num, 2)
         self.assertEqual(self.parclass_2.num, 1)
+
+
+class OperationClassFormTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.welding = ClassStruct.objects.get(pk=OperationConsts.WELDING)
+        cls.non_operation = ClassStruct.objects.first()
+
+        name = cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH]
+        short_name = cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
+
+        cls.valid_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": cls.welding.pk
+        }
+
+        cls.empty_name_data = {
+            "name": "",
+            "short_name": short_name,
+            "main_class": cls.welding.pk
+        }
+
+        cls.empty_main_class_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": ""
+        }
+
+        cls.empty_short_name_data = {
+            "name": name,
+            "short_name": "",
+            "main_class": cls.welding.pk            
+        }
+
+        cls.non_operation_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": cls.non_operation.pk
+        }
+
+    def test_main_class_queryset_is_operations_queryset(self):
+        form = OperationClassForm()
+        self.assertIsInstance(form.fields["main_class"].queryset, QuerySet)
+        self.assertEqual(len(form.fields["main_class"].queryset), len(ClassStruct.operations()))
+
+    def test_name_field_is_required(self):
+        form = OperationClassForm(self.empty_name_data)
+        self.assertFalse(form.is_valid())
+
+    def test_main_class_field_is_required(self):
+        form = OperationClassForm(self.empty_main_class_data)
+        self.assertFalse(form.is_valid())
+
+    def test_short_name_field_is_optional(self):
+        form = OperationClassForm(self.empty_short_name_data)
+        self.assertTrue(form.is_valid())
+
+    def test_non_operation_main_class_raises_validation_error(self):
+        form = OperationClassForm(self.non_operation_data)
+        self.assertFalse(form.is_valid())
+
+    def test_operation_was_saved_successfully(self):
+        form = OperationClassForm(self.valid_data)
+        self.assertTrue(form.is_valid())
+        instance = form.save()
+        self.assertIsNotNone(instance.pk)
+        self.assertEqual(instance.name, self.valid_data["name"])
+        self.assertEqual(instance.short_name, self.valid_data["short_name"])
+        self.assertEqual(instance.main_class.pk, self.valid_data["main_class"])

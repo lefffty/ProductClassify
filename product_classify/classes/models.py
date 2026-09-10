@@ -136,6 +136,14 @@ class ClassStruct(models.Model):
         return is_cycle
 
     @classmethod
+    def operations(cls):
+        operations = ClassStruct.objects.filter(
+            Q(main_class__exact=MetaConsts.TECH_OPERATION) |
+            Q(pk__exact=MetaConsts.OPERATION)
+        )
+        return operations
+
+    @classmethod
     def technological_operations(cls):
         operations = ClassStruct.objects.filter(
             main_class__exact=MetaConsts.TECH_OPERATION
