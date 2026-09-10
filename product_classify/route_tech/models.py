@@ -38,6 +38,7 @@ class EconomicActivitySubject(Model):
         verbose_name="Ссылка на класс субъекта экономической деятельности",
         related_name="subjects_by_class",
         null=False,
+        blank=False,
     )
     main_subject = ForeignKey(
         "self",
@@ -45,6 +46,7 @@ class EconomicActivitySubject(Model):
         related_name="children",
         on_delete=CASCADE,
         null=True,
+        blank=True,
     )
 
     class Meta:
