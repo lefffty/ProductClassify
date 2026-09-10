@@ -241,6 +241,33 @@ class MeansOfLaborClassForm(ModelForm):
         self.fields["main_class"].queryset = ClassStruct.objects.filter(pk=MetaConsts.MEANS_OF_LABOR)
 
 
+class QualificationClassForm(ModelForm):
+    class Meta:
+        model = ClassStruct
+        fields = (
+            "name",
+            "short_name",
+            "main_class"
+        )
+        labels = {
+            "name": "Название класса",
+            "short_name": "Сокращенное название класса",
+            "main_class": "Родитель класса",
+        }
+        error_messages = {
+            "main_class": {
+                "required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
+            },
+            "name": {
+                "required": ClassStructErrors.EMPTY_NAME_ERROR
+            }
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["main_class"].queryset = ClassStruct.objects.filter(pk=MetaConsts.QUALIFICATION)
+
+
 class ParClassForm(ModelForm):
     """Форма для создания параметра класса"""
 
@@ -318,7 +345,7 @@ class ParClassForm(ModelForm):
             if min_val or max_val:
                 raise ValidationError(
                     ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(parametr.name)
-                )
+                )   
         # если параметр является численным и минимальное значение больше максимального значения параметра,
         # то выбрасываем исключение с сообщением об этой ошибке
         elif param_tp in NUMERIC_PARAMS:

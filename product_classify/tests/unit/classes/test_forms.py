@@ -30,6 +30,7 @@ from classes.forms import (
     EnumClassForm,
     OperationClassForm,
     ChangeParClassNumForm,
+    QualificationClassForm,
 )
 
 
@@ -1560,3 +1561,78 @@ class MeansOfLaborClassFormTest(BaseUnitTestCase):
         form = MeansOfLaborClassForm(data=self.invalid_main_class_data)
         self.assertFalse(form.is_valid())
         self.assertIn("main_class", form.errors)
+
+
+class QualificationClassFormTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.qualification = ClassStruct.objects.get(pk=MetaConsts.QUALIFICATION)
+
+        cls.invalid_main_class = (
+            ClassStruct.objects
+            .exclude(pk=MetaConsts.QUALIFICATION)
+            .first()
+        )
+
+        name = cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH]
+        short_name = cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
+
+        cls.valid_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": cls.qualification.pk,
+        }
+
+        cls.empty_name_data = {
+            "name": "",
+            "short_name": short_name,
+            "main_class": cls.qualification.pk,
+        }
+
+        cls.empty_main_class_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": "",
+        }
+
+        cls.invalid_main_class_data = {
+            "name": name,
+            "short_name": short_name,
+            "main_class": cls.invalid_main_class.pk,
+        }
+
+    def test_valid_form(self):
+        form = QualificationClassForm(data=self.valid_data)
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_empty_name(self):
+        form = QualificationClassForm(data=self.empty_name_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("name", form.errors)
+        self.assertEqual(
+            form.errors["name"][0],
+            ClassStructErrors.EMPTY_NAME_ERROR,
+        )
+
+    def test_empty_main_class(self):
+        form = QualificationClassForm(data=self.empty_main_class_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("main_class", form.errors)
+        self.assertEqual(
+            form.errors["main_class"][0],
+            ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
+        )
+
+    def test_invalid_main_class(self):
+        form = QualificationClassForm(data=self.invalid_main_class_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("main_class", form.errors)
+
+    def test_main_class_queryset_contains_only_qualification(self):
+        form = QualificationClassForm()
+        self.assertEqual(
+            list(form.fields["main_class"].queryset.values_list("pk", flat=True)),
+            [MetaConsts.QUALIFICATION],
+        )
