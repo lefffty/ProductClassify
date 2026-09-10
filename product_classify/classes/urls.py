@@ -70,4 +70,9 @@ urlpatterns = [
         views.EconomicSubjectActivityCreateView.as_view(),
         name="add_eas_class",
     ),
+    path(
+        "add_mol_class/",
+        views.MeansOfLaborClassCreateView.as_view(),
+        name="add_mol_class",
+    ),
 ]
