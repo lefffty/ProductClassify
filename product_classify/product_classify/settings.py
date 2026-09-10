@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "parametr.apps.ParametrConfig",
     "agregat.apps.AgregatConfig",
     "specifications.apps.SpecificationsConfig",
+    "accounts.apps.AccountsConfig",
     "route_tech.apps.RouteTechConfig",
     "django.contrib.admin",
     "django.contrib.auth",
