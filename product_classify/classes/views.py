@@ -18,6 +18,7 @@ from classes.models import (
 )
 from classes.forms import (
     EconomicActivitySubjectClassForm,
+    QualificationClassForm,
     MeansOfLaborClassForm,
     ChangeParClassNumForm,
     OperationClassForm,
@@ -111,6 +112,15 @@ class MeansOfLaborClassCreateView(
     form_class = MeansOfLaborClassForm
     success_url = reverse_lazy("classes:index")
     template_name = "classes/mol_class.html"
+
+
+class QualificationClassCreateView(
+    CommonContextMixin,
+    CreateView
+):
+    form_class = QualificationClassForm
+    success_url = reverse_lazy("classes:index")
+    template_name = "classes/qualification_class.html"
 
 
 class ClassUpdateView(

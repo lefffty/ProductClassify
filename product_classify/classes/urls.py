@@ -75,4 +75,9 @@ urlpatterns = [
         views.MeansOfLaborClassCreateView.as_view(),
         name="add_mol_class",
     ),
+    path(
+        "add_qualification_class/",
+        views.QualificationClassCreateView.as_view(),
+        name="add_qualification_class",
+    ),
 ]
