@@ -276,5 +276,5 @@ ProdOperationPosFormSet = inlineformset_factory(
         "output_quantity",
     ),
     extra=1,
-    can_delete=True
+    can_delete=True,
 )

@@ -12,9 +12,7 @@ from accounts.constants import (
     RoleConsts,
     UserConsts,
 )
-from accounts.errors import (
-    UserErrors
-)
+from accounts.errors import UserErrors
 
 
 class Role(models.Model):
@@ -43,9 +41,7 @@ class Role(models.Model):
     )
 
     class Meta:
-        ordering = (
-            "name",
-        )
+        ordering = ("name",)
         verbose_name = "Роль"
         verbose_name_plural = "Роли"
 

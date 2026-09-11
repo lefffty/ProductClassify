@@ -68,14 +68,7 @@ class ProdForm(ModelForm):
 
     class Meta:
         model = Prod
-        fields = (
-            "name",
-            "short_name",
-            "class_field", 
-            "image", 
-            "cost", 
-            "ei"
-        )
+        fields = ("name", "short_name", "class_field", "image", "cost", "ei")
         labels = {
             "name": "Название изделия",
             "short_name": "Сокращенное название изделия",
@@ -140,13 +133,7 @@ class ParProdForm(ModelForm):
         prod_id = kwargs.pop("prod_id", None)
         super().__init__(*args, **kwargs)
         self.fields["par"].queryset = Parametr.parameters()
-        self.fields["enum_val"].queryset = (
-            Enums.objects
-            .select_related(
-                "enum"
-            )
-            .all()
-        )
+        self.fields["enum_val"].queryset = Enums.objects.select_related("enum").all()
         if prod_id:
             self.fields["prod"].initial = Prod.objects.get(pk=prod_id)
         else:
@@ -278,13 +265,10 @@ class SearchForm(Form):
         super().__init__(*args, **kwargs)
 
         par_classes = list(
-            ParClass.objects
-            .filter(class_field=cls)
+            ParClass.objects.filter(class_field=cls)
             .select_related("parametr", "parametr__parametr_type")
             .annotate(
-                has_parprod=Exists(
-                    ParProd.objects.filter(par=OuterRef("parametr_id"))
-                )
+                has_parprod=Exists(ParProd.objects.filter(par=OuterRef("parametr_id")))
             )
         )
 
@@ -292,23 +276,15 @@ class SearchForm(Form):
 
         enums_by_parametr = defaultdict(list)
 
-        for parprod in (
-            ParProd.objects
-            .filter(par__in=parametr_ids)
-            .select_related("enum_val")
+        for parprod in ParProd.objects.filter(par__in=parametr_ids).select_related(
+            "enum_val"
         ):
             if parprod.enum_val is None:
                 continue
             enums_by_parametr[parprod.par_id].append(parprod.enum_val)
 
-        all_enum_ids = [
-            e.pk for lst in enums_by_parametr.values() for e in lst
-        ]
-        enums_qs = (
-            Enums.objects.
-            filter(pk__in=all_enum_ids)
-            .select_related("enum")
-        )
+        all_enum_ids = [e.pk for lst in enums_by_parametr.values() for e in lst]
+        enums_qs = Enums.objects.filter(pk__in=all_enum_ids).select_related("enum")
 
         for par_class in par_classes:
             par_type = par_class.parametr.parametr_type.id

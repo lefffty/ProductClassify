@@ -33,9 +33,7 @@ class ProdAdmin(admin.ModelAdmin):
         ),
     )
     inlines = (ParProdInline,)
-    readonly_fields = (
-        "display_image",
-    )
+    readonly_fields = ("display_image",)
 
     @admin.display(description="Изображение")
     @mark_safe

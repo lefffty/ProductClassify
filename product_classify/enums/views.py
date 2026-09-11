@@ -25,12 +25,8 @@ class EnumsListView(
     def get_queryset(self):
         class_id = self.kwargs.get("class_id")
         enums = (
-            Enums.objects
-            .filter(enum__main_class__id=class_id)
-            .select_related(
-                "enum",
-                "enum__main_class"
-            )
+            Enums.objects.filter(enum__main_class__id=class_id)
+            .select_related("enum", "enum__main_class")
             .order_by("id")
         )
         return enums
@@ -46,12 +42,9 @@ class EnumsDetailView(
     pk_url_kwarg = "enum_id"
 
     def get_queryset(self):
-        return (
-            Enums.objects
-            .select_related(
-                "enum",
-                "enum__main_class",
-            )
+        return Enums.objects.select_related(
+            "enum",
+            "enum__main_class",
         )
 
 
@@ -75,11 +68,8 @@ class EnumsDeleteView(
     context_object_name = "instance"
 
     def get_queryset(self):
-        return (
-            Enums.objects
-            .select_related(
-                "enum__main_class",
-            )
+        return Enums.objects.select_related(
+            "enum__main_class",
         )
 
     def get_success_url(self):
@@ -104,11 +94,8 @@ class EnumsUpdateView(
     context_object_name = "instance"
 
     def get_queryset(self):
-        return (
-            Enums.objects
-            .select_related(
-                "enum__main_class",
-            )
+        return Enums.objects.select_related(
+            "enum__main_class",
         )
 
     def get_success_url(self):

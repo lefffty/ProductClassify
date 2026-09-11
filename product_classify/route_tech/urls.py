@@ -25,8 +25,16 @@ prod_operation_patterns = [
         views.ProdOperationDeleteView.as_view(),
         name="delete_prod_operation",
     ),
-    path("edit/<int:prod_oper_id>/", views.ProdOperationUpdateView.as_view(), name="edit_prod_operation"),
-    path("<int:prod_oper_id>/", views.ProdOperationDetailView.as_view(), name="detail_prod_operation"),
+    path(
+        "edit/<int:prod_oper_id>/",
+        views.ProdOperationUpdateView.as_view(),
+        name="edit_prod_operation",
+    ),
+    path(
+        "<int:prod_oper_id>/",
+        views.ProdOperationDetailView.as_view(),
+        name="detail_prod_operation",
+    ),
 ]
 
 

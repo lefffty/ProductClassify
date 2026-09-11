@@ -117,10 +117,7 @@ class Enums(models.Model):
     def __str__(self):
         main_class_id = self.enum.main_class_id
         # если данное значение перечисления является перечислением строк или изображений
-        if (
-            main_class_id == EnumsIds.STRING
-            or main_class_id == EnumsIds.IMAGE
-        ):
+        if main_class_id == EnumsIds.STRING or main_class_id == EnumsIds.IMAGE:
             return self.short_name
         # если данное значение перечисления является перечислением вещественных чисел
         elif main_class_id == EnumsIds.DOUBLE:

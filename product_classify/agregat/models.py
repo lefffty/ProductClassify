@@ -28,10 +28,7 @@ class Agregat(models.Model):
         verbose_name_plural = "Агрегаты"
         constraints = [
             models.UniqueConstraint(
-                fields=[
-                    "agr", 
-                    "par"
-                ],
+                fields=["agr", "par"],
                 name="%(class)s_pk",
             )
         ]

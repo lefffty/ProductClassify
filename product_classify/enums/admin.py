@@ -33,9 +33,7 @@ class EnumsAdmin(admin.ModelAdmin):
             },
         ),
     )
-    readonly_fields = (
-        "display_image_value",
-    )
+    readonly_fields = ("display_image_value",)
 
     @admin.display(description="Изображение")
     @mark_safe

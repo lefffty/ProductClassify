@@ -2,19 +2,19 @@ from enum import IntEnum
 
 
 class TotalCostRatioConsts:
-    RIGHT_MARGIN =                  30
-    LEFT_MARGIN =                   30
-    TOP_MARGIN =                    30
-    BOTTOM_MARGIN =                 30
-    NORMAL_FONTSIZE =               8
-    NORMAL_LEADING =                10
-    HEADER_FONTSIZE =               9
-    HEADER_ALIGNMENT =              1
-    TITLE_FONTSIZE =                20
-    TITLE_ALIGNMENT =               1
-    TITLE_SPACEAFTER =              20
-    SIGNATURE_FONTSIZE =            9
-    SIGNATURE_SPACEBEFORE =         10
+    RIGHT_MARGIN =          30
+    LEFT_MARGIN =           30
+    TOP_MARGIN =            30
+    BOTTOM_MARGIN =         30
+    NORMAL_FONTSIZE =       8
+    NORMAL_LEADING =        10
+    HEADER_FONTSIZE =       9
+    HEADER_ALIGNMENT =      1
+    TITLE_FONTSIZE =        20
+    TITLE_ALIGNMENT =       1
+    TITLE_SPACEAFTER =      20
+    SIGNATURE_FONTSIZE =    9
+    SIGNATURE_SPACEBEFORE = 10
     SPACER = (1, 20)
     COL_WIDTHS = [
         50,
@@ -27,38 +27,38 @@ class TotalCostRatioConsts:
         40,
     ]
     SIGNATURE_COL_WIDTHS = [
-        200, 
-        200, 
+        200,
+        200,
         200
     ]
 
 
 class ChangeLogConsts:
-    RIGHT_MARGIN =                  30
-    LEFT_MARGIN =                   30
-    TOP_MARGIN =                    30
-    BOTTOM_MARGIN =                 30
-    NORMAL_FONTSIZE =               8
-    NORMAL_LEADING =                10
-    TITLE_FONTSIZE =                20
-    TITLE_ALIGNMENT =               1
-    TITLE_SPACEAFTER =              20
-    DATE_FONTSIZE =                 8
-    DATE_ALIGNMENT =                2
+    RIGHT_MARGIN =          30
+    LEFT_MARGIN =           30
+    TOP_MARGIN =            30
+    BOTTOM_MARGIN =         30
+    NORMAL_FONTSIZE =       8
+    NORMAL_LEADING =        10
+    TITLE_FONTSIZE =        20
+    TITLE_ALIGNMENT =       1
+    TITLE_SPACEAFTER =      20
+    DATE_FONTSIZE =         8
+    DATE_ALIGNMENT =        2
     SPACER = (1, 20)
     COL_WIDTHS = [
-        60,
-        60,
-        60,
-        180,
+        60, 
+        60, 
+        60, 
+        180, 
         430
     ]
 
 
 class FormsetConsts:
-    EXTRA =                         0
+    EXTRA =                 0
 
 
 class ProdComponentConsts(IntEnum):
-    DECIMAL_PLACES =                10
-    MAX_DIGITS =                    20
+    DECIMAL_PLACES =        10
+    MAX_DIGITS =            20

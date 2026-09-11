@@ -46,13 +46,9 @@ class Parametr(models.Model):
 
     @classmethod
     def parameters(cls):
-        return (
-            cls.objects
-            .exclude(parametr_type__exact=ParamIds.AGREGAT)
-            .select_related(
-                "par_ei"
-            )
-        )
+        return cls.objects.exclude(
+            parametr_type__exact=ParamIds.AGREGAT
+        ).select_related("par_ei")
 
     @classmethod
     def agregats(cls):

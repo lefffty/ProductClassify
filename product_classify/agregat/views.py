@@ -45,12 +45,7 @@ class AgregatDetailView(
         context = super().get_context_data(**kwargs)
         agregat = self.object
         agregat_parametrs = (
-            Agregat.objects.
-            filter(agr=agregat)
-            .select_related(
-                "par"
-            )
-            .order_by("num")
+            Agregat.objects.filter(agr=agregat).select_related("par").order_by("num")
         )
         context["agr_parametrs"] = agregat_parametrs
         return context
@@ -101,12 +96,8 @@ class AgregatParametrDeleteView(
         agregat_id = self.kwargs.get("agregat_id")
         param_id = self.kwargs.get("param_id")
         return (
-            Agregat.objects.
-            filter(agr=agregat_id, par=param_id)
-            .select_related(
-                "agr",
-                "par"
-            )
+            Agregat.objects.filter(agr=agregat_id, par=param_id)
+            .select_related("agr", "par")
             .first()
         )
 
@@ -139,9 +130,7 @@ class ChangeAgregatNumView(CommonContextMixin, FormView):
 
     def get_agregat(self):
         if not hasattr(self, "_agregat"):
-            self._agregat = get_object_or_404(
-                Parametr, pk=self.kwargs["agregat_id"]
-            )
+            self._agregat = get_object_or_404(Parametr, pk=self.kwargs["agregat_id"])
         return self._agregat
 
     def get_context_data(self, **kwargs):

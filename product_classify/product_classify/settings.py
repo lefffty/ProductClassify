@@ -108,7 +108,7 @@ DATABASES = {
         "DISABLE_SERVER_SIDE_CURSORS": True,
         "OPTIONS": {
             "client_encoding": "UTF8",
-        }
+        },
     },
     "test_db": {
         "ENGINE": "django.db.backends.postgresql",

@@ -33,15 +33,10 @@ def class_products(request: HttpRequest, main_class_id: int, class_id: int):
     main_cls = get_object_or_404(ClassStruct, pk=main_class_id)
 
     class_ = get_object_or_404(
-        ClassStruct.objects.select_related("main_class"),
-        pk=class_id
+        ClassStruct.objects.select_related("main_class"), pk=class_id
     )
 
-    base_qs = (
-        Prod.objects
-        .filter(class_field_id=class_id)
-        .select_related("class_field")
-    )
+    base_qs = Prod.objects.filter(class_field_id=class_id).select_related("class_field")
 
     products_qs = base_qs
 
@@ -85,23 +80,14 @@ class ProductDetailView(
     context_object_name = "product"
 
     def get_queryset(self):
-        return (
-            Prod.objects
-            .select_related(
-                "class_field__main_class"
-            )
-        )
+        return Prod.objects.select_related("class_field__main_class")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         prod = self.object
-        context["params"] = (
-            ParProd.objects.
-            filter(prod=prod)
-            .select_related(
-                "par",
-                "enum_val__enum__main_class",
-            )
+        context["params"] = ParProd.objects.filter(prod=prod).select_related(
+            "par",
+            "enum_val__enum__main_class",
         )
         return context
 

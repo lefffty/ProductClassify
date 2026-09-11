@@ -59,12 +59,7 @@ class ProdClassForm(ModelForm):
 
     class Meta:
         model = ClassStruct
-        fields = (
-            "name", 
-            "short_name", 
-            "base_ei", 
-            "main_class"
-        )
+        fields = ("name", "short_name", "base_ei", "main_class")
         labels = {
             "name": "Название класса",
             "short_name": "Сокращенное название класса",
@@ -121,20 +116,14 @@ class EnumClassForm(ModelForm):
 
     class Meta:
         model = ClassStruct
-        fields = (
-            "name", 
-            "short_name", 
-            "main_class"
-        )
+        fields = ("name", "short_name", "main_class")
         labels = {
             "name": "Название класса",
             "short_name": "Сокращенное название класса",
             "main_class": "Родитель класса",
         }
         error_messages = {
-            "main_class": {
-                "required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR
-            }
+            "main_class": {"required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR}
         }
 
     def __init__(self, *args, **kwargs):
@@ -164,11 +153,7 @@ class EnumClassForm(ModelForm):
 class OperationClassForm(ModelForm):
     class Meta:
         model = ClassStruct
-        fields = (
-            "name",
-            "short_name",
-            "main_class"
-        )
+        fields = ("name", "short_name", "main_class")
         labels = {
             "name": "Название класса",
             "short_name": "Сокращенное название класса",
@@ -178,9 +163,7 @@ class OperationClassForm(ModelForm):
             "main_class": {
                 "required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
             },
-            "name": {
-                "required": ClassStructErrors.EMPTY_NAME_ERROR
-            }
+            "name": {"required": ClassStructErrors.EMPTY_NAME_ERROR},
         }
 
     def __init__(self, *args, **kwargs):
@@ -191,11 +174,7 @@ class OperationClassForm(ModelForm):
 class EconomicActivitySubjectClassForm(ModelForm):
     class Meta:
         model = ClassStruct
-        fields = (
-            "name",
-            "short_name",
-            "main_class"
-        )
+        fields = ("name", "short_name", "main_class")
         labels = {
             "name": "Название класса",
             "short_name": "Сокращенное название класса",
@@ -205,97 +184,83 @@ class EconomicActivitySubjectClassForm(ModelForm):
             "main_class": {
                 "required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
             },
-            "name": {
-                "required": ClassStructErrors.EMPTY_NAME_ERROR
-            }
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["main_class"].queryset = ClassStruct.objects.filter(pk=MetaConsts.ECONOMIC_ACTIVITY_SUBJECT)
-
-
-class MeansOfLaborClassForm(ModelForm):
-    class Meta:
-        model = ClassStruct
-        fields = (
-            "name",
-            "short_name",
-            "main_class"
-        )
-        labels = {
-            "name": "Название класса",
-            "short_name": "Сокращенное название класса",
-            "main_class": "Родитель класса",
-        }
-        error_messages = {
-            "main_class": {
-                "required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
-            },
-            "name": {
-                "required": ClassStructErrors.EMPTY_NAME_ERROR
-            }
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["main_class"].queryset = ClassStruct.objects.filter(pk=MetaConsts.MEANS_OF_LABOR)
-
-
-class QualificationClassForm(ModelForm):
-    class Meta:
-        model = ClassStruct
-        fields = (
-            "name",
-            "short_name",
-            "main_class"
-        )
-        labels = {
-            "name": "Название класса",
-            "short_name": "Сокращенное название класса",
-            "main_class": "Родитель класса",
-        }
-        error_messages = {
-            "main_class": {
-                "required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
-            },
-            "name": {
-                "required": ClassStructErrors.EMPTY_NAME_ERROR
-            }
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["main_class"].queryset = ClassStruct.objects.filter(pk=MetaConsts.QUALIFICATION)
-
-
-class ProfessionClassForm(ModelForm):
-    class Meta:
-        model = ClassStruct
-        fields = (
-            "name",
-            "short_name",
-            "main_class"
-        )
-        labels = {
-            "name": "Название класса",
-            "short_name": "Сокращенное название класса",
-            "main_class": "Родитель класса",
-        }
-        error_messages = {
-            "main_class": {
-                "required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
-            },
-            "name": {
-                "required": ClassStructErrors.EMPTY_NAME_ERROR
-            }
+            "name": {"required": ClassStructErrors.EMPTY_NAME_ERROR},
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["main_class"].queryset = ClassStruct.objects.filter(
-            Q(pk__exact=MetaConsts.PROFESSION) |
-            Q(main_class__exact=MetaConsts.PROFESSION)
+            pk=MetaConsts.ECONOMIC_ACTIVITY_SUBJECT
+        )
+
+
+class MeansOfLaborClassForm(ModelForm):
+    class Meta:
+        model = ClassStruct
+        fields = ("name", "short_name", "main_class")
+        labels = {
+            "name": "Название класса",
+            "short_name": "Сокращенное название класса",
+            "main_class": "Родитель класса",
+        }
+        error_messages = {
+            "main_class": {
+                "required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
+            },
+            "name": {"required": ClassStructErrors.EMPTY_NAME_ERROR},
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["main_class"].queryset = ClassStruct.objects.filter(
+            pk=MetaConsts.MEANS_OF_LABOR
+        )
+
+
+class QualificationClassForm(ModelForm):
+    class Meta:
+        model = ClassStruct
+        fields = ("name", "short_name", "main_class")
+        labels = {
+            "name": "Название класса",
+            "short_name": "Сокращенное название класса",
+            "main_class": "Родитель класса",
+        }
+        error_messages = {
+            "main_class": {
+                "required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
+            },
+            "name": {"required": ClassStructErrors.EMPTY_NAME_ERROR},
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["main_class"].queryset = ClassStruct.objects.filter(
+            pk=MetaConsts.QUALIFICATION
+        )
+
+
+class ProfessionClassForm(ModelForm):
+    class Meta:
+        model = ClassStruct
+        fields = ("name", "short_name", "main_class")
+        labels = {
+            "name": "Название класса",
+            "short_name": "Сокращенное название класса",
+            "main_class": "Родитель класса",
+        }
+        error_messages = {
+            "main_class": {
+                "required": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
+            },
+            "name": {"required": ClassStructErrors.EMPTY_NAME_ERROR},
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["main_class"].queryset = ClassStruct.objects.filter(
+            Q(pk__exact=MetaConsts.PROFESSION)
+            | Q(main_class__exact=MetaConsts.PROFESSION)
         )
 
 
@@ -331,12 +296,7 @@ class ParClassForm(ModelForm):
 
     class Meta:
         model = ParClass
-        fields = (
-            "class_field", 
-            "parametr", 
-            "min_value", 
-            "max_value"
-        )
+        fields = ("class_field", "parametr", "min_value", "max_value")
         labels = {
             "class_field": "Класс изделия",
             "parametr": "Параметр",
@@ -376,7 +336,7 @@ class ParClassForm(ModelForm):
             if min_val or max_val:
                 raise ValidationError(
                     ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(parametr.name)
-                )   
+                )
         # если параметр является численным и минимальное значение больше максимального значения параметра,
         # то выбрасываем исключение с сообщением об этой ошибке
         elif param_tp in NUMERIC_PARAMS:
@@ -414,9 +374,7 @@ class ChangeParClassNumForm(Form):
         super().__init__(*args, **kwargs)
         self.fields["cls_1"] = ModelChoiceField(
             queryset=(
-                ParClass.objects
-                .filter(class_field__id=class_id)
-                .select_related(
+                ParClass.objects.filter(class_field__id=class_id).select_related(
                     "class_field",
                     "parametr",
                 )
@@ -428,9 +386,7 @@ class ChangeParClassNumForm(Form):
         )
         self.fields["cls_2"] = ModelChoiceField(
             queryset=(
-                ParClass.objects
-                .filter(class_field__id=class_id)
-                .select_related(
+                ParClass.objects.filter(class_field__id=class_id).select_related(
                     "class_field",
                     "parametr",
                 )

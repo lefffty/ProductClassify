@@ -141,9 +141,9 @@ class ClassStruct(models.Model):
     @classmethod
     def operations(cls):
         operations = ClassStruct.objects.filter(
-            Q(main_class__exact=MetaConsts.TECH_OPERATION) |
-            Q(pk__exact=MetaConsts.OPERATION) |
-            Q(main_class__exact=MetaConsts.OPERATION)
+            Q(main_class__exact=MetaConsts.TECH_OPERATION)
+            | Q(pk__exact=MetaConsts.OPERATION)
+            | Q(main_class__exact=MetaConsts.OPERATION)
         )
         return operations
 
@@ -262,7 +262,7 @@ class ParClass(models.Model):
 
     def delete(self, *args, **kwargs):
         from products.models import ParProd
-        
+
         ParProd.objects.filter(par=self.parametr).delete()
         super().delete(*args, **kwargs)
 

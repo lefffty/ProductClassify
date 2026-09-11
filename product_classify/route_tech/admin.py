@@ -4,7 +4,7 @@ from route_tech.models import (
     EconomicActivitySubject,
     GroupWorkingCenter,
     ProdOperation,
-    ProdOperationPos
+    ProdOperationPos,
 )
 from route_tech.forms import (
     EconomicActivitySubjectForm,

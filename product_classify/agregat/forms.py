@@ -62,13 +62,9 @@ class ChangeAgregatNumForm(Form):
         agr = kwargs.pop("agr", None)
         super().__init__(*args, **kwargs)
 
-        agregats_qs = (
-            Agregat.objects
-            .filter(agr=agr)
-            .select_related(
-                "agr",
-                "par",
-            ) 
+        agregats_qs = Agregat.objects.filter(agr=agr).select_related(
+            "agr",
+            "par",
         )
 
         choices = [(a.pk, str(a)) for a in agregats_qs]
@@ -78,9 +74,7 @@ class ChangeAgregatNumForm(Form):
             ("par_2", "Параметр 2", AgregatErrors.EMPTY_SECOND_PARAM),
         ):
             field = ModelChoiceField(
-                queryset=Agregat.objects.filter(
-                    pk__in=[pk for pk, _ in choices]
-                ),
+                queryset=Agregat.objects.filter(pk__in=[pk for pk, _ in choices]),
                 label=label,
                 required=True,
                 error_messages={"required": error},

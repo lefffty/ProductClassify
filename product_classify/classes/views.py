@@ -90,19 +90,13 @@ class EnumClassCreateView(
     template_name = "classes/enum_class.html"
 
 
-class OperationClassCreateView(
-    CommonContextMixin,
-    CreateView
-):
+class OperationClassCreateView(CommonContextMixin, CreateView):
     form_class = OperationClassForm
     success_url = reverse_lazy("classes:index")
     template_name = "classes/operation_class.html"
 
 
-class EconomicSubjectActivityCreateView(
-    CommonContextMixin,
-    CreateView
-):
+class EconomicSubjectActivityCreateView(CommonContextMixin, CreateView):
     form_class = EconomicActivitySubjectClassForm
     success_url = reverse_lazy("classes:index")
     template_name = "classes/eas_class.html"
@@ -117,19 +111,13 @@ class MeansOfLaborClassCreateView(
     template_name = "classes/mol_class.html"
 
 
-class QualificationClassCreateView(
-    CommonContextMixin,
-    CreateView
-):
+class QualificationClassCreateView(CommonContextMixin, CreateView):
     form_class = QualificationClassForm
     success_url = reverse_lazy("classes:index")
     template_name = "classes/qualification_class.html"
 
 
-class ProfessionClassCreateView(
-    CommonContextMixin,
-    CreateView
-):
+class ProfessionClassCreateView(CommonContextMixin, CreateView):
     form_class = ProfessionClassForm
     success_url = reverse_lazy("classes:index")
     template_name = "classes/profession_class.html"
@@ -140,6 +128,7 @@ class ClassUpdateView(
     UpdateView,
 ):
     """Представление для изменения экземпляра класса"""
+
     pk_url_kwarg = "class_id"
 
     def get_queryset(self):
@@ -171,12 +160,7 @@ class ClassDeleteView(CommonContextMixin, DeleteView):
     def get_object(self) -> ClassStruct:
         class_id = self.kwargs.get("class_id")
         return (
-            ClassStruct.objects
-            .filter(pk=class_id)
-            .select_related(
-                "main_class"
-            )
-            .first()
+            ClassStruct.objects.filter(pk=class_id).select_related("main_class").first()
         )
 
     def post(self, request, *args, **kwargs):
@@ -200,12 +184,8 @@ class ClassParamsListView(
     def get_queryset(self):
         class_id = self.kwargs.get("class_id")
         params = (
-            ParClass.objects
-            .filter(class_field=class_id)
-            .select_related(
-                "parametr__par_ei",
-                "parametr__parametr_type"
-            )
+            ParClass.objects.filter(class_field=class_id)
+            .select_related("parametr__par_ei", "parametr__parametr_type")
             .order_by("num")
         )
         return params
@@ -214,12 +194,7 @@ class ClassParamsListView(
         context = super().get_context_data(**kwargs)
         class_id = self.kwargs.get("class_id")
         class_ = (
-            ClassStruct.objects
-            .filter(pk=class_id)
-            .select_related(
-                "main_class"
-            )
-            .first()
+            ClassStruct.objects.filter(pk=class_id).select_related("main_class").first()
         )
         context["class"] = class_
         return context
