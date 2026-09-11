@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.http import HttpRequest
-from django.db.models import OuterRef
+from django.db.models import Exists, OuterRef
 from django.views.generic import (
     FormView,
     DetailView,
@@ -31,25 +31,35 @@ from products.models import (
 
 def class_products(request: HttpRequest, main_class_id: int, class_id: int):
     main_cls = get_object_or_404(ClassStruct, pk=main_class_id)
-    class_ = get_object_or_404(ClassStruct, pk=class_id)
-    class_ = ClassStruct.objects.filter(pk=class_id).select_related("main_class").first()
 
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=ProductsConsts.FASTENER_ID
+    class_ = get_object_or_404(
+        ClassStruct.objects.select_related("main_class"),
+        pk=class_id
     )
-    search_form = SearchForm(request.GET, cls=class_)
 
-    products_qs = Prod.objects.filter(class_field=class_id).select_related("class_field")
+    base_qs = (
+        Prod.objects
+        .filter(class_field_id=class_id)
+        .select_related("class_field")
+    )
+
+    products_qs = base_qs
+
+    search_form = SearchForm(request.GET, cls=class_)
 
     if search_form.is_valid():
         form_data = search_form.cleaned_data
         products_qs = get_filtered_products(products_qs, form_data, class_id)
 
-    products_no_params = Prod.objects.filter(class_field=class_id).exclude(
-        id__in=ParProd.objects.filter(prod=OuterRef("pk")).values("prod")
-    ).select_related("class_field")
+    products_no_params = base_qs.annotate(
+        has_params=Exists(ParProd.objects.filter(prod=OuterRef("pk")))
+    ).filter(has_params=False)
 
     prod_count = products_qs.count() + products_no_params.count()
+
+    fastener_classes = ClassStruct.objects.filter(
+        main_class__exact=ProductsConsts.FASTENER_ID
+    )
 
     context = {
         "id": class_id,

@@ -1,5 +1,6 @@
 from django.urls import reverse_lazy
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.views.generic import (
     FormView,
     ListView,
@@ -33,6 +34,7 @@ class AgregatDetailView(
 ):
     template_name = "agregat/detail.html"
     pk_url_kwarg = "agregat_id"
+    context_object_name = "agregat"
 
     def get_object(self):
         agregat_id = self.kwargs.get("agregat_id")
@@ -41,10 +43,16 @@ class AgregatDetailView(
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        agregat = self.get_object()
-        agregat_parametrs = Agregat.objects.filter(agr=agregat).order_by("num")
+        agregat = self.object
+        agregat_parametrs = (
+            Agregat.objects.
+            filter(agr=agregat)
+            .select_related(
+                "par"
+            )
+            .order_by("num")
+        )
         context["agr_parametrs"] = agregat_parametrs
-        context["agregat"] = agregat
         return context
 
 
@@ -92,7 +100,15 @@ class AgregatParametrDeleteView(
     def get_object(self):
         agregat_id = self.kwargs.get("agregat_id")
         param_id = self.kwargs.get("param_id")
-        return Agregat.objects.get(agr=agregat_id, par=param_id)
+        return (
+            Agregat.objects.
+            filter(agr=agregat_id, par=param_id)
+            .select_related(
+                "agr",
+                "par"
+            )
+            .first()
+        )
 
     def get_success_url(self):
         agregat_id = self.kwargs.get("agregat_id")
@@ -121,15 +137,21 @@ class ChangeAgregatNumView(CommonContextMixin, FormView):
     template_name = "agregat/change_agr_num.html"
     form_class = ChangeAgregatNumForm
 
+    def get_agregat(self):
+        if not hasattr(self, "_agregat"):
+            self._agregat = get_object_or_404(
+                Parametr, pk=self.kwargs["agregat_id"]
+            )
+        return self._agregat
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["instance"] = Parametr.objects.get(pk=self.kwargs.get("agregat_id"))
+        context["instance"] = self.get_agregat()
         return context
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        agregat = Parametr.objects.get(pk=self.kwargs.get("agregat_id"))
-        kwargs["agr"] = agregat
+        kwargs["agr"] = self.get_agregat()
         return kwargs
 
     def get_success_url(self):

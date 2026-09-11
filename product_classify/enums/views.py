@@ -45,12 +45,14 @@ class EnumsDetailView(
     context_object_name = "enum"
     pk_url_kwarg = "enum_id"
 
-    def get_context_data(self, **kwargs):
-        enum_obj: Enums = self.get_object()
-        enum_value = enum_obj.value
-        context = super().get_context_data(**kwargs)
-        context["enum_value"] = enum_value
-        return context
+    def get_queryset(self):
+        return (
+            Enums.objects
+            .select_related(
+                "enum",
+                "enum__main_class",
+            )
+        )
 
 
 class EnumsCreateView(
@@ -71,6 +73,14 @@ class EnumsDeleteView(
     template_name = "enums/enum.html"
     pk_url_kwarg = "enum_id"
     context_object_name = "instance"
+
+    def get_queryset(self):
+        return (
+            Enums.objects
+            .select_related(
+                "enum__main_class",
+            )
+        )
 
     def get_success_url(self):
         class_id = self.kwargs.get("class_id")
@@ -93,9 +103,17 @@ class EnumsUpdateView(
     pk_url_kwarg = "enum_id"
     context_object_name = "instance"
 
+    def get_queryset(self):
+        return (
+            Enums.objects
+            .select_related(
+                "enum__main_class",
+            )
+        )
+
     def get_success_url(self):
         class_id = self.kwargs.get("class_id")
-        pk = self.get_object().pk
+        pk = self.object.pk
         return reverse_lazy(
             "enums:detail",
             kwargs={

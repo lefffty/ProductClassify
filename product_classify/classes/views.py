@@ -140,33 +140,26 @@ class ClassUpdateView(
     UpdateView,
 ):
     """Представление для изменения экземпляра класса"""
+    pk_url_kwarg = "class_id"
 
-    def get_object(self):
-        class_id = self.kwargs.get("class_id")
-        class_ = ClassStruct.objects.get(pk=class_id)
-        return class_
+    def get_queryset(self):
+        return ClassStruct.objects.select_related("main_class")
 
     def get_template_names(self):
-        class_id = self.kwargs.get("class_id")
-        class_ = ClassStruct.objects.get(pk=class_id)
-        if class_.main_class.pk in ENUMS_IDS:
+        if self.object.main_class_id in ENUMS_IDS:
             return ["classes/enum_class.html"]
         return ["classes/prod_class.html"]
 
     def get_form_class(self):
-        class_id = self.kwargs.get("class_id")
-        class_ = ClassStruct.objects.get(pk=class_id)
-        if class_.main_class.pk in ENUMS_IDS:
+        if self.object.main_class_id in ENUMS_IDS:
             return EnumClassForm
         return ProdClassForm
 
     def get_success_url(self):
-        class_id = self.kwargs.get("class_id")
-        class_ = ClassStruct.objects.get(pk=class_id)
         return reverse_lazy(
             "classes:category_classes",
             kwargs={
-                "class_id": class_.main_class.pk,
+                "class_id": self.object.main_class_id,
             },
         )
 
@@ -177,7 +170,14 @@ class ClassDeleteView(CommonContextMixin, DeleteView):
 
     def get_object(self) -> ClassStruct:
         class_id = self.kwargs.get("class_id")
-        return ClassStruct.objects.get(pk=class_id)
+        return (
+            ClassStruct.objects
+            .filter(pk=class_id)
+            .select_related(
+                "main_class"
+            )
+            .first()
+        )
 
     def post(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -199,15 +199,28 @@ class ClassParamsListView(
 
     def get_queryset(self):
         class_id = self.kwargs.get("class_id")
-        params = ParClass.objects.filter(
-            class_field=class_id,
-        ).order_by("num")
+        params = (
+            ParClass.objects
+            .filter(class_field=class_id)
+            .select_related(
+                "parametr__par_ei",
+                "parametr__parametr_type"
+            )
+            .order_by("num")
+        )
         return params
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         class_id = self.kwargs.get("class_id")
-        class_ = ClassStruct.objects.get(pk=class_id)
+        class_ = (
+            ClassStruct.objects
+            .filter(pk=class_id)
+            .select_related(
+                "main_class"
+            )
+            .first()
+        )
         context["class"] = class_
         return context
 

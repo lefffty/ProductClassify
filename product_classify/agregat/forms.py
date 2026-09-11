@@ -61,18 +61,32 @@ class ChangeAgregatNumForm(Form):
     def __init__(self, *args, **kwargs):
         agr = kwargs.pop("agr", None)
         super().__init__(*args, **kwargs)
-        self.fields["par_1"] = ModelChoiceField(
-            queryset=Agregat.objects.filter(agr=agr),
-            label="Параметр 1",
-            required=True,
-            error_messages={"required": AgregatErrors.EMPTY_FIRST_PARAM},
+
+        agregats_qs = (
+            Agregat.objects
+            .filter(agr=agr)
+            .select_related(
+                "agr",
+                "par",
+            ) 
         )
-        self.fields["par_2"] = ModelChoiceField(
-            queryset=Agregat.objects.filter(agr=agr),
-            label="Параметр 2",
-            required=True,
-            error_messages={"required": AgregatErrors.EMPTY_SECOND_PARAM},
-        )
+
+        choices = [(a.pk, str(a)) for a in agregats_qs]
+
+        for field_name, label, error in (
+            ("par_1", "Параметр 1", AgregatErrors.EMPTY_FIRST_PARAM),
+            ("par_2", "Параметр 2", AgregatErrors.EMPTY_SECOND_PARAM),
+        ):
+            field = ModelChoiceField(
+                queryset=Agregat.objects.filter(
+                    pk__in=[pk for pk, _ in choices]
+                ),
+                label=label,
+                required=True,
+                error_messages={"required": error},
+            )
+            field.widget.choices = choices
+            self.fields[field_name] = field
 
     def clean(self):
         cleaned_data = super().clean()

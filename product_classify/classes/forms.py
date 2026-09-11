@@ -413,14 +413,28 @@ class ChangeParClassNumForm(Form):
         class_id = kwargs.pop("class_id", None)
         super().__init__(*args, **kwargs)
         self.fields["cls_1"] = ModelChoiceField(
-            queryset=ParClass.objects.filter(class_field__id=class_id),
+            queryset=(
+                ParClass.objects
+                .filter(class_field__id=class_id)
+                .select_related(
+                    "class_field",
+                    "parametr",
+                )
+            ),
             label="Класс изделия 1",
             error_messages={
                 "required": ChangeParClassErrors.EMPTY_FIRST_PAR,
             },
         )
         self.fields["cls_2"] = ModelChoiceField(
-            queryset=ParClass.objects.filter(class_field__id=class_id),
+            queryset=(
+                ParClass.objects
+                .filter(class_field__id=class_id)
+                .select_related(
+                    "class_field",
+                    "parametr",
+                )
+            ),
             label="Класс изделия 2",
             error_messages={
                 "required": ChangeParClassErrors.EMPTY_SECOND_PAR,

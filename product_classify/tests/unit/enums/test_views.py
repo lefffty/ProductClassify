@@ -107,10 +107,6 @@ class EnumsDetailViewTest(BaseUnitTestCase):
         response = self.client.get(self.url)
         self.assertIn("enum", response.context)
 
-    def test_enums_detail_views_has_enum_value_is_context(self):
-        response = self.client.get(self.url)
-        self.assertIn("enum_value", response.context)
-
     def test_enums_detail_views_correctly_renders_information_about_enum(self):
         response = self.client.get(self.url)
         self.assertContains(response, self.enum.enum.name)
