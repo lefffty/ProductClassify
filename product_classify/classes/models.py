@@ -49,6 +49,9 @@ class ClassStruct(models.Model):
     class Meta:
         verbose_name = "Классификатор"
         verbose_name_plural = "Классификатор"
+        permissions = [
+            ("keep_account_of_means_of_labor", "Может вести учет средства труда"),
+        ]
 
     def __str__(self):
         return self.name
