@@ -46,6 +46,8 @@ class Role(models.Model):
         ordering = (
             "name",
         )
+        verbose_name = "Роль"
+        verbose_name_plural = "Роли"
 
     def __str__(self):
         return self.name
