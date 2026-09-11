@@ -105,6 +105,10 @@ DATABASES = {
         "PASSWORD": os.getenv("PASSWORD"),
         "HOST": os.getenv("HOST_NAME"),
         "PORT": os.getenv("PORT"),
+        "DISABLE_SERVER_SIDE_CURSORS": True,
+        "OPTIONS": {
+            "client_encoding": "UTF8",
+        }
     },
     "test_db": {
         "ENGINE": "django.db.backends.postgresql",
@@ -163,3 +167,5 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 FIXTURE_DIRS = [BASE_DIR / "fixtures"]
+
+AUTH_USER_MODEL = "accounts.User"
