@@ -65,7 +65,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if param.enum_val.enum.main_class.id == 16 %}
+                                    {% if param.enum_val and param.enum_val.enum.main_class.id == 16 %}
                                         <a href="{% url 'enums:detail' param.enum_val.enum.main_class.id param.enum_val.id %}"
                                            class="d-inline-block">
                                             <img src="{{ param.enum_val.image.url }}"

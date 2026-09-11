@@ -1,3 +1,6 @@
+from collections import defaultdict
+
+from django.db.models import Exists, OuterRef
 from django.forms import (
     ModelChoiceField,
     IntegerField,
@@ -268,28 +271,62 @@ class SearchForm(Form):
         cls = kwargs.pop("cls", None)
         super().__init__(*args, **kwargs)
 
-        for par_class in ParClass.objects.filter(class_field=cls):
+        par_classes = list(
+            ParClass.objects
+            .filter(class_field=cls)
+            .select_related("parametr", "parametr__parametr_type")
+            .annotate(
+                has_parprod=Exists(
+                    ParProd.objects.filter(par=OuterRef("parametr_id"))
+                )
+            )
+        )
+
+        parametr_ids = [pc.parametr_id for pc in par_classes]
+
+        enums_by_parametr = defaultdict(list)
+
+        for parprod in (
+            ParProd.objects
+            .filter(par__in=parametr_ids)
+            .select_related("enum_val")
+        ):
+            if parprod.enum_val is None:
+                continue
+            enums_by_parametr[parprod.par_id].append(parprod.enum_val)
+
+        all_enum_ids = [
+            e.pk for lst in enums_by_parametr.values() for e in lst
+        ]
+        enums_qs = (
+            Enums.objects.
+            filter(pk__in=all_enum_ids)
+            .select_related("enum")
+        )
+
+        for par_class in par_classes:
             par_type = par_class.parametr.parametr_type.id
             par_name = par_class.parametr.name
-            if (
-                par_type in NUMERIC_PARAMS
-                and ParProd.objects.filter(par=par_class.parametr).exists()
-            ):
+
+            if not par_class.has_parprod:
+                continue
+
+            if par_type in NUMERIC_PARAMS:
                 min_value = par_class.min_value
                 max_value = par_class.max_value
                 self.fields[f"{par_name}"] = RangeField(
                     label=f"{par_name}",
                     required=False,
-                    help_text=f"""Вводить в формате "min-max" (например, "10.0-20.0").<br>Границы диапазоны: {min_value}-{max_value}""",
+                    help_text=(
+                        f'Вводить в формате "min-max" (например, "10.0-20.0").'
+                        f"<br>Границы диапазоны: {min_value}-{max_value}"
+                    ),
                 )
-            elif (
-                par_type in ENUM_PARAMS
-                and ParProd.objects.filter(par=par_class.parametr).exists()
-            ):
+
+            elif par_type in ENUM_PARAMS:
+                enum_pks = [e.pk for e in enums_by_parametr[par_class.parametr_id]]
                 self.fields[par_name] = ModelChoiceField(
-                    queryset=Enums.objects.filter(
-                        parprod__par=par_class.parametr
-                    ).distinct(),
+                    queryset=enums_qs.filter(pk__in=enum_pks),
                     required=False,
                     label=par_name,
                 )

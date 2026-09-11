@@ -32,13 +32,14 @@ from products.models import (
 def class_products(request: HttpRequest, main_class_id: int, class_id: int):
     main_cls = get_object_or_404(ClassStruct, pk=main_class_id)
     class_ = get_object_or_404(ClassStruct, pk=class_id)
+    class_ = ClassStruct.objects.filter(pk=class_id).select_related("main_class").first()
 
     fastener_classes = ClassStruct.objects.filter(
         main_class__exact=ProductsConsts.FASTENER_ID
     )
     search_form = SearchForm(request.GET, cls=class_)
 
-    products_qs = Prod.objects.filter(class_field=class_id)
+    products_qs = Prod.objects.filter(class_field=class_id).select_related("class_field")
 
     if search_form.is_valid():
         form_data = search_form.cleaned_data
@@ -46,7 +47,7 @@ def class_products(request: HttpRequest, main_class_id: int, class_id: int):
 
     products_no_params = Prod.objects.filter(class_field=class_id).exclude(
         id__in=ParProd.objects.filter(prod=OuterRef("pk")).values("prod")
-    )
+    ).select_related("class_field")
 
     prod_count = products_qs.count() + products_no_params.count()
 
@@ -73,10 +74,25 @@ class ProductDetailView(
     pk_url_kwarg = "product_id"
     context_object_name = "product"
 
+    def get_queryset(self):
+        return (
+            Prod.objects
+            .select_related(
+                "class_field__main_class"
+            )
+        )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        prod = self.get_object()
-        context["params"] = ParProd.objects.filter(prod=prod)
+        prod = self.object
+        context["params"] = (
+            ParProd.objects.
+            filter(prod=prod)
+            .select_related(
+                "par",
+                "enum_val__enum__main_class",
+            )
+        )
         return context
 
 

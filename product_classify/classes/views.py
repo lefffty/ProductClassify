@@ -50,19 +50,21 @@ class CategoryClassesListView(
     context_object_name = "classes"
 
     def get_queryset(self):
-        class_id = self.kwargs.get("class_id")
+        self.class_id = self.kwargs.get("class_id")
         try:
-            cls = ClassStruct.objects.get(pk=class_id)
-            classes = ClassStruct.objects.filter(main_class=cls).order_by("id")
+            self.cls = ClassStruct.objects.get(pk=self.class_id)
+            classes = (
+                ClassStruct.objects.filter(main_class=self.cls)
+                .select_related("main_class")
+                .order_by("id")
+            )
             return classes
         except ClassStruct.DoesNotExist:
-            raise Http404(f"Класса с ID={class_id} не существует")
+            raise Http404(f"Класса с ID={self.class_id} не существует")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        class_id = self.kwargs.get("class_id")
-        main_class = ClassStruct.objects.get(pk=class_id)
-        context["main_class"] = main_class
+        context["main_class"] = self.cls
         return context
 
 

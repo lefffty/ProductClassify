@@ -115,14 +115,15 @@ class Enums(models.Model):
             raise ValidationError(DoubleEnumErrors.WRONG_FIELDS_WAS_SPECIFIED_ERROR)
 
     def __str__(self):
+        main_class_id = self.enum.main_class_id
         # если данное значение перечисления является перечислением строк или изображений
         if (
-            self.enum.main_class.id == EnumsIds.STRING
-            or self.enum.main_class.id == EnumsIds.IMAGE
+            main_class_id == EnumsIds.STRING
+            or main_class_id == EnumsIds.IMAGE
         ):
             return self.short_name
         # если данное значение перечисления является перечислением вещественных чисел
-        elif self.enum.main_class.id == EnumsIds.DOUBLE:
+        elif main_class_id == EnumsIds.DOUBLE:
             return str(self.double_value)
         # если данное значение перечисления является перечислением целых чисел
         else:

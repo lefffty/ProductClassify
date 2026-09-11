@@ -21,6 +21,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls import handler404, handler500
 
+from debug_toolbar.toolbar import debug_toolbar_urls
+
 from core.views import custom_404_handler, custom_500_handler
 
 handler404 = custom_404_handler
@@ -36,7 +38,7 @@ urlpatterns = [
     path("enums/", include("enums.urls")),
     path("specifications/", include("specifications.urls")),
     path("route_tech/", include("route_tech.urls")),
-]
+] + debug_toolbar_urls()
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
