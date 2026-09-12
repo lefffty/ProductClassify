@@ -29,6 +29,22 @@
       </li>
       <li><a href="{% url "parametr:list" %}">Параметры</a></li>
       <li><a href="{% url "agregat:list" %}">Агрегаты</a></li>
+
+      {% if user.is_authenticated %}
+        <li class="nav-dropdown nav-user">
+          <a href="#">
+            <i class="bi bi-person-circle"></i>
+            {{ user.email }}
+          </a>
+          <ul class="nav-dropdown-list">
+            {% if user.is_staff %}
+              <li><a href="{% url "admin:index" %}">Администрирование</a></li>
+            {% endif %}
+          </ul>
+        </li>
+      {% else %}
+        <li><a href="{% url "accounts:login" %}">Вход</a></li>
+      {% endif %}
     </ul>
   </div>
 </nav>

@@ -83,6 +83,8 @@ class LoginForm(forms.Form):
         super().__init__(*args, **kwargs)
         # сохраняем объект запрос для последующего использования при аутентификации
         self.request = request
+        # сохраняем пользователя в форме чтобы потом передать его в функцию login
+        self.user = None
 
     def clean(self):
         # очищаем введенные данные
@@ -96,7 +98,7 @@ class LoginForm(forms.Form):
         # если введены оба поля
         if email and password:
             try:
-                user = User.objects.get(email=email)
+                self.user = User.objects.get(email=email)
             # если пользователь не найден, то поднимаем исключение
             except User.DoesNotExist:
                 User().set_password(password)
@@ -104,14 +106,14 @@ class LoginForm(forms.Form):
                     UserErrors.INVALID_CREDENTIALS
                 )
 
-            # если пользователь не аутентифицирован, поднимаем исключение
-            if not user.check_password(password):
+            # если пароль неправильный, то поднимаем исключение
+            if not self.user.check_password(password):
                 raise forms.ValidationError(
                     UserErrors.INVALID_CREDENTIALS,
                 )
 
             # если пользователь не активен, поднимаем исключение
-            if not user.is_active:
+            if not self.user.is_active:
                 raise forms.ValidationError(
                     UserErrors.INACTIVE_USER
                 )

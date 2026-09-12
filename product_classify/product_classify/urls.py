@@ -38,6 +38,7 @@ urlpatterns = [
     path("enums/", include("enums.urls")),
     path("specifications/", include("specifications.urls")),
     path("route_tech/", include("route_tech.urls")),
+    path("accounts/", include("accounts.urls")),
 ] + debug_toolbar_urls()
 
 if settings.DEBUG:
