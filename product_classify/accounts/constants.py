@@ -11,3 +11,4 @@ class UserConsts(IntEnum):
     LAST_NAME_MAX_LENGTH =          100
     EMAIL_MAX_LENGTH =              100
     PHONE_NUMBER_MAX_LENGTH =       18
+    PASSWORD_MAX_LENGTH =           128

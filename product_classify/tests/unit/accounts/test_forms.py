@@ -1,14 +1,21 @@
 from django.contrib.auth.models import Group
+from django.contrib.auth import get_user_model, authenticate
+from django.test import RequestFactory
+from django import forms
+
 from faker import Faker
 
 from tests.unit.base import BaseUnitTestCase
 
-from accounts.forms import SignUpForm
-from accounts.models import User, Role
+from accounts.forms import SignUpForm, LoginForm
+from accounts.models import Role
 from accounts.constants import (
     UserConsts, RoleConsts
 )
-from accounts.errors import SignUpErrors
+from accounts.errors import SignUpErrors, UserErrors
+
+
+User = get_user_model()
 
 
 class SignUpFormTest(BaseUnitTestCase):
@@ -243,3 +250,252 @@ class SignUpFormTest(BaseUnitTestCase):
         self.assertEqual(form.fields["role"].label, "Роль")
         self.assertEqual(form.fields["role"].empty_label, "Выберите роль")
         self.assertTrue(form.fields["role"].required)
+
+
+class LoginFormTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+        cls.factory = RequestFactory()
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.active_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+        )
+
+        cls.inactive_email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.inactive_password = "StrongPass456!"
+        cls.inactive_user = User.objects.create_user(
+            email=cls.inactive_email,
+            first_name=cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH],
+            last_name=cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH],
+            phone_number="+7 (111) 222-33-44",
+            password=cls.inactive_password,
+        )
+        cls.inactive_user.is_active = False
+        cls.inactive_user.save()
+
+        cls.valid_data = {
+            "email": cls.email,
+            "password": cls.password,
+        }
+
+        cls.empty_email_data = {
+            "email": "",
+            "password": cls.password,
+        }
+        cls.empty_password_data = {
+            "email": cls.email,
+            "password": "",
+        }
+        cls.empty_both_data = {
+            "email": "",
+            "password": "",
+        }
+
+        cls.wrong_password_data = {
+            "email": cls.email,
+            "password": "WrongPassword999!",
+        }
+        cls.unknown_email_data = {
+            "email": "nonexistent@example.com",
+            "password": cls.password,
+        }
+
+        cls.inactive_user_data = {
+            "email": cls.inactive_email,
+            "password": cls.inactive_password,
+        }
+
+        cls.invalid_email_data = {
+            "email": "not-an-email",
+            "password": cls.password,
+        }
+
+        cls.too_long_email_data = {
+            "email": "a" * (UserConsts.EMAIL_MAX_LENGTH + 1) + "@example.com",
+            "password": cls.password,
+        }
+        cls.too_long_password_data = {
+            "email": cls.email,
+            "password": "x" * (UserConsts.PASSWORD_MAX_LENGTH + 1),
+        }
+
+    def test_valid_form_data(self):
+        form = LoginForm(data=self.valid_data)
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_valid_form_authenticates_user(self):
+        request = self.factory.post("/login/")
+        form = LoginForm(data=self.valid_data, request=request)
+        self.assertTrue(form.is_valid(), form.errors)
+
+        user = authenticate(
+            request=request,
+            username=self.valid_data["email"],
+            password=self.valid_data["password"],
+        )
+        self.assertIsNotNone(user)
+        self.assertEqual(user.pk, self.active_user.pk)
+
+    def test_form_without_request_still_valid(self):
+        form = LoginForm(data=self.valid_data)
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_email_is_required(self):
+        form = LoginForm(data=self.empty_email_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("email", form.errors)
+        self.assertEqual(
+            form.errors["email"][0],
+            UserErrors.EMPTY_EMAIL,
+        )
+
+    def test_password_is_required(self):
+        form = LoginForm(data=self.empty_password_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("password", form.errors)
+        self.assertEqual(
+            form.errors["password"][0],
+            UserErrors.EMPTY_PASSWORD,
+        )
+
+    def test_empty_both_fields(self):
+        form = LoginForm(data=self.empty_both_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("email", form.errors)
+        self.assertIn("password", form.errors)
+
+    def test_wrong_password_is_invalid(self):
+        form = LoginForm(data=self.wrong_password_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            UserErrors.INVALID_CREDENTIALS,
+            form.errors["__all__"],
+        )
+
+    def test_unknown_email_is_invalid(self):
+        form = LoginForm(data=self.unknown_email_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            UserErrors.INVALID_CREDENTIALS,
+            form.errors["__all__"],
+        )
+
+    def test_invalid_credentials_does_not_reveal_which_field_is_wrong(self):
+        form_wrong_password = LoginForm(data=self.wrong_password_data)
+        form_unknown_email = LoginForm(data=self.unknown_email_data)
+
+        self.assertFalse(form_wrong_password.is_valid())
+        self.assertFalse(form_unknown_email.is_valid())
+
+        self.assertEqual(
+            form_wrong_password.errors["__all__"][0],
+            form_unknown_email.errors["__all__"][0],
+        )
+
+    def test_inactive_user_is_invalid(self):
+        form = LoginForm(data=self.inactive_user_data)
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            form.errors["__all__"][0],
+            UserErrors.INACTIVE_USER,
+        )
+
+    def test_inactive_user_message_differs_from_invalid_credentials(self):
+        form_inactive = LoginForm(data=self.inactive_user_data)
+        form_wrong = LoginForm(data=self.wrong_password_data)
+
+        self.assertNotEqual(
+            form_inactive.errors["__all__"][0],
+            form_wrong.errors["__all__"][0],
+        )
+
+    def test_invalid_email_format_is_invalid(self):
+        form = LoginForm(data=self.invalid_email_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("email", form.errors)
+
+    def test_too_long_email_is_invalid(self):
+        form = LoginForm(data=self.too_long_email_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("email", form.errors)
+
+    def test_too_long_password_is_invalid(self):
+        form = LoginForm(data=self.too_long_password_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn("password", form.errors)
+
+    def test_email_field_metadata(self):
+        form = LoginForm()
+        field = form.fields["email"]
+
+        self.assertEqual(field.label, "Адрес электронной почты")
+        self.assertEqual(field.help_text, "Введите адрес электронной почты")
+        self.assertEqual(field.max_length, UserConsts.EMAIL_MAX_LENGTH)
+        self.assertTrue(field.required)
+        self.assertIsInstance(field.widget, forms.EmailInput)
+        self.assertEqual(field.widget.attrs.get("class"), "form-control")
+        self.assertEqual(field.widget.attrs.get("autocomplete"), "email")
+        self.assertEqual(field.widget.attrs.get("placeholder"), "you@example.com")
+
+    def test_password_field_metadata(self):
+        form = LoginForm()
+        field = form.fields["password"]
+
+        self.assertEqual(field.label, "Пароль")
+        self.assertEqual(field.help_text, "Введите пароль")
+        self.assertEqual(field.max_length, UserConsts.PASSWORD_MAX_LENGTH)
+        self.assertTrue(field.required)
+        self.assertIsInstance(field.widget, forms.PasswordInput)
+        self.assertEqual(field.widget.attrs.get("class"), "form-control")
+        self.assertEqual(field.widget.attrs.get("autocomplete"), "current-password")
+
+    def test_email_error_message(self):
+        form = LoginForm(data=self.empty_email_data)
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            form.fields["email"].error_messages["required"],
+            UserErrors.EMPTY_EMAIL,
+        )
+
+    def test_password_error_message(self):
+        form = LoginForm(data=self.empty_password_data)
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            form.fields["password"].error_messages["required"],
+            UserErrors.EMPTY_PASSWORD,
+        )
+
+    def test_form_without_request(self):
+        form = LoginForm(data=self.valid_data)
+        self.assertIsNone(form.request)
+
+    def test_clean_returns_cleaned_data(self):
+        form = LoginForm(data=self.valid_data)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data["email"], self.email)
+        self.assertEqual(form.cleaned_data["password"], self.password)
+
+    def test_clean_does_not_call_authenticate_with_empty_fields(self):
+        form = LoginForm(data=self.empty_both_data)
+        self.assertFalse(form.is_valid())
+        self.assertNotIn("__all__", form.errors)
+
+    def test_email_is_case_sensitive(self):
+        data = {
+            "email": self.email.upper(),
+            "password": self.password,
+        }
+        form = LoginForm(data=data)
+        self.assertFalse(form.is_valid())
+        self.assertIn(UserErrors.INVALID_CREDENTIALS, form.errors["__all__"])
