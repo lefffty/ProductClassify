@@ -19,25 +19,33 @@ class Role(models.Model):
     code = models.SlugField(
         verbose_name="Идентификатор",
         unique=True,
+        null=False,
+        blank=False,
     )
     name = models.CharField(
         verbose_name="Название роли",
         max_length=RoleConsts.NAME_MAX_LENGTH,
         unique=True,
+        null=False,
+        blank=False,
     )
     description = models.TextField(
         verbose_name="Описание роли",
         blank=True,
+        null=True,
     )
     group = models.OneToOneField(
         Group,
         on_delete=models.CASCADE,
         related_name="role",
         verbose_name="Группа",
+        null=False,
     )
     is_self_registerable = models.BooleanField(
         verbose_name="Является ли роль саморегистрируемой",
         default=True,
+        null=False,
+        blank=False,
     )
 
     class Meta:
