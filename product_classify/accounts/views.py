@@ -1,11 +1,16 @@
 from django.http import HttpRequest, HttpResponse
-from django.contrib.auth import login, logout
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
+from django.contrib.auth import login, logout, get_user_model
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from accounts.forms import LoginForm, SignUpForm
+
+User = get_user_model()
+
 
 
 def login_view(request: HttpRequest) -> HttpResponse:
@@ -71,5 +76,20 @@ def signup_view(request: HttpRequest) -> HttpResponse:
         "accounts/signup.html",
         context={
             "form": form
+        }
+    )
+
+
+@login_required
+def profile_view(request: HttpRequest):
+    user = get_object_or_404(
+        User.objects.select_related("role"),
+        pk=request.user.pk
+    )
+    return render(
+        request,
+        "accounts/profile.html",
+        context={
+            "user": user,
         }
     )

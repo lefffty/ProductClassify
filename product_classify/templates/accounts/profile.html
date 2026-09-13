@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+    Профиль пользователя
+{% endblock title %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title h4 mb-4">
+                        <i class="bi bi-person-circle text-primary"></i> Профиль пользователя
+                    </h2>
+
+                    <dl class="row mb-4">
+                        <dt class="col-sm-4 fw-semibold">Адрес электронной почты</dt>
+                        <dd class="col-sm-8">{{ user.email }}</dd>
+
+                        <dt class="col-sm-4 fw-semibold">Фамилия</dt>
+                        <dd class="col-sm-8">{{ user.last_name }}</dd>
+
+                        <dt class="col-sm-4 fw-semibold">Имя</dt>
+                        <dd class="col-sm-8">{{ user.first_name }}</dd>
+
+                        <dt class="col-sm-4 fw-semibold">Отчество</dt>
+                        <dd class="col-sm-8">
+                            {% if user.middle_name %}
+                                {{ user.middle_name }}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4 fw-semibold">Номер телефона</dt>
+                        <dd class="col-sm-8">{{ user.phone_number }}</dd>
+
+                        <dt class="col-sm-4 fw-semibold">Роль</dt>
+                        <dd class="col-sm-8">
+                            {% if user.role %}
+                                {{ user.role.name }}
+                            {% else %}
+                                <span class="text-muted">Не назначена</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4 fw-semibold">Дата регистрации</dt>
+                        <dd class="col-sm-8">{{ user.date_joined|date:"d.m.Y H:i" }}</dd>
+
+                        <dt class="col-sm-4 fw-semibold">Статус</dt>
+                        <dd class="col-sm-8">
+                            {% if user.is_active %}
+                                <span class="badge bg-success">Активен</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Отключён</span>
+                            {% endif %}
+                            {% if user.is_staff %}
+                                <span class="badge bg-info text-dark">Сотрудник</span>
+                            {% endif %}
+                            {% if user.is_superuser %}
+                                <span class="badge bg-warning text-dark">Суперпользователь</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-box-arrow-right"></i> Выйти
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

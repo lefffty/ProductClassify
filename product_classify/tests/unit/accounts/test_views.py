@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from django.http import HttpRequest
 from django.urls import reverse
 from django.conf import settings
@@ -384,3 +386,70 @@ class SignUpViewTest(BaseUnitTestCase):
     def test_non_unique_phone_number_validation_error_is_shown_on_page(self):
         response = self.client.post(self.signup_url, self.invalid_phone_number_data)
         self.assertContains(response, SignUpErrors.NON_UNIQUE_PHONE_NUMBER)
+
+
+class ProfileViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        group_self = Group.objects.create(name=cls.faker.name()[:16])
+        cls.self_registerable_role = Role.objects.create(
+            code=cls.faker.slug()[:50],
+            name=cls.faker.name()[:RoleConsts.NAME_MAX_LENGTH],
+            description=cls.faker.text(),
+            group=group_self,
+            is_self_registerable=True,
+        )
+
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.active_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.self_registerable_role,
+        )
+
+        cls.url = reverse("accounts:profile")
+        cls.login_url = reverse("accounts:login")
+
+    def test_uses_profile_template(self):
+        self.client.force_login(self.active_user)
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "accounts/profile.html")
+
+    def test_has_user_in_context(self):
+        self.client.force_login(self.active_user)
+        response = self.client.get(self.url)
+        self.assertIn("user", response.context)
+
+    def test_profile_returns_200_status_code(self):
+        self.client.force_login(self.active_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_redirects_anonymous_user_to_index_page_when_trying_to_access_profile_page(self):
+        response = self.client.get(self.url)
+        expected_url = f"{self.login_url}?{urlencode({"next": self.url})}"
+        self.assertRedirects(response, expected_url)
+
+    def test_correctly_shows_all_information_about_user(self):
+        self.client.force_login(self.active_user)
+        response = self.client.get(self.url)
+        self.assertContains(response, self.active_user.email)
+        self.assertContains(response, self.active_user.first_name)
+        self.assertContains(response, self.active_user.middle_name)
+        self.assertContains(response, self.active_user.last_name)
+        self.assertContains(response, self.active_user.phone_number)
+        self.assertContains(response, self.active_user.role)
+        self.assertContains(response, "Активен" if self.active_user.is_active else "Не активен")

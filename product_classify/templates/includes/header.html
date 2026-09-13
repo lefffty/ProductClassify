@@ -40,6 +40,7 @@
             {% if user.is_staff %}
               <li><a href="{% url "admin:index" %}">Администрирование</a></li>
             {% endif %}
+            <li><a href="{% url "accounts:profile" %}">Профиль</a></li>            
             <li>
               <form method="post" action="{% url "accounts:logout" %}" class="nav-logout-form">
                 {% csrf_token %}
