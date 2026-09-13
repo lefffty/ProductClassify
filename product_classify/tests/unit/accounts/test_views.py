@@ -1,9 +1,10 @@
-from unittest.mock import patch
-
+from django.http import HttpRequest
 from django.urls import reverse
+from django.conf import settings
 from django.contrib.auth import get_user_model
 
 from faker import Faker
+from unittest.mock import patch
 from http import HTTPStatus
 
 from tests.unit.base import BaseUnitTestCase
@@ -181,3 +182,80 @@ class LoginViewTest(BaseUnitTestCase):
             follow=True
         )
         self.assertNotContains(response, self.password)
+
+
+class LogoutViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.active_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+        )
+
+        cls.logout_url = reverse("accounts:logout")
+        cls.next_url = reverse("ei:list")
+        cls.index_url = reverse("classes:index")
+        cls.login_url = settings.LOGIN_URL
+
+    def test_logout_returns_OK_status_code(self):
+        self.client.force_login(self.active_user)
+        response = self.client.post(self.logout_url, data={
+            "next": self.next_url
+        })
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_logout_removes_user_id_from_session(self):
+        self.client.force_login(self.active_user)
+        self.client.post(self.logout_url, data={
+            "next": self.next_url,
+        })
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_logout_redirects_to_next_url_if_next_url_is_correct(self):
+        self.client.force_login(self.active_user)
+        response = self.client.post(self.logout_url, data={
+            "next": self.next_url
+        })
+        self.assertRedirects(response, self.next_url)
+
+    def test_logout_redirects_to_main_page_if_next_url_is_incorrect(self):
+        self.client.force_login(self.active_user)
+        response = self.client.post(self.logout_url, data={
+            "next": "https://rutube.ru/"
+        })
+        self.assertRedirects(response, self.index_url)
+
+    def test_logout_redirects_to_main_page_if_next_url_was_not_provided(self):
+        self.client.force_login(self.active_user)
+        response = self.client.post(self.logout_url, data={
+            "next": "",
+        })
+        self.assertRedirects(response, self.index_url)
+
+    def test_logout_function_was_called(self):
+        self.client.force_login(self.active_user)
+        with patch("accounts.views.logout") as mock_logout:
+            self.client.post(self.logout_url)
+            mock_logout.assert_called_once()
+            args, _ = mock_logout.call_args
+            self.assertIsInstance(args[0], HttpRequest)
+
+    def test_logout_GET_method_request_is_not_allowed(self):
+        self.client.force_login(self.active_user)
+        response = self.client.get(self.logout_url)
+        self.assertEqual(response.status_code, HTTPStatus.METHOD_NOT_ALLOWED)
+
+    def test_unauthorized_user_redirected_to_login_page(self):
+        response = self.client.post(self.logout_url)
+        self.assertIn(self.login_url, response.url)

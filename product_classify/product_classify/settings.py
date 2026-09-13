@@ -169,3 +169,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 FIXTURE_DIRS = [BASE_DIR / "fixtures"]
 
 AUTH_USER_MODEL = "accounts.User"
+
+LOGIN_URL = '/accounts/login/'

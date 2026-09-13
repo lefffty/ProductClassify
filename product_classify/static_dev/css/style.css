@@ -113,7 +113,9 @@ a :focus {
   bottom: 0;
   height: 2px;
   width: 0;
-  transition: width 0s ease, background 0.35s ease;
+  transition:
+    width 0s ease,
+    background 0.35s ease;
 }
 .menu-left a:after {
   content: "";
@@ -146,12 +148,16 @@ header {
   background: rgba(255, 255, 255, 0.92);
   z-index: 3;
   will-change: transform;
-  transition: background 0.3s,
+  transition:
+    background 0.3s,
     -webkit-transform 0.5s cubic-bezier(0.694, 0.048, 0.335, 1);
-  transition: transform 0.5s cubic-bezier(0.694, 0.048, 0.335, 1),
+  transition:
+    transform 0.5s cubic-bezier(0.694, 0.048, 0.335, 1),
     background 0.3s;
-  transition: transform 0.5s cubic-bezier(0.694, 0.048, 0.335, 1),
-    background 0.3s, -webkit-transform 0.5s cubic-bezier(0.694, 0.048, 0.335, 1);
+  transition:
+    transform 0.5s cubic-bezier(0.694, 0.048, 0.335, 1),
+    background 0.3s,
+    -webkit-transform 0.5s cubic-bezier(0.694, 0.048, 0.335, 1);
   transform: translateY(0);
   -webkit-transform: translateY(0);
 }
@@ -449,7 +455,7 @@ select {
   left: 0 !important;
   min-width: 200px !important;
   background: #ffffff !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
   border-radius: 8px !important;
   padding: 6px 0 !important;
   flex-direction: column !important; /* вертикальное расположение */
@@ -547,4 +553,17 @@ select {
 
 .nav-menu a:hover {
   background: #f1f5f9;
+}
+
+.nav-logout-btn {
+  color: #000 !important;
+  text-decoration: none !important;
+}
+
+.nav-dropdown-list .nav-logout-btn,
+.nav-dropdown-list .nav-logout-btn:hover,
+.nav-dropdown-list .nav-logout-btn:focus,
+.nav-dropdown-list .nav-logout-btn:active {
+  color: #000;
+  text-decoration: none;
 }
