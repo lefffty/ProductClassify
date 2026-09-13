@@ -1,8 +1,7 @@
 from django import forms
-from django.contrib.auth.forms import (
-    UserCreationForm
-)
-from django.contrib.auth import get_user_model, authenticate
+from django.core.exceptions import ValidationError
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import get_user_model
 
 from accounts.models import Role
 from accounts.errors import SignUpErrors, UserErrors
@@ -30,14 +29,39 @@ class SignUpForm(UserCreationForm):
             "phone_number",
             "role",
         )
+        error_messages = {
+            "email": {
+                "unique": SignUpErrors.NON_UNIQUE_EMAIL,
+                "required": UserErrors.EMPTY_EMAIL,
+            }
+        }
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get("phone_number")
+        if (
+            phone_number
+            and User.objects.filter(phone_number__exact=phone_number).exists()
+        ):
+            raise ValidationError(SignUpErrors.NON_UNIQUE_PHONE_NUMBER)
+        else:
+            return phone_number
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["role"].queryset = Role.objects.filter(
             is_self_registerable=True
         )
+        self.fields["phone_number"].widget.attrs.update({
+            "class": "form-control",
+            "id": "id_phone_number",
+            "data-phone-mask": "true",
+            "inputmode": "tel",
+            "autocomplete": "tel",
+            "placeholder": "+7 (___) ___-__-__",
+            "maxlength": "18",
+        })
 
-    def save(self, commit=False):
+    def save(self, commit=True):
         user = super().save(commit=False)
         role = self.cleaned_data["role"]
         if commit:

@@ -2,17 +2,17 @@
 {% load django_bootstrap5 %}
 
 {% block title %}
-    Вход в систему
+    Регистрация
 {% endblock title %}
 
 {% block content %}
 <div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
+        <div class="col-md-8 col-lg-6">
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h2 class="card-title h4 mb-4 text-center">
-                        <i class="bi bi-box-arrow-in-right text-primary"></i> Вход в систему
+                        <i class="bi bi-person-plus text-primary"></i> Регистрация
                     </h2>
 
                     <form method="post">
@@ -44,7 +44,7 @@
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-box-arrow-in-right"></i> Войти
+                                <i class="bi bi-person-check"></i> Зарегистрироваться
                             </button>
                         </div>
                     </form>
@@ -52,9 +52,9 @@
                     <hr class="my-4">
 
                     <p class="text-center text-muted mb-0">
-                        Нет учётной записи?
-                        <a href="{% url 'accounts:signup' %}" class="text-decoration-none">
-                            Зарегистрироваться
+                        Уже есть учётная запись?
+                        <a href="{% url 'accounts:login' %}" class="text-decoration-none">
+                            Войти
                         </a>
                     </p>
                 </div>
@@ -62,4 +62,54 @@
         </div>
     </div>
 </div>
+<script>
+(function () {
+  const input = document.querySelector('input[data-phone-mask]');
+  if (!input) return;
+
+  function formatPhone(digits) {
+    digits = digits.replace(/\D/g, "");
+
+    if (digits.startsWith("8")) {
+      digits = "7" + digits.slice(1);
+    }
+    if (!digits.startsWith("7")) {
+      digits = "7" + digits;
+    }
+
+    digits = digits.slice(0, 11);
+
+    let result = "+7";
+    if (digits.length > 1) {
+      result += " (" + digits.slice(1, 4);
+    }
+    if (digits.length >= 4) {
+      result += ") " + digits.slice(4, 7);
+    }
+    if (digits.length >= 7) {
+      result += "-" + digits.slice(7, 9);
+    }
+    if (digits.length >= 9) {
+      result += "-" + digits.slice(9, 11);
+    }
+    return result;
+  }
+
+  input.addEventListener("input", function (e) {
+    const cursorAtEnd = this.selectionStart === this.value.length;
+    const formatted = formatPhone(this.value);
+
+    if (this.value !== formatted) {
+      this.value = formatted;
+      if (cursorAtEnd) {
+        this.setSelectionRange(formatted.length, formatted.length);
+      }
+    }
+  });
+
+  if (input.value) {
+    input.value = formatPhone(input.value);
+  }
+})();
+</script>
 {% endblock content %}

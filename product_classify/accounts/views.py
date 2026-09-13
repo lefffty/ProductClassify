@@ -3,10 +3,9 @@ from django.contrib.auth import login, logout
 from django.shortcuts import redirect, render
 from django.conf import settings
 from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from accounts.forms import LoginForm
+from accounts.forms import LoginForm, SignUpForm
 
 
 def login_view(request: HttpRequest) -> HttpResponse:
@@ -51,3 +50,26 @@ def logout_view(request: HttpRequest) -> HttpResponse:
         return redirect(next_url)
     # иначе перенаправляем пользователя на главную страницу приложения
     return redirect("classes:index")
+
+
+def signup_view(request: HttpRequest) -> HttpResponse:
+    # если пользователь уже вошел в систему, перенаправляем его на главную страницу
+    if request.user.is_authenticated:
+        return redirect("classes:index")
+    # создаем форму
+    form = SignUpForm(request.POST or None)
+    # проверяем, что метод запроса POST и форма валидна
+    if request.method == "POST" and form.is_valid():
+        # если форма валидна, то сохраняем пользователя
+        user = form.save()
+        # и осуществляем вход пользователя в систему
+        login(request, user)
+        # перенаправляем зарегистрированного пользователя на главную страницу
+        return redirect("classes:index")
+    return render(
+        request,
+        "accounts/signup.html",
+        context={
+            "form": form
+        }
+    )

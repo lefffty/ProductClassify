@@ -11,3 +11,5 @@ class UserErrors(StrEnum):
 
 class SignUpErrors(StrEnum):
     COMMIT_IS_FALSE = "Используйте save(commit=True) либо переопределите логику."
+    NON_UNIQUE_EMAIL = "Учетная запись с таким адресом электронной почты уже существует"
+    NON_UNIQUE_PHONE_NUMBER = "Учетная запись с таким номером телефона уже существует"

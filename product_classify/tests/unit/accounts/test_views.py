@@ -2,6 +2,7 @@ from django.http import HttpRequest
 from django.urls import reverse
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 
 from faker import Faker
 from unittest.mock import patch
@@ -9,8 +10,9 @@ from http import HTTPStatus
 
 from tests.unit.base import BaseUnitTestCase
 
-from accounts.constants import UserConsts
-from accounts.errors import UserErrors
+from accounts.constants import UserConsts, RoleConsts
+from accounts.errors import UserErrors, SignUpErrors
+from accounts.models import Role
 
 
 User = get_user_model()
@@ -259,3 +261,126 @@ class LogoutViewTest(BaseUnitTestCase):
     def test_unauthorized_user_redirected_to_login_page(self):
         response = self.client.post(self.logout_url)
         self.assertIn(self.login_url, response.url)
+
+
+class SignUpViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        group_self = Group.objects.create(name=cls.faker.name()[:16])
+        cls.self_registerable_role = Role.objects.create(
+            code=cls.faker.slug()[:50],
+            name=cls.faker.name()[:RoleConsts.NAME_MAX_LENGTH],
+            description=cls.faker.text(),
+            group=group_self,
+            is_self_registerable=True,
+        )
+
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.active_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+        )
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-66"
+        cls.password1 = "StrongPass123!"
+        cls.password2 = "StrongPass123!"
+
+        cls.another_phone_number = "+7 (999) 323-45-66"
+
+        cls.valid_data = {
+            "email": cls.email,
+            "first_name": cls.first_name,
+            "middle_name": cls.middle_name,
+            "last_name": cls.last_name,
+            "phone_number": cls.phone_number,
+            "role": cls.self_registerable_role.pk,
+            "password1": cls.password1,
+            "password2": cls.password2,
+        }
+
+        cls.invalid_email_data = {
+            "email": cls.active_user.email,
+            "first_name": cls.first_name,
+            "middle_name": cls.middle_name,
+            "last_name": cls.last_name,
+            "phone_number": cls.phone_number,
+            "role": cls.self_registerable_role.pk,
+            "password1": cls.password1,
+            "password2": cls.password2,
+        }
+
+        cls.invalid_phone_number_data = {
+            "email": cls.email,
+            "first_name": cls.first_name,
+            "middle_name": cls.middle_name,
+            "last_name": cls.last_name,
+            "phone_number": cls.active_user.phone_number,
+            "role": cls.self_registerable_role.pk,
+            "password1": cls.password1,
+            "password2": cls.password2,
+        }
+
+        cls.signup_url = reverse("accounts:signup")
+        cls.index_url = reverse("classes:index")
+
+    def test_signup_uses_signup_template(self):
+        response = self.client.get(self.signup_url)
+        self.assertTemplateUsed(response, "accounts/signup.html")
+
+    def test_signup_returns_200_status_code(self):
+        response = self.client.post(self.signup_url, self.valid_data)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_signup_redirects_to_main_page_if_user_is_authenticated(self):
+        response = self.client.post(self.signup_url, self.valid_data)
+        self.assertRedirects(response, self.index_url)
+
+    def test_signup_successfully_creates_new_user(self):
+        self.client.post(self.signup_url, self.valid_data)
+        self.assertEqual(User.objects.count(), 2)
+
+    def test_user_added_to_role_group(self):
+        self.client.post(self.signup_url, self.valid_data)
+        user = User.objects.get(email=self.valid_data["email"])
+        self.assertIn(self.self_registerable_role.group, user.groups.all())
+
+    def test_successful_login_create_user_session(self):
+        self.client.post(self.signup_url, self.valid_data)
+        self.assertIn("_auth_user_id", self.client.session)
+
+    def test_login_function_was_called(self):
+        with patch("accounts.views.login") as mock_login:
+            self.client.post(self.signup_url, self.valid_data)
+            args, _ = mock_login.call_args
+            request, user = args
+            self.assertEqual(request.method, "POST")
+            self.assertIsInstance(request, HttpRequest)
+            self.assertEqual(user.email, self.valid_data["email"])
+
+    def test_signup_redirects_to_main_page_for_successfully_signed_up_user(self):
+        self.client.force_login(self.active_user)
+        response = self.client.get(self.signup_url)
+        self.assertRedirects(response, self.index_url)
+
+    def test_non_unique_email_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.signup_url, self.invalid_email_data)
+        self.assertContains(response, SignUpErrors.NON_UNIQUE_EMAIL)
+
+    def test_non_unique_phone_number_validation_error_is_shown_on_page(self):
+        response = self.client.post(self.signup_url, self.invalid_phone_number_data)
+        self.assertContains(response, SignUpErrors.NON_UNIQUE_PHONE_NUMBER)
