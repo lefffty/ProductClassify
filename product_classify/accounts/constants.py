@@ -1,4 +1,16 @@
-from enum import IntEnum
+from enum import IntEnum, StrEnum
+
+
+class RoleCodes(StrEnum):
+    HANDBOOK_EXECUTIVE =              "handbook-executive"
+    HANDBOOK_USER =                   "handbook-user"
+    BUILDER =                         "builder"
+    TECHNOLOGIST =                    "technologist"
+    CHIEF_MECHANIC_DEPT_EMPLOYEE =    "chief-mechanic-dept-employee"
+    SALES_DEPT_EMPLOYEE =             "sales-dept-employee"
+    PRODUCTION_DEPT_EMPLOYEE =        "production-dept-employee"
+    CLIENT =                          "client"
+    ECONOMIC_PLANNING_DEPT_EMPLOYEE = "economic-planning-dept-employee"
 
 
 class RoleConsts(IntEnum):

@@ -1,4 +1,5 @@
 from django.urls import reverse_lazy
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.views.generic import (
     ListView,
     DetailView,
@@ -7,27 +8,38 @@ from django.views.generic import (
     CreateView,
 )
 
-from core.mixins import CommonContextMixin
+from core.mixins import CommonContextMixin, HandbookExecutiveRequiredMixin
 
 from ei.models import Ei
 from ei.forms import EiForm
 
 
-class EiListView(CommonContextMixin, ListView):
+
+class EiListView(
+    PermissionRequiredMixin,
+    CommonContextMixin,
+    ListView
+):
+    permission_required = "ei.view_ei"
     model = Ei
     template_name = "ei/list.html"
     ordering = "id"
     context_object_name = "eis"
 
 
-class EiDetailView(CommonContextMixin, DetailView):
+class EiDetailView(
+    PermissionRequiredMixin,
+    CommonContextMixin,
+    DetailView
+):
+    permission_required = "ei.view_ei"
     model = Ei
     context_object_name = "ei"
     template_name = "ei/detail.html"
     pk_url_kwarg = "ei_id"
 
 
-class EiCreateUpdateDeleteMixin:
+class EiCreateUpdateDeleteMixin(HandbookExecutiveRequiredMixin):
     template_name = "ei/ei.html"
     model = Ei
     success_url = reverse_lazy("ei:list")
