@@ -67,7 +67,7 @@ urlpatterns = [
     ),
     path(
         "add_eas_class/",
-        views.EconomicSubjectActivityCreateView.as_view(),
+        views.EconomicSubjectActivityClassCreateView.as_view(),
         name="add_eas_class",
     ),
     path(

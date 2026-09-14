@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 from django.http import Http404, HttpResponseRedirect
 from django.urls import reverse_lazy, reverse
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.views.generic import (
     FormView,
     ListView,
@@ -10,7 +11,10 @@ from django.views.generic import (
     TemplateView,
 )
 
-from core.mixins import CommonContextMixin
+from core.mixins import (
+    CommonContextMixin,
+    HandbookExecutiveRequiredMixin
+)
 
 from classes.models import (
     ClassStruct,
@@ -40,11 +44,13 @@ class MainPageTemplateView(
 
 
 class CategoryClassesListView(
+    PermissionRequiredMixin,
     CommonContextMixin,
     ListView,
 ):
     """Представление для категории изделия(болты, гайки, кронштейны)"""
 
+    permission_required = "classes.view_classstruct"
     template_name = "classes/category.html"
     model = ClassStruct
     context_object_name = "classes"
@@ -69,6 +75,7 @@ class CategoryClassesListView(
 
 
 class ProdClassCreateView(
+    HandbookExecutiveRequiredMixin,
     CommonContextMixin,
     CreateView,
 ):
@@ -80,6 +87,7 @@ class ProdClassCreateView(
 
 
 class EnumClassCreateView(
+    HandbookExecutiveRequiredMixin,
     CommonContextMixin,
     CreateView,
 ):
@@ -90,16 +98,43 @@ class EnumClassCreateView(
     template_name = "classes/enum_class.html"
 
 
-class OperationClassCreateView(CommonContextMixin, CreateView):
+class OperationClassCreateView(
+    HandbookExecutiveRequiredMixin,
+    CommonContextMixin,
+    CreateView
+):
     form_class = OperationClassForm
     success_url = reverse_lazy("classes:index")
     template_name = "classes/operation_class.html"
 
 
-class EconomicSubjectActivityCreateView(CommonContextMixin, CreateView):
+class EconomicSubjectActivityClassCreateView(
+    CommonContextMixin,
+    CreateView
+):
     form_class = EconomicActivitySubjectClassForm
     success_url = reverse_lazy("classes:index")
     template_name = "classes/eas_class.html"
+
+
+class QualificationClassCreateView(
+    HandbookExecutiveRequiredMixin,
+    CommonContextMixin, 
+    CreateView
+):
+    form_class = QualificationClassForm
+    success_url = reverse_lazy("classes:index")
+    template_name = "classes/qualification_class.html"
+
+
+class ProfessionClassCreateView(
+    HandbookExecutiveRequiredMixin,
+    CommonContextMixin, 
+    CreateView
+):
+    form_class = ProfessionClassForm
+    success_url = reverse_lazy("classes:index")
+    template_name = "classes/profession_class.html"
 
 
 class MeansOfLaborClassCreateView(
@@ -111,19 +146,8 @@ class MeansOfLaborClassCreateView(
     template_name = "classes/mol_class.html"
 
 
-class QualificationClassCreateView(CommonContextMixin, CreateView):
-    form_class = QualificationClassForm
-    success_url = reverse_lazy("classes:index")
-    template_name = "classes/qualification_class.html"
-
-
-class ProfessionClassCreateView(CommonContextMixin, CreateView):
-    form_class = ProfessionClassForm
-    success_url = reverse_lazy("classes:index")
-    template_name = "classes/profession_class.html"
-
-
 class ClassUpdateView(
+    HandbookExecutiveRequiredMixin,
     CommonContextMixin,
     UpdateView,
 ):
@@ -153,7 +177,11 @@ class ClassUpdateView(
         )
 
 
-class ClassDeleteView(CommonContextMixin, DeleteView):
+class ClassDeleteView(
+    HandbookExecutiveRequiredMixin,
+    CommonContextMixin, 
+    DeleteView
+):
     template_name = "classes/enum_class.html"
     context_object_name = "instance"
 
@@ -173,6 +201,7 @@ class ClassDeleteView(CommonContextMixin, DeleteView):
 
 
 class ClassParamsListView(
+    HandbookExecutiveRequiredMixin,
     CommonContextMixin,
     ListView,
 ):
@@ -201,6 +230,7 @@ class ClassParamsListView(
 
 
 class ClassParamCreateView(
+    HandbookExecutiveRequiredMixin,
     CommonContextMixin,
     CreateView,
 ):
@@ -223,7 +253,11 @@ class ClassParamCreateView(
         )
 
 
-class ClassParamUpdateView(CommonContextMixin, UpdateView):
+class ClassParamUpdateView(
+    HandbookExecutiveRequiredMixin,
+    CommonContextMixin, 
+    UpdateView
+):
     template_name = "classes/param_class.html"
     form_class = ParClassForm
     context_object_name = "instance"
@@ -242,7 +276,11 @@ class ClassParamUpdateView(CommonContextMixin, UpdateView):
         )
 
 
-class ClassParamDeleteView(CommonContextMixin, DeleteView):
+class ClassParamDeleteView(
+    HandbookExecutiveRequiredMixin,
+    CommonContextMixin, 
+    DeleteView
+):
     model = ParClass
     template_name = "classes/param_class.html"
     context_object_name = "instance"
@@ -257,7 +295,11 @@ class ClassParamDeleteView(CommonContextMixin, DeleteView):
         return reverse_lazy("classes:params_list", args=[self.kwargs.get("class_id")])
 
 
-class ChangeParClassNumView(CommonContextMixin, FormView):
+class ChangeParClassNumView(
+    HandbookExecutiveRequiredMixin,
+    CommonContextMixin, 
+    FormView
+):
     model = ParClass
     template_name = "classes/change_num.html"
     form_class = ChangeParClassNumForm
@@ -272,5 +314,5 @@ class ChangeParClassNumView(CommonContextMixin, FormView):
         kwargs["class_id"] = self.kwargs.get("class_id")
         return kwargs
 
-    def form_valid(self, form):
+    def form_valid(self, _):
         return redirect("classes:params_list", class_id=self.kwargs.get("class_id"))
