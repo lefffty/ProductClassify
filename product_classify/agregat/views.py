@@ -1,5 +1,6 @@
 from django.urls import reverse_lazy
 from django.db.models import Q
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.views.generic import (
     FormView,
@@ -10,17 +11,21 @@ from django.views.generic import (
 )
 
 from parametr.models import Parametr
+
 from classes.constants import ParamIds
-from core.mixins import CommonContextMixin
+
+from core.mixins import CommonContextMixin, HandbookExecutiveRequiredMixin
 
 from agregat.models import Agregat
 from agregat.forms import AgregatForm, ChangeAgregatNumForm
 
 
 class AgregatListView(
+    PermissionRequiredMixin,
     CommonContextMixin,
     ListView,
 ):
+    permission_required = "agregat.view_agregat"
     queryset = Parametr.objects.filter(
         parametr_type__exact=ParamIds.AGREGAT,
     )
@@ -29,9 +34,11 @@ class AgregatListView(
 
 
 class AgregatDetailView(
+    PermissionRequiredMixin,
     CommonContextMixin,
     DetailView,
 ):
+    permission_required = "agregat.view_agregat"
     template_name = "agregat/detail.html"
     pk_url_kwarg = "agregat_id"
     context_object_name = "agregat"
@@ -45,13 +52,17 @@ class AgregatDetailView(
         context = super().get_context_data(**kwargs)
         agregat = self.object
         agregat_parametrs = (
-            Agregat.objects.filter(agr=agregat).select_related("par").order_by("num")
+            Agregat.objects
+            .filter(agr=agregat)
+            .select_related("par")
+            .order_by("num")
         )
         context["agr_parametrs"] = agregat_parametrs
         return context
 
 
 class AgregatParametrCreateView(
+    HandbookExecutiveRequiredMixin,
     CommonContextMixin,
     CreateView,
 ):
@@ -85,6 +96,7 @@ class AgregatParametrCreateView(
 
 
 class AgregatParametrDeleteView(
+    HandbookExecutiveRequiredMixin,
     CommonContextMixin,
     DeleteView,
 ):
@@ -123,7 +135,11 @@ class AgregatParametrDeleteView(
         return super().form_valid(form)
 
 
-class ChangeAgregatNumView(CommonContextMixin, FormView):
+class ChangeAgregatNumView(
+    HandbookExecutiveRequiredMixin,
+    CommonContextMixin,
+    FormView
+):
     model = Agregat
     template_name = "agregat/change_agr_num.html"
     form_class = ChangeAgregatNumForm

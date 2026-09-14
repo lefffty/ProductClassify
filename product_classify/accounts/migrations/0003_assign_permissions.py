@@ -2,14 +2,12 @@
 
 from django.db import migrations
 from django.db.models import Model
-from django.contrib.auth.models import Group as Grp
 
 def assign_permissions(apps, schema_editor):
     Group: Model = apps.get_model("auth", "Group")
     Permission: Model = apps.get_model("auth", "Permission")
 
-    # присваиваем права группе ответственных за справочник
-    handbook_executives: Grp = (
+    handbook_executives = (
         Group.objects
         .filter(role__code="handbook-executive")
         .first()
@@ -86,7 +84,7 @@ def assign_permissions(apps, schema_editor):
     )
 
     agregat_permissions = Permission.objects.filter(
-        content_type__app_label="parametr",
+        content_type__app_label="agregat",
         codename__in=[
             "add_agregat",
             "change_agregat",
@@ -95,17 +93,16 @@ def assign_permissions(apps, schema_editor):
         ]
     )
 
-    handbook_executives.permissions.add(*ei_permissions)
-    handbook_executives.permissions.add(*classes_permissions)
-    handbook_executives.permissions.add(*parclass_permissions)
-    handbook_executives.permissions.add(*enums_permissions)
-    handbook_executives.permissions.add(*prod_permissions)
-    handbook_executives.permissions.add(*parprod_permissions)
-    handbook_executives.permissions.add(*parametr_permissions)
-    handbook_executives.permissions.add(*agregat_permissions)
+    all_permissions = [
+        *ei_permissions, *classes_permissions, *parclass_permissions,
+        *enums_permissions, *prod_permissions, *parprod_permissions,
+        *parametr_permissions, *agregat_permissions,
+    ]
+
+    handbook_executives.permissions.add(*all_permissions)
 
     # присваиваем права группе пользователей справочника
-    handbook_users: Grp = (
+    handbook_users = (
         Group.objects
         .filter(role__code="handbook-user")
         .first()
@@ -128,14 +125,14 @@ def assign_permissions(apps, schema_editor):
     handbook_users.permissions.add(*handbook_permissions)
 
     # присваиваем права группе конструкторов
-    builders: Grp = (
+    builders = (
         Group.objects
         .filter(role__code="builder")
         .first()
     )
 
-    builders_parametr_permissions = Permission.objects.filter(
-        content_type__app_label__in="parametr",
+    builders_specifications_permissions = Permission.objects.filter(
+        content_type__app_label="specifications",
         codename__in=[
             "can_get_total_cost_ratio",
             "can_get_product_changelog",
@@ -150,11 +147,11 @@ def assign_permissions(apps, schema_editor):
         ]
     )
 
-    builders.permissions.add(*builders_parametr_permissions)
+    builders.permissions.add(*builders_specifications_permissions)
     builders.permissions.add(*builders_products_permissions)
 
     # присваиваем права группе технологов
-    technologists: Grp = (
+    technologists = (
         Group.objects
         .filter(role__code="technologist")
         .first()
@@ -188,7 +185,7 @@ def assign_permissions(apps, schema_editor):
     technologists.permissions.add(*technologists_permissions)
 
     # присваиваем права группе сотрудников отдела главного механика
-    chief_mechanic_dept_employees: Grp = (
+    chief_mechanic_dept_employees = (
         Group.objects
         .filter(role__code="chief-mechanic-dept-employee")
         .first()
@@ -207,7 +204,11 @@ def remove_permissions(apps, schema_editor):
     Group = apps.get_model("auth", "Group")
     Permission = apps.get_model("auth", "Permission")
 
-    handbook_executives: Grp = Group.objects.get(code="handbook-executive")
+    handbook_executives = (
+        Group.objects
+        .filter(role__code="handbook-executive")
+        .first()
+    )
 
     ei_permissions = Permission.objects.filter(
         content_type__app_label="ei",
@@ -280,7 +281,7 @@ def remove_permissions(apps, schema_editor):
     )
 
     agregat_permissions = Permission.objects.filter(
-        content_type__app_label="parametr",
+        content_type__app_label="agregat",
         codename__in=[
             "add_agregat",
             "change_agregat",
@@ -289,16 +290,20 @@ def remove_permissions(apps, schema_editor):
         ]
     )
 
-    handbook_executives.permissions.remove(ei_permissions)
-    handbook_executives.permissions.remove(parclass_permissions)
-    handbook_executives.permissions.remove(parametr_permissions)
-    handbook_executives.permissions.remove(classes_permissions)
-    handbook_executives.permissions.remove(parprod_permissions)
-    handbook_executives.permissions.remove(prod_permissions)
-    handbook_executives.permissions.remove(enums_permissions)
-    handbook_executives.permissions.remove(agregat_permissions)
+    handbook_executives.permissions.remove(*ei_permissions)
+    handbook_executives.permissions.remove(*parclass_permissions)
+    handbook_executives.permissions.remove(*parametr_permissions)
+    handbook_executives.permissions.remove(*classes_permissions)
+    handbook_executives.permissions.remove(*parprod_permissions)
+    handbook_executives.permissions.remove(*prod_permissions)
+    handbook_executives.permissions.remove(*enums_permissions)
+    handbook_executives.permissions.remove(*agregat_permissions)
 
-    handbook_users: Grp = Group.objects.name(code="handbook-user")
+    handbook_users = (
+        Group.objects
+        .filter(role__code="handbook-user")
+        .first()
+    )
 
     # разрешения на просмотр моделей ClassStruct, ParClass, Ei, Prod, ParProd, Enums, Parametr
     handbook_permissions = Permission.objects.filter(
@@ -314,12 +319,16 @@ def remove_permissions(apps, schema_editor):
         ]
     )
 
-    handbook_users.permissions.remove(handbook_permissions)
+    handbook_users.permissions.remove(*handbook_permissions)
 
-    builders: Grp = Group.objects.name(code="builder")
+    builders = (
+        Group.objects
+        .filter(role__code="builder")
+        .first()
+    )
 
     builders_parametr_permissions = Permission.objects.filter(
-        content_type__app_label__in="parametr",
+        content_type__app_label="specifications",
         codename__in=[
             "can_get_total_cost_ratio",
             "can_get_product_changelog",
@@ -334,10 +343,14 @@ def remove_permissions(apps, schema_editor):
         ]
     )
 
-    builders.permissions.remove(builders_products_permissions)
-    builders.permissions.remove(builders_parametr_permissions)
+    builders.permissions.remove(*builders_products_permissions)
+    builders.permissions.remove(*builders_parametr_permissions)
 
-    technologists: Grp = Group.objects.name(code="technologist")
+    technologists = (
+        Group.objects
+        .filter(role__code="technologist")
+        .first()
+    )
 
     technologists_permissions = Permission.objects.filter(
         codename__in=[
@@ -364,9 +377,13 @@ def remove_permissions(apps, schema_editor):
         ]
     )
 
-    technologists.permissions.remove(technologists_permissions)
+    technologists.permissions.remove(*technologists_permissions)
 
-    chief_mechanic_dept_employees: Grp = Group.objects.name(code="chief-mechanic-dept-employee")
+    chief_mechanic_dept_employees = (
+        Group.objects
+        .filter(role__code="chief-mechanic-dept-employee")
+        .first()
+    )
 
     chief_mechanic_dept_permissions = Permission.objects.filter(
         codename__in=[
@@ -374,13 +391,20 @@ def remove_permissions(apps, schema_editor):
         ]
     )
 
-    chief_mechanic_dept_employees.permissions.remove(chief_mechanic_dept_permissions)
+    chief_mechanic_dept_employees.permissions.remove(*chief_mechanic_dept_permissions)
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
         ("accounts", "0002_create_roles"),
+        ("agregat", "0002_alter_agregat_agr_alter_agregat_par"),
+        ("classes", "0012_alter_classstruct_options"),
+        ("ei", "0006_alter_ei_convert_factor"),
+        ("enums", "0006_alter_enums_image_alter_enums_name_and_more"),
+        ("parametr", "0005_alter_parametr_short_name"),
+        ("products", "0013_alter_prod_options"),
+        ("specifications", "0009_alter_prodcomponent_options"),
     ]
 
     operations = [

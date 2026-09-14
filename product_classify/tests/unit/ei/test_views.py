@@ -23,9 +23,8 @@ class EiListViewTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.faker = Faker()
 
-        code = RoleCodes.HANDBOOK_EXECUTIVE
-        cls.allowed_role = Role.objects.get(code=code)
-        cls.not_allowed_role = Role.objects.last()
+        cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
 
         cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
         cls.password = "StrongPass123!"
@@ -101,9 +100,8 @@ class EiDetailViewTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.faker = Faker()
 
-        code = RoleCodes.HANDBOOK_EXECUTIVE
-        cls.allowed_role = Role.objects.get(code=code)
-        cls.not_allowed_role = Role.objects.last()
+        cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
 
         cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
         cls.password = "StrongPass123!"
@@ -232,9 +230,8 @@ class EiCreateViewTest(BaseUnitTestCase):
             "main_class": cls.main_class.pk,
         }
 
-        code = RoleCodes.HANDBOOK_EXECUTIVE
-        cls.allowed_role = Role.objects.get(code=code)
-        cls.not_allowed_role = Role.objects.last()
+        cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
 
         cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
         cls.password = "StrongPass123!"
@@ -347,9 +344,8 @@ class EiDeleteViewTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.faker = Faker()
     
-        code = RoleCodes.HANDBOOK_EXECUTIVE
-        cls.allowed_role = Role.objects.get(code=code)
-        cls.not_allowed_role = Role.objects.last()
+        cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
 
         cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
         cls.password = "StrongPass123!"
@@ -442,9 +438,8 @@ class EiUpdateViewTest(BaseUnitTestCase):
             "main_class": cls.ei.main_class.pk,
         }
 
-        code = RoleCodes.HANDBOOK_EXECUTIVE
-        cls.allowed_role = Role.objects.get(code=code)
-        cls.not_allowed_role = Role.objects.last()
+        cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
 
         cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
         cls.password = "StrongPass123!"

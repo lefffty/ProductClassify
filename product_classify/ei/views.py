@@ -14,7 +14,6 @@ from ei.models import Ei
 from ei.forms import EiForm
 
 
-
 class EiListView(
     PermissionRequiredMixin,
     CommonContextMixin,
