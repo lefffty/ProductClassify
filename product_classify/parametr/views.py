@@ -1,4 +1,5 @@
 from django.urls import reverse_lazy
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.views.generic import (
     ListView,
     DeleteView,
@@ -8,16 +9,19 @@ from django.views.generic import (
 )
 
 from classes.constants import ParamIds
-from core.mixins import CommonContextMixin
+
+from core.mixins import CommonContextMixin, HandbookExecutiveRequiredMixin
 
 from parametr.models import Parametr
 from parametr.forms import ParametrForm
 
 
 class ParametrListView(
+    PermissionRequiredMixin,
     CommonContextMixin,
     ListView,
 ):
+    permission_required = "parametr.view_parametr"
     template_name = "parametr/list.html"
     context_object_name = "parameters"
     ordering = "id"
@@ -30,16 +34,20 @@ class ParametrListView(
 
 
 class ParametrDetailView(
+    PermissionRequiredMixin,
     CommonContextMixin,
     DetailView,
 ):
+    permission_required = "parametr.view_parametr"
     model = Parametr
     template_name = "parametr/detail.html"
     pk_url_kwarg = "parametr_id"
     context_object_name = "parameter"
 
 
-class ParametrCreateUpdateDeleteMixin:
+class ParametrCreateUpdateDeleteMixin(
+    HandbookExecutiveRequiredMixin
+):
     model = Parametr
     template_name = "parametr/parametr.html"
 
