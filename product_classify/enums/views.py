@@ -1,4 +1,5 @@
 from django.urls import reverse_lazy
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.views.generic import (
     FormView,
     ListView,
@@ -8,7 +9,7 @@ from django.views.generic import (
     CreateView,
 )
 
-from core.mixins import CommonContextMixin
+from core.mixins import CommonContextMixin, HandbookExecutiveRequiredMixin
 from classes.models import ClassStruct
 
 from enums.models import Enums
@@ -16,9 +17,11 @@ from enums.forms import EnumsForm, ChangeNumForm
 
 
 class EnumsListView(
+    PermissionRequiredMixin,
     CommonContextMixin,
     ListView,
 ):
+    permission_required = "enums.view_enums"
     template_name = "enums/list.html"
     context_object_name = "enums"
 
@@ -33,10 +36,12 @@ class EnumsListView(
 
 
 class EnumsDetailView(
+    PermissionRequiredMixin,
     CommonContextMixin,
     DetailView,
 ):
     model = Enums
+    permission_required = "enums.view_enums"
     template_name = "enums/detail.html"
     context_object_name = "enum"
     pk_url_kwarg = "enum_id"
@@ -49,6 +54,7 @@ class EnumsDetailView(
 
 
 class EnumsCreateView(
+    HandbookExecutiveRequiredMixin,
     CommonContextMixin,
     CreateView,
 ):
@@ -59,6 +65,7 @@ class EnumsCreateView(
 
 
 class EnumsDeleteView(
+    HandbookExecutiveRequiredMixin,
     CommonContextMixin,
     DeleteView,
 ):
@@ -84,6 +91,7 @@ class EnumsDeleteView(
 
 
 class EnumsUpdateView(
+    HandbookExecutiveRequiredMixin,
     CommonContextMixin,
     UpdateView,
 ):
@@ -110,7 +118,11 @@ class EnumsUpdateView(
         )
 
 
-class ChangeEnumsNumView(CommonContextMixin, FormView):
+class ChangeEnumsNumView(
+    HandbookExecutiveRequiredMixin,
+    CommonContextMixin,
+    FormView,
+):
     template_name = "enums/change_num.html"
     form_class = ChangeNumForm
 

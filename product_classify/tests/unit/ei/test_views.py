@@ -1,8 +1,7 @@
-from urllib.parse import urlencode
-
-from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 
+from urllib.parse import urlencode
 from faker import Faker
 from random import randint
 from http import HTTPStatus
@@ -61,13 +60,6 @@ class EiListViewTest(BaseUnitTestCase):
             password=cls.password,
             role=cls.not_allowed_role,
         )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-65"
 
         cls.url = reverse("ei:list")
         cls.login_url = reverse("accounts:login")
