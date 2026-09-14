@@ -5,6 +5,10 @@ from django.forms import inlineformset_factory
 
 from loguru import logger
 
+from core.decorators import roles_required
+
+from accounts.constants import RoleCodes
+
 from classes.models import ClassStruct
 from classes.constants import ProductsConsts
 
@@ -31,6 +35,7 @@ ProdComponentFormSet = inlineformset_factory(
 )
 
 
+@roles_required(RoleCodes.BUILDER)
 def get_total_cost_ratio_view(request: HttpRequest, product_id: int):
     try:
         raw_quantity = request.GET.get("quantity")
@@ -51,6 +56,7 @@ def get_total_cost_ratio_view(request: HttpRequest, product_id: int):
     )
 
 
+@roles_required(RoleCodes.BUILDER)
 def get_product_changelog_view(_: HttpRequest, product_id: int):
     results = SpecificationLogs.get_changelog(product_id)
 
@@ -68,6 +74,7 @@ def get_product_changelog_view(_: HttpRequest, product_id: int):
     )
 
 
+@roles_required(RoleCodes.BUILDER)
 def edit_specification_view(request: HttpRequest, product_id: int):
     product = get_object_or_404(Prod, pk=product_id)
     edit_mode = request.GET.get("edit") == "1"

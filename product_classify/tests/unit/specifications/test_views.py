@@ -1,13 +1,18 @@
-from tests.unit.base import BaseUnitTestCase
 from django.urls import reverse
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from urllib.parse import quote
 from http import HTTPStatus
 from faker import Faker
 
+from tests.unit.base import BaseUnitTestCase
+
 from classes.models import ClassStruct
 from classes.constants import ProductsConsts, ProdClassConsts
+
+from accounts.models import Role
+from accounts.constants import UserConsts, RoleCodes
 
 from ei.models import Ei
 
@@ -17,11 +22,13 @@ from products.constants import ProdConsts
 from specifications.views import ProdComponentFormSet
 from specifications.models import ProdComponent, SpecificationLogs
 
+User = get_user_model()
+
 
 class GetTotalCostRatioViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.fake = Faker()
+        cls.faker = Faker()
 
         cls.image = SimpleUploadedFile(
             "test.jpg",
@@ -32,14 +39,14 @@ class GetTotalCostRatioViewTest(BaseUnitTestCase):
         cls.base_ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:ProdClassConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdClassConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
             main_class=cls.nuts_class,
             base_ei=cls.base_ei
         )
         cls.parent_prod = Prod.objects.create(
-            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=cls.image,
             cost=400,
@@ -47,8 +54,8 @@ class GetTotalCostRatioViewTest(BaseUnitTestCase):
             ei=cls.base_ei,
         )
         cls.component_prod = Prod.objects.create(
-            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=cls.image,
             cost=400,
@@ -62,20 +69,69 @@ class GetTotalCostRatioViewTest(BaseUnitTestCase):
             quantity=200,
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_USER)
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.allowed_role,
+        )
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-66"
+
+        cls.not_allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.not_allowed_role,
+        )
+
         cls.url = reverse("specifications:total_cost_ratio", args=[cls.parent_prod.pk])
 
-    def test_get_total_cost_ratio_returns_ok_status_code(self):
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_authenticated_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    def test_get_total_cost_ratio_content_type(self):
+    def test_content_type(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertEqual(
             response["content-type"],
             "application/pdf"
         )
 
-    def test_get_total_cost_ratio_filename(self):
+    def test_filename(self):
+        self.client.force_login(self.allowed_user)
         filename = f"Спецификация_изделия_{self.parent_prod.name}.pdf"
         encoded_filename = quote(filename, safe="")
         response = self.client.get(self.url)
@@ -88,7 +144,7 @@ class GetTotalCostRatioViewTest(BaseUnitTestCase):
 class GetProductChangelogViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.fake = Faker()
+        cls.faker = Faker()
 
         cls.image = SimpleUploadedFile(
             "test.jpg",
@@ -99,14 +155,14 @@ class GetProductChangelogViewTest(BaseUnitTestCase):
         cls.base_ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:ProdClassConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdClassConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
             main_class=cls.nuts_class,
             base_ei=cls.base_ei
         )
         cls.parent_prod = Prod.objects.create(
-            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=cls.image,
             cost=400,
@@ -114,8 +170,8 @@ class GetProductChangelogViewTest(BaseUnitTestCase):
             ei=cls.base_ei,
         )
         cls.component_prod = Prod.objects.create(
-            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=cls.image,
             cost=400,
@@ -134,20 +190,69 @@ class GetProductChangelogViewTest(BaseUnitTestCase):
             new_quantity=200,
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_USER)
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.allowed_role,
+        )
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-66"
+
+        cls.not_allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.not_allowed_role,
+        )
+
         cls.url = reverse("specifications:changelog", args=[cls.parent_prod.pk])
 
-    def test_get_product_changelog_returns_ok_status_code(self):
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_authenticated_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    def test_get_product_changelog_content_type(self):
+    def test_content_type(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertEqual(
             response["content-type"],
             "application/pdf"
         )        
 
-    def test_get_product_changelog_filename(self):
+    def test_filename(self):
+        self.client.force_login(self.allowed_user)
         filename = f"История_изменений_спецификации_изделия_{self.parent_prod.name}.pdf"
         encoded_filename = quote(filename, safe="")        
         response = self.client.get(self.url)
@@ -160,7 +265,7 @@ class GetProductChangelogViewTest(BaseUnitTestCase):
 class EditSpecificationViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.fake = Faker()
+        cls.faker = Faker()
 
         cls.image = SimpleUploadedFile(
             "test.jpg",
@@ -171,14 +276,14 @@ class EditSpecificationViewTest(BaseUnitTestCase):
         cls.base_ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:ProdClassConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdClassConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
             main_class=cls.nuts_class,
             base_ei=cls.base_ei
         )
         cls.parent_prod = Prod.objects.create(
-            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=cls.image,
             cost=400,
@@ -186,8 +291,8 @@ class EditSpecificationViewTest(BaseUnitTestCase):
             ei=cls.base_ei,
         )
         cls.component_prod = Prod.objects.create(
-            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=cls.image,
             cost=400,
@@ -195,8 +300,8 @@ class EditSpecificationViewTest(BaseUnitTestCase):
             ei=cls.base_ei,
         )
         cls.another_component = Prod.objects.create(
-            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=cls.image,
             cost=400,
@@ -211,6 +316,43 @@ class EditSpecificationViewTest(BaseUnitTestCase):
         )
 
         cls.prefix_name = ProdComponentFormSet.get_default_prefix()
+
+        cls.allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_USER)
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.allowed_role,
+        )
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-66"
+
+        cls.not_allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.not_allowed_role,
+        )
 
         cls.url = reverse("specifications:edit", args=[cls.parent_prod.pk])
         cls.invalid_url = reverse("specifications:edit", args=[404])
@@ -231,39 +373,62 @@ class EditSpecificationViewTest(BaseUnitTestCase):
                 data[f'{self.prefix_name}-{idx}-{key}'] = value
         return data
 
-    def test_edit_specification_view_returns_not_found_error_is_product_is_invalid(self):
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_authenticated_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_returns_not_found_error_is_product_is_invalid(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.invalid_url)
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
-    def test_edit_specification_view_renders_prodcomponent_edit_template(self):
+    def test_renders_prodcomponent_edit_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "products/prodcomponent_edit.html")
 
-    def test_edit_specification_view_has_fastener_classes_in_context(self):
+    def test_has_fastener_classes_in_context(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("fastener_classes", response.context)
 
-    def test_edit_specification_view_has_product_in_context(self):
+    def test_has_product_in_context(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("product", response.context)
 
-    def test_edit_specification_view_has_edit_mode_in_context(self):
+    def test_has_edit_mode_in_context(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("edit_mode", response.context)
 
-    def test_edit_specification_view_edit_mode_is_false(self):
+    def test_edit_mode_is_false(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertEqual(response.context.get("edit_mode"), False)
 
-    def test_edit_specification_view_edit_mode_is_true(self):
+    def test_edit_mode_is_true(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url, data={"edit": "1"})
         self.assertEqual(response.context.get("edit_mode"), True)
 
-    def test_edit_specification_view_renders_formset(self):
+    def test_renders_formset(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url, data={"edit": "1"})
         self.assertIn("formset", response.context)
 
-    def test_edit_specification_view_can_save_a_POST_request(self):
+    def test_can_save_a_POST_request(self):
+        self.client.force_login(self.allowed_user)
         initial_count = ProdComponent.objects.count()
         initial_log_count = SpecificationLogs.objects.count()
 
@@ -292,7 +457,8 @@ class EditSpecificationViewTest(BaseUnitTestCase):
         self.assertEqual(log.new_quantity, 999)
 
 
-    def test_edit_specification_view_redirects_after_POST_request(self):
+    def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         forms_data = [
             {
                 'id': self.prodcomponent.pk,
@@ -305,7 +471,8 @@ class EditSpecificationViewTest(BaseUnitTestCase):
         response = self.client.post(self.url, data=data)
         self.assertRedirects(response, self.redirect_url)
 
-    def test_edit_specification_view_can_add_new_component(self):
+    def test_can_add_new_component(self):
+        self.client.force_login(self.allowed_user)
         initial_count = ProdComponent.objects.count()
         forms_data = [
             {
@@ -333,7 +500,8 @@ class EditSpecificationViewTest(BaseUnitTestCase):
         self.assertEqual(log.old_quantity, 0)
         self.assertEqual(log.new_quantity, 50)
 
-    def test_edit_specification_view_can_delete_existing_component(self):
+    def test_can_delete_existing_component(self):
+        self.client.force_login(self.allowed_user)
         initial_count = ProdComponent.objects.count()
 
         forms_data = [

@@ -208,7 +208,7 @@ class LogoutViewTest(BaseUnitTestCase):
         )
 
         cls.logout_url = reverse("accounts:logout")
-        cls.next_url = reverse("ei:list")
+        cls.next_url = reverse("classes:index")
         cls.index_url = reverse("classes:index")
         cls.login_url = settings.LOGIN_URL
 

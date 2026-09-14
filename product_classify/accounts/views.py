@@ -11,7 +11,6 @@ from accounts.forms import LoginForm, SignUpForm
 User = get_user_model()
 
 
-
 def login_view(request: HttpRequest) -> HttpResponse:
     # если пользователь уже вошел в систему,
     # то перенаправляем его на главную страницу
