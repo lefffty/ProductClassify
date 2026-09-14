@@ -1,7 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.http import HttpRequest
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models import Exists, OuterRef
+from django.contrib.auth.views import RedirectURLMixin
+from django.views.generic.detail import SingleObjectMixin
 from django.views.generic import (
     FormView,
     DetailView,
@@ -9,12 +14,15 @@ from django.views.generic import (
     UpdateView,
     DeleteView,
 )
-from django.contrib.auth.views import RedirectURLMixin
-from django.views.generic.detail import SingleObjectMixin
 
 from classes.constants import ProductsConsts
 from classes.models import ClassStruct
-from core.mixins import CommonContextMixin
+
+from core.mixins import (
+    CommonContextMixin,
+    BuilderRequiredMixin,
+    HandbookExecutiveRequiredMixin,
+)
 
 from products.forms import (
     ProdForm,
@@ -29,6 +37,9 @@ from products.models import (
 )
 
 
+
+@login_required
+@permission_required("products.view_prod", raise_exception=True)
 def class_products(request: HttpRequest, main_class_id: int, class_id: int):
     main_cls = get_object_or_404(ClassStruct, pk=main_class_id)
 
@@ -71,28 +82,40 @@ def class_products(request: HttpRequest, main_class_id: int, class_id: int):
 
 
 class ProductDetailView(
+    PermissionRequiredMixin,
     CommonContextMixin,
     DetailView,
 ):
+    permission_required = "products.view_prod"
     model = Prod
     template_name = "products/detail.html"
     pk_url_kwarg = "product_id"
     context_object_name = "product"
 
     def get_queryset(self):
-        return Prod.objects.select_related("class_field__main_class")
+        return (
+            Prod.objects
+            .select_related(
+                "class_field__main_class"
+            )
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         prod = self.object
-        context["params"] = ParProd.objects.filter(prod=prod).select_related(
-            "par",
-            "enum_val__enum__main_class",
+        context["params"] = (
+            ParProd.objects
+            .filter(prod=prod)
+            .select_related(
+                "par",
+                "enum_val__enum__main_class",
+            )
         )
         return context
 
 
 class ProductCreateView(
+    HandbookExecutiveRequiredMixin,
     CommonContextMixin,
     CreateView,
 ):
@@ -103,6 +126,7 @@ class ProductCreateView(
 
 
 class ProductUpdateView(
+    HandbookExecutiveRequiredMixin,
     CommonContextMixin,
     UpdateView,
 ):
@@ -123,6 +147,7 @@ class ProductUpdateView(
 
 
 class ProductDeleteView(
+    HandbookExecutiveRequiredMixin,
     CommonContextMixin,
     DeleteView,
 ):
@@ -172,6 +197,7 @@ class ProductParamSingleObject(
 
 
 class ProductParamUpdateView(
+    HandbookExecutiveRequiredMixin,
     ProductParamSuccessURL,
     CommonContextMixin,
     ProductParamSingleObject,
@@ -183,6 +209,7 @@ class ProductParamUpdateView(
 
 
 class ProductParamDeleteView(
+    HandbookExecutiveRequiredMixin,
     ProductParamSuccessURL,
     ProductParamSingleObject,
     CommonContextMixin,
@@ -194,6 +221,7 @@ class ProductParamDeleteView(
 
 
 class ProductParamCreateView(
+    HandbookExecutiveRequiredMixin,
     ProductParamSuccessURL,
     CommonContextMixin,
     CreateView,
@@ -210,7 +238,11 @@ class ProductParamCreateView(
         return context
 
 
-class ModificationCreateView(CommonContextMixin, FormView):
+class ModificationCreateView(
+    BuilderRequiredMixin,
+    CommonContextMixin,
+    FormView
+):
     template_name = "products/modification.html"
     form_class = ModificationForm
 

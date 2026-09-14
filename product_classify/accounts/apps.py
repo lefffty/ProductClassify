@@ -52,7 +52,7 @@ ROLE_PERMISSIONS = {
             "can_get_product_changelog",
             "can_edit_specification",
         ]),
-        ("products", ["can_create_modification"]),
+        ("products", ["can_create_modification", "view_prod"]),
     ],
 
     "technologist": [

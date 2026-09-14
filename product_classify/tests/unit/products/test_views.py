@@ -1,14 +1,22 @@
-from tests.unit.base import BaseUnitTestCase
+from urllib.parse import urlencode
+
 from django.urls import reverse
 from django.utils.html import escape
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from faker import Faker
 from PIL import Image
+from http import HTTPStatus
+from faker import Faker
 from io import BytesIO
+
+from tests.unit.base import BaseUnitTestCase
 
 from classes.models import ClassStruct, ParClass
 from classes.constants import ProductsConsts, ClassStructConsts, ParamIds, EnumsIds, ProdClassConsts
+
+from accounts.models import Role
+from accounts.constants import RoleCodes, UserConsts
 
 from parametr.models import Parametr
 from parametr.constants import ParametrConsts
@@ -23,30 +31,32 @@ from products.constants import ProdConsts
 from products.models import Prod, ParProd
 from products.errors import ProdErrors, CommonParProdErrors, EnumsParErrors, IntParErrors, DoubleParErrors
 
+User = get_user_model()
+
 
 class ProductDetailViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.fake = Faker()
+        cls.faker = Faker()
 
         cls.ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:ProdClassConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdClassConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
             main_class=cls.nuts_class,
             base_ei=cls.ei
         )
         cls.int_params = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.prod_class = ClassStruct.objects.create(
-            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=None,
             main_class=cls.nuts_class
         )
         cls.parametr = Parametr.objects.create(
-            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
             parametr_type=cls.int_params,
             par_ei=cls.ei
         )
@@ -59,8 +69,8 @@ class ProductDetailViewTest(BaseUnitTestCase):
         )
 
         cls.prod = Prod.objects.create(
-            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.prod_class,
             image=None,
         )
@@ -72,27 +82,86 @@ class ProductDetailViewTest(BaseUnitTestCase):
             enum_val=None,
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.SALES_DEPT_EMPLOYEE)
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.allowed_role,
+        )
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-66"
+
+        cls.not_allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.not_allowed_role,
+        )
+
+        cls.login_url = reverse("accounts:login")
         cls.url = reverse("products:detail", args=[cls.prod.pk])
 
-    def test_product_detail_view_uses_detail_template(self):
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        expected_url = f"{self.login_url}?{urlencode({"next": self.url})}"
+        self.assertRedirects(response, expected_url)
+
+    def test_returns_403_for_authenticated_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_uses_detail_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "products/detail.html")
 
-    def test_product_detail_view_has_params_in_context(self):
+    def test_has_params_in_context(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("params", response.context)
 
-    def test_product_detail_view_has_product_instance_in_context(self):
+    def test_has_product_instance_in_context(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("product", response.context)
 
-    def test_product_detail_view_renders_correct_information_about_product(self):
+    def test_renders_correct_information_about_product(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertContains(response, self.prod.pk)
         self.assertContains(response, self.prod.name)
         self.assertContains(response, self.prod.class_field.name)
 
-    def test_product_detail_view_renders_correct_information_about_params(self):
+    def test_renders_correct_information_about_params(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertContains(response, self.parametr.name)
         self.assertContains(response, self.parprod.value)
@@ -101,18 +170,18 @@ class ProductDetailViewTest(BaseUnitTestCase):
 class ProductCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.fake = Faker()
+        cls.faker = Faker()
 
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
         cls.prod_class = ClassStruct.objects.create(
-            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=None,
             main_class=cls.nuts_class
         )
 
-        name = cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH]
-        short_name = cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
+        name = cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH]
+        short_name = cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
 
         cls.data = {
             "name": name,
@@ -133,18 +202,73 @@ class ProductCreateViewTest(BaseUnitTestCase):
             "image": ""
         }
 
+
+        cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.allowed_role,
+        )
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-66"
+
+        cls.not_allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.not_allowed_role,
+        )
+
         cls.url = reverse("products:add")
         cls.redirect_url = reverse("classes:index")
 
-    def test_product_create_view_uses_product_template(self):
+    def test_returns_403_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_403_for_authenticated_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_uses_product_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "products/product.html")
 
-    def test_product_create_view_renders_form(self):
+    def test_renders_form(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("form", response.context)
 
-    def test_product_create_view_can_save_a_POST_request(self):
+    def test_can_save_a_POST_request(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url, data=self.data)
         prod = Prod.objects.last()
         self.assertEqual(self.data["name"], prod.name)
@@ -152,15 +276,18 @@ class ProductCreateViewTest(BaseUnitTestCase):
         self.assertEqual(self.data["class_field"], prod.class_field.pk)
         self.assertEqual(self.data["image"], prod.image)
 
-    def test_product_create_view_redirects_after_POST_request(self):
+    def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.data)
         self.assertRedirects(response, self.redirect_url)
 
     def test_empty_class_field_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.empty_class_field_data)
         self.assertContains(response, ProdErrors.EMPTY_CLASS_FIELD)
 
     def test_empty_name_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.empty_name_field_data)
         self.assertContains(response, ProdErrors.EMPTY_NAME_FIELD)
 
@@ -168,18 +295,18 @@ class ProductCreateViewTest(BaseUnitTestCase):
 class ProductUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.fake = Faker()
+        cls.faker = Faker()
 
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.prod_class = ClassStruct.objects.create(
-            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=None,
             main_class=cls.nuts_class
         )
 
-        old_name = cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH]
-        old_short_name = cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
+        old_name = cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH]
+        old_short_name = cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
 
         cls.prod = Prod.objects.create(
             name=old_name,
@@ -188,8 +315,8 @@ class ProductUpdateViewTest(BaseUnitTestCase):
             image=None,
         )
 
-        new_name = cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH]
-        new_short_name = cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
+        new_name = cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH]
+        new_short_name = cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
 
         cls.data = {
             "name": new_name,
@@ -210,6 +337,43 @@ class ProductUpdateViewTest(BaseUnitTestCase):
             "image": ""
         }
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.allowed_role,
+        )
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-66"
+
+        cls.not_allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.not_allowed_role,
+        )
+
         cls.url = reverse("products:edit", args=[cls.prod.pk])
         cls.redirect_url = reverse("products:detail", args=[cls.prod.pk])
 
@@ -225,19 +389,37 @@ class ProductUpdateViewTest(BaseUnitTestCase):
             content_type=f"image/{extension if extension != 'jpg' else 'jpeg'}"
         )
 
-    def test_product_update_view_uses_product_html(self):
+    def test_returns_403_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_403_for_authenticated_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_uses_product_html(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "products/product.html")
 
-    def test_product_update_view_renders_form(self):
+    def test_renders_form(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("form", response.context)
 
-    def test_product_update_view_has_instance_in_context(self):
+    def test_has_instance_in_context(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("instance", response.context)
 
-    def test_product_update_view_can_save_a_POST_request(self):
+    def test_can_save_a_POST_request(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url, data=self.data)
         prod = Prod.objects.last()
         self.assertEqual(self.data["name"], prod.name)
@@ -245,15 +427,18 @@ class ProductUpdateViewTest(BaseUnitTestCase):
         self.assertEqual(self.data["class_field"], prod.class_field.pk)
         self.assertIsNotNone(prod.image)
 
-    def test_product_update_view_redirects_after_POST_request(self):
+    def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.data)
         self.assertRedirects(response, self.redirect_url)
 
     def test_empty_class_field_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.empty_class_field_data)
         self.assertContains(response, ProdErrors.EMPTY_CLASS_FIELD)
 
     def test_empty_name_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.empty_name_field_data)
         self.assertContains(response, ProdErrors.EMPTY_NAME_FIELD)
 
@@ -261,13 +446,50 @@ class ProductUpdateViewTest(BaseUnitTestCase):
 class ProductDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.fake = Faker()
+        cls.faker = Faker()
 
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.instance = Prod.objects.create(
-            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_class,
+        )
+
+        cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.allowed_role,
+        )
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-66"
+
+        cls.not_allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.not_allowed_role,
         )
 
         cls.url = reverse("products:delete", args=[cls.instance.pk])
@@ -276,16 +498,33 @@ class ProductDeleteViewTest(BaseUnitTestCase):
             "class_id": cls.nuts_class.pk,
         })
 
-    def test_product_delete_view_uses_product_template(self):
+    def test_returns_403_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_403_for_authenticated_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_uses_product_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "products/product.html")
 
-    def test_product_delete_view_can_save_a_POST_request(self):
+    def test_can_save_a_POST_request(self):
+        self.client.force_login(self.allowed_user)        
         count_before = Prod.objects.count()
         self.client.post(self.url)
         self.assertEqual(Prod.objects.count(), count_before - 1)
 
-    def test_product_delete_view_redirects_after_POST_request(self):
+    def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url)
         self.assertRedirects(response, self.redirect_url)
 
@@ -293,7 +532,7 @@ class ProductDeleteViewTest(BaseUnitTestCase):
 class ProductParamCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.fake = Faker()
+        cls.faker = Faker()
 
         cls.base_ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
@@ -301,44 +540,44 @@ class ProductParamCreateViewTest(BaseUnitTestCase):
         cls.double_type_par = ClassStruct.objects.get(pk=ParamIds.DOUBLE)
         cls.int_enum_par = ClassStruct.objects.get(pk=EnumsIds.INT)
         cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=cls.base_ei,
             main_class=cls.nuts_class,
         )
         cls.int_enum_class = ClassStruct.objects.create(
-            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=cls.base_ei,
             main_class=cls.int_enum_par
         )
         cls.product = Prod.objects.create(
-            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=None
         )
         cls.par1 = Parametr.objects.create(
-            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
             parametr_type=cls.int_enum_par,
             par_ei=cls.base_ei,
         )
         cls.par2 = Parametr.objects.create(
-            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
             parametr_type=cls.int_type_par,
             par_ei=cls.base_ei,
         )
         cls.par3 = Parametr.objects.create(
-            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
             parametr_type=cls.int_type_par,
             par_ei=cls.base_ei
         )
         cls.par4 = Parametr.objects.create(
-            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
             parametr_type=cls.double_type_par,
             par_ei=cls.base_ei
         )
@@ -388,7 +627,6 @@ class ProductParamCreateViewTest(BaseUnitTestCase):
             "enum_val": "",
         }
 
-        # общие ошибки
         cls.empty_parametr_data = {
             "par": "",
             "prod": cls.product.pk,
@@ -411,7 +649,6 @@ class ProductParamCreateViewTest(BaseUnitTestCase):
             "enum_val": "",
         }
 
-        # данные форм для обработки ошибок валидации параметров-перечислений
         cls.int_value_specified_data = {
             "par": cls.par1.pk,
             "prod": cls.product.pk,
@@ -434,7 +671,6 @@ class ProductParamCreateViewTest(BaseUnitTestCase):
             "enum_val": "",
         }
 
-        # данные форм для обработки ошибок валидации целочисленных параметров
         cls.double_val_specified_int_data = {
             "par": cls.par2.pk,
             "prod": cls.product.pk,
@@ -464,7 +700,6 @@ class ProductParamCreateViewTest(BaseUnitTestCase):
             "enum_val": "",
         }
 
-        # данные форм для обработки ошибок валидации вещественных параметров
         cls.int_val_specified_double_data = {
             "par": cls.par4.pk,
             "prod": cls.product.pk,
@@ -494,22 +729,77 @@ class ProductParamCreateViewTest(BaseUnitTestCase):
             "enum_val": "",
         }
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.allowed_role,
+        )
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-66"
+
+        cls.not_allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.not_allowed_role,
+        )
+
         cls.url = reverse("products:add_param", args=[cls.product.pk])
         cls.redirect_url = reverse("products:detail", args=[cls.product.pk])
 
-    def test_product_param_create_view_uses_prodparam_template(self):
+    def test_returns_403_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_403_for_authenticated_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_uses_prodparam_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "products/prodparam.html")
 
-    def test_product_param_create_view_has_instance_in_context(self):
+    def test_has_instance_in_context(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("instance", response.context)
 
-    def test_product_param_create_view_renders_form(self):
+    def test_renders_form(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("form", response.context)
 
-    def test_product_param_create_view_can_save_a_POST_request_for_enum_parametr(self):
+    def test_can_save_a_POST_request_for_enum_parametr(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url, data=self.valid_enum_data)
         self.assertEqual(ParProd.objects.count(), 1)
         first = ParProd.objects.first()
@@ -519,7 +809,8 @@ class ProductParamCreateViewTest(BaseUnitTestCase):
         self.assertIsNone(first.int_value)
         self.assertIsNone(first.double_value)
 
-    def test_product_param_create_view_can_save_a_POST_request_for_numeric_parametr(self):
+    def test_can_save_a_POST_request_for_numeric_parametr(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url, data=self.valid_numeric_data)
         self.assertEqual(ParProd.objects.count(), 1)
         first = ParProd.objects.first()
@@ -529,47 +820,58 @@ class ProductParamCreateViewTest(BaseUnitTestCase):
         self.assertIsNone(first.enum_val)
         self.assertIsNone(first.double_value)
 
-    def test_product_param_create_view_redirects_after_POST_request(self):
+    def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.valid_numeric_data)
         self.assertRedirects(response, self.redirect_url)
 
     def test_empty_parametr_field_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.empty_parametr_data)
         self.assertContains(response, CommonParProdErrors.EMPTY_PAR_FIELD)
 
     def test_empty_prod_field_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.empty_prod_data)
         self.assertContains(response, CommonParProdErrors.EMPTY_PROD_FIELD)
 
     def test_parametr_not_in_class_params_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.invalid_par_data)
         self.assertContains(response, escape(CommonParProdErrors.INVALID_PAR.format(self.par3.name, self.nuts_subclass.name)))
 
     def test_int_value_specified_validation_error_is_shown_on_page_for_enum_parametr(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.int_value_specified_data)
         self.assertContains(response, EnumsParErrors.INT_FIELD_SPECIFIED)
 
     def test_double_value_specified_validation_error_is_shown_on_page_for_enum_parametr(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.double_value_specified_data)
         self.assertContains(response, EnumsParErrors.DOUBLE_FIELD_SPECIFIED)
 
     def test_empty_enum_val_validation_error_is_shown_on_page_for_enum_parametr(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.empty_enum_val_data)
         self.assertContains(response, EnumsParErrors.ENUM_FIELD_EMPTY)
 
     def test_double_value_specified_validation_error_is_shown_on_page_for_int_type_par(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.double_val_specified_int_data)
         self.assertContains(response, IntParErrors.DOUBLE_FIELD_SPECIFIED)
 
     def test_enum_val_specified_validation_error_is_shown_on_page_for_int_type_par(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.enum_val_specified_int_data)
         self.assertContains(response, IntParErrors.ENUM_FIELD_SPECIFIED)
 
     def test_empty_int_value_validation_error_is_shown_on_page_for_int_type_par(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.empty_int_field_int_data)
         self.assertContains(response, IntParErrors.INT_FIELD_EMPTY)
 
     def test_int_value_not_in_range_validation_error_is_shown_on_page_for_int_type_par(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.int_field_not_in_range_int_data)
         self.assertIn(
             IntParErrors.INVALID_RANGE.format(
@@ -580,18 +882,22 @@ class ProductParamCreateViewTest(BaseUnitTestCase):
         )
 
     def test_int_value_specified_validation_error_is_shown_on_page_for_double_type_par(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.int_val_specified_double_data)
         self.assertContains(response, DoubleParErrors.INT_FIELD_SPECIFIED)
 
     def test_enum_val_specified_validation_error_is_shown_on_page_for_double_type_par(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.enum_val_specified_double_data)
         self.assertContains(response, DoubleParErrors.ENUM_FIELD_SPECIFIED)
 
     def test_empty_double_value_validation_error_is_shown_on_page_for_double_type_par(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.empty_double_field_double_data)
         self.assertContains(response, DoubleParErrors.DOUBLE_FIELD_EMPTY)
 
     def test_double_value_not_in_range_validation_error_is_shown_on_page_for_double_type_par(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.double_field_not_in_range_double_data)
         self.assertIn(
             DoubleParErrors.INVALID_RANGE.format(
@@ -605,32 +911,32 @@ class ProductParamCreateViewTest(BaseUnitTestCase):
 class ProductParamDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.fake = Faker()
+        cls.faker = Faker()
 
         cls.base_ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.int_enum_par = ClassStruct.objects.get(pk=EnumsIds.INT)
         cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=cls.base_ei,
             main_class=cls.nuts_class,
         )
         cls.int_enum_class = ClassStruct.objects.create(
-            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=cls.base_ei,
             main_class=cls.int_enum_par
         )
         cls.product = Prod.objects.create(
-            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=None
         )
         cls.par1 = Parametr.objects.create(
-            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
             parametr_type=cls.int_enum_par,
             par_ei=cls.base_ei,
         )
@@ -651,23 +957,78 @@ class ProductParamDeleteViewTest(BaseUnitTestCase):
             enum_val=cls.enum1  
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.allowed_role,
+        )
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-66"
+
+        cls.not_allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.not_allowed_role,
+        )
+
         cls.url = reverse("products:delete_param", args=[cls.product.pk, cls.par1.pk])
         cls.redirect_url = reverse("products:detail", args=[cls.product.pk])
 
-    def test_product_param_delete_view_uses_prodparam_template(self):
+    def test_returns_403_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_403_for_authenticated_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_uses_prodparam_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "products/prodparam.html")
 
-    def test_product_param_delete_view_has_instance_in_context(self):
+    def test_has_instance_in_context(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("instance", response.context)
 
-    def test_product_param_delete_view_can_save_a_POST_request(self):
+    def test_can_save_a_POST_request(self):
+        self.client.force_login(self.allowed_user)
         self.assertEqual(ParProd.objects.count(), 1)
         self.client.post(self.url)
         self.assertEqual(ParProd.objects.count(), 0)
 
-    def test_product_param_delete_view_redirects_after_POST_request(self):
+    def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url)
         self.assertRedirects(response, self.redirect_url)
 
@@ -675,39 +1036,39 @@ class ProductParamDeleteViewTest(BaseUnitTestCase):
 class ProductParamUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.fake = Faker()
+        cls.faker = Faker()
 
         cls.base_ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.int_enum_par = ClassStruct.objects.get(pk=EnumsIds.INT)
         cls.int_type_par = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=cls.base_ei,
             main_class=cls.nuts_class,
         )
         cls.int_enum_class = ClassStruct.objects.create(
-            name=cls.fake.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
             base_ei=cls.base_ei,
             main_class=cls.int_enum_par
         )
         cls.product = Prod.objects.create(
-            name=cls.fake.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=None
         )
         cls.par1 = Parametr.objects.create(
-            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
             parametr_type=cls.int_enum_par,
             par_ei=cls.base_ei,
         )
         cls.par2 = Parametr.objects.create(
-            name=cls.fake.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.fake.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
             parametr_type=cls.int_type_par,
             par_ei=cls.base_ei,
         )
@@ -773,23 +1134,78 @@ class ProductParamUpdateViewTest(BaseUnitTestCase):
             "enum_val": "",
         }
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.allowed_role,
+        )
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-66"
+
+        cls.not_allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.not_allowed_role,
+        )
+
         cls.url1 = reverse("products:edit_param", args=[cls.product.pk, cls.par1.pk])
         cls.url2 = reverse("products:edit_param", args=[cls.product.pk, cls.par2.pk])
         cls.redirect_url = reverse("products:detail", args=[cls.product.pk])
 
-    def test_product_param_update_view_uses_prodparam_template(self):
+    def test_returns_403_for_anonymous_user(self):
+        response = self.client.get(self.url1)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_403_for_authenticated_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url1)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url1)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_uses_prodparam_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url1)
         self.assertTemplateUsed(response, "products/prodparam.html")
 
-    def test_product_param_update_view_renders_form(self):
+    def test_renders_form(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url1)
         self.assertIn("form", response.context)
 
-    def test_product_param_update_view_has_instance_in_context(self):
+    def test_has_instance_in_context(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url1)
         self.assertIn("instance", response.context)
 
-    def test_product_param_update_view_can_save_a_POST_request_for_enum_parametr(self):
+    def test_can_save_a_POST_request_for_enum_parametr(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url1, data=self.enum_update_data)
         instance = ParProd.objects.first()
         self.assertEqual(instance.par.pk, self.enum_update_data["par"])
@@ -798,7 +1214,8 @@ class ProductParamUpdateViewTest(BaseUnitTestCase):
         self.assertIsNone(instance.int_value)
         self.assertIsNone(instance.double_value)
 
-    def test_product_param_update_view_can_save_a_POST_request_for_numeric_parametr(self):
+    def test_can_save_a_POST_request_for_numeric_parametr(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url2, data=self.numeric_update_data)
         instance = ParProd.objects.last()
         self.assertEqual(instance.par.pk, self.numeric_update_data["par"])
@@ -807,7 +1224,8 @@ class ProductParamUpdateViewTest(BaseUnitTestCase):
         self.assertIsNone(instance.enum_val)
         self.assertIsNone(instance.double_value)
 
-    def test_product_param_update_view_redirects_after_POST_request(self):
+    def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url1, data=self.enum_update_data)
         self.assertRedirects(response, self.redirect_url)
 
@@ -815,10 +1233,10 @@ class ProductParamUpdateViewTest(BaseUnitTestCase):
 class ModificationCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        fake = Faker()
+        cls.faker = Faker()
 
-        nuts_name = fake.name()[:ClassStructConsts.NAME_MAX_LENGTH]
-        nuts_short_name = fake.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
+        nuts_name = cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH]
+        nuts_short_name = cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
         cls.ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.nuts_subclass = ClassStruct.objects.create(
@@ -832,8 +1250,8 @@ class ModificationCreateViewTest(BaseUnitTestCase):
             b"content",
             content_type="image/jpeg",
         )
-        prod_name = fake.name()[:ProdConsts.NAME_MAX_LENGTH]
-        prod_short_name = fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
+        prod_name = cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH]
+        prod_short_name = cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
         cls.prod = Prod.objects.create(
             name=prod_name,
             short_name=prod_short_name,
@@ -844,8 +1262,8 @@ class ModificationCreateViewTest(BaseUnitTestCase):
             modification=None
         )
         cls.component_prod = Prod.objects.create(
-            name=fake.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
+            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
             class_field=cls.nuts_subclass,
             image=cls.image,
             cost=800,
@@ -859,8 +1277,8 @@ class ModificationCreateViewTest(BaseUnitTestCase):
             quantity=400,
         )
 
-        mod_name = fake.name()[:ProdConsts.NAME_MAX_LENGTH]
-        mod_short_name = fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
+        mod_name = cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH]
+        mod_short_name = cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
 
         cls.valid_data = {
             "name": mod_name,
@@ -871,21 +1289,76 @@ class ModificationCreateViewTest(BaseUnitTestCase):
             "short_name": mod_short_name,
         }
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.allowed_role,
+        )
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-66"
+
+        cls.not_allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.not_allowed_role,
+        )
+
         cls.url = reverse("products:create_modification", args=[cls.prod.pk])
 
-    def test_create_modification_view_uses_modification_template(self):
+    def test_returns_403_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_403_for_authenticated_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_uses_modification_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "products/modification.html")
 
-    def test_create_modification_view_has_fastener_classes_in_context(self):
+    def test_has_fastener_classes_in_context(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("fastener_classes", response.context)
 
-    def test_create_modification_view_renders_form(self):
+    def test_renders_form(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("form", response.context)
 
-    def test_create_modification_view_can_save_a_POST_request(self):
+    def test_can_save_a_POST_request(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url, data=self.valid_data)
         prod = Prod.objects.last()
         self.assertEqual(prod.name, self.valid_data["name"])
@@ -897,13 +1370,15 @@ class ModificationCreateViewTest(BaseUnitTestCase):
         self.assertEqual(prod.class_field, self.prod.class_field)
         self.assertEqual(ProdComponent.objects.filter(parent_prod=prod.pk).count(), 1)
 
-    def test_create_modification_view_redirects_after_POST_request(self):
+    def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.valid_data)
         modification = Prod.objects.last()
         redirect_url = reverse("products:detail", args=[modification.pk])
         self.assertRedirects(response, redirect_url)
 
     def test_empty_name_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, data=self.invalid_data)
         self.assertContains(response, ProdErrors.EMPTY_NAME_FIELD)
 
@@ -1029,28 +1504,87 @@ class ClassProductsViewTest(BaseUnitTestCase):
             enum_val=cls.enum2,
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.SALES_DEPT_EMPLOYEE)
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.allowed_role,
+        )
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-66"
+
+        cls.not_allowed_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.not_allowed_role,
+        )
+
+        cls.login_url = reverse("accounts:login")
         cls.url = reverse("products:class_products", kwargs={
             "main_class_id": cls.nuts_class.pk,
             "class_id": cls.nuts_subclass.pk,
         })
 
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        expected_url = f"{self.login_url}?{urlencode({"next": self.url})}"
+        self.assertRedirects(response, expected_url)
+
+    def test_returns_403_for_authenticated_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_class_products_view_uses_list_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "products/list.html")
 
     def test_class_products_view_renders_search_form(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("search_form", response.context)
 
     def test_class_products_has_fastener_classes_in_context(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("fastener_classes", response.context)
 
     def test_renders_all_class_products_if_search_filter_is_not_specified(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertEqual(response.context["products"].count(), 2)
 
     def test_renders_only_suitable_class_products_if_search_filter_numeric_field_is_specified(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url, data={
             "test parametr1": "140 - 150",
         })
@@ -1058,20 +1592,22 @@ class ClassProductsViewTest(BaseUnitTestCase):
         self.assertEqual(response.context["products"][0].pk, self.prod1.pk)
 
     def test_renders_only_suitable_class_products_if_search_filter_enum_field_is_specified(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url,data={
             "test parametr2": str(self.enum1.pk)
         })
         self.assertEqual(response.context["products"].count(), 1)
 
     def test_renders_one_class_product_if_search_filter_fits_both_filter_fields(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url, data={
             "test parametr1": "140 - 150",
             "test parametr2": str(self.enum1.pk),
         })
         self.assertEqual(response.context["products"].count(), 1)
 
-
     def test_renders_no_class_products_if_search_filter_does_not_fit_products_parameters(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url, data={
             "test parametr1": "160 - 200",
             "test parametr2": str(self.enum1.pk),
@@ -1079,12 +1615,14 @@ class ClassProductsViewTest(BaseUnitTestCase):
         self.assertEqual(response.context["products"].count(), 0)
 
     def test_renders_all_products_if_form_data_numeric_field_is_invalid(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url, data={
             "test parametr1": "160 ; 200",
         })
         self.assertEqual(response.context["products"].count(), 2)
 
     def test_renders_all_products_if_form_data_enum_field_is_invalid(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url, data={
             "test parametr2": str(4),
         })
