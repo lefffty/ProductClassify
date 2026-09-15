@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.conf import settings
 from django.contrib.auth import login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from accounts.forms import LoginForm, SignUpForm
@@ -34,11 +34,21 @@ def login_view(request: HttpRequest) -> HttpResponse:
     )
 
 
-@require_POST
+@require_http_methods(["GET", "POST"])
 def logout_view(request: HttpRequest) -> HttpResponse:
     # если пользователь не аутентифицирован, перенаправляем его на страницу входа в систему
     if not request.user.is_authenticated:
         return redirect(settings.LOGIN_URL)
+
+    # если метод - GET, отображаем шаблон
+    if request.method == "GET":
+        return render(
+            request,
+            "accounts/logout.html",
+            context={
+                "next": request.GET.get("next", ""),
+            }
+        )
     # осуществляем выход пользователя из системы
     logout(request)
     # определяем url страницы, на которую надо перенаправить пользователя
@@ -75,6 +85,14 @@ def signup_view(request: HttpRequest) -> HttpResponse:
         context={
             "form": form
         }
+    )
+
+
+@login_required
+def logout_confirmation(request: HttpRequest) -> HttpResponse:
+    return render(
+        request,
+        "accounts/logout.html",
     )
 
 

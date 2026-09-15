@@ -64,8 +64,10 @@
                             {% endif %}
                         </dd>
                     </dl>
-
                     <div class="d-flex gap-2">
+                        <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-box-arrow-right"></i> Сменить пароль
+                        </a>
                         <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary">
                             <i class="bi bi-box-arrow-right"></i> Выйти
                         </a>

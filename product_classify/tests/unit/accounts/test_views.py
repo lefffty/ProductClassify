@@ -1,11 +1,10 @@
-from urllib.parse import urlencode
-
 from django.http import HttpRequest
 from django.urls import reverse
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 
+from urllib.parse import urlencode
 from faker import Faker
 from unittest.mock import patch
 from http import HTTPStatus
@@ -15,7 +14,6 @@ from tests.unit.base import BaseUnitTestCase
 from accounts.constants import UserConsts, RoleConsts
 from accounts.errors import UserErrors, SignUpErrors
 from accounts.models import Role
-
 
 User = get_user_model()
 
@@ -212,53 +210,53 @@ class LogoutViewTest(BaseUnitTestCase):
         cls.index_url = reverse("classes:index")
         cls.login_url = settings.LOGIN_URL
 
-    def test_logout_returns_OK_status_code(self):
+    def test_returns_OK_status_code(self):
         self.client.force_login(self.active_user)
         response = self.client.post(self.logout_url, data={
             "next": self.next_url
         })
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
-    def test_logout_removes_user_id_from_session(self):
+    def test_uses_logout_template(self):
+        self.client.force_login(self.active_user)
+        response = self.client.get(self.logout_url)
+        self.assertTemplateUsed(response, "accounts/logout.html")
+
+    def test_removes_user_id_from_session(self):
         self.client.force_login(self.active_user)
         self.client.post(self.logout_url, data={
             "next": self.next_url,
         })
         self.assertNotIn("_auth_user_id", self.client.session)
 
-    def test_logout_redirects_to_next_url_if_next_url_is_correct(self):
+    def test_redirects_to_next_url_if_next_url_is_correct(self):
         self.client.force_login(self.active_user)
         response = self.client.post(self.logout_url, data={
             "next": self.next_url
         })
         self.assertRedirects(response, self.next_url)
 
-    def test_logout_redirects_to_main_page_if_next_url_is_incorrect(self):
+    def test_redirects_to_main_page_if_next_url_is_incorrect(self):
         self.client.force_login(self.active_user)
         response = self.client.post(self.logout_url, data={
             "next": "https://rutube.ru/"
         })
         self.assertRedirects(response, self.index_url)
 
-    def test_logout_redirects_to_main_page_if_next_url_was_not_provided(self):
+    def test_redirects_to_main_page_if_next_url_was_not_provided(self):
         self.client.force_login(self.active_user)
         response = self.client.post(self.logout_url, data={
             "next": "",
         })
         self.assertRedirects(response, self.index_url)
 
-    def test_logout_function_was_called(self):
+    def test_function_was_called(self):
         self.client.force_login(self.active_user)
         with patch("accounts.views.logout") as mock_logout:
             self.client.post(self.logout_url)
             mock_logout.assert_called_once()
             args, _ = mock_logout.call_args
             self.assertIsInstance(args[0], HttpRequest)
-
-    def test_logout_GET_method_request_is_not_allowed(self):
-        self.client.force_login(self.active_user)
-        response = self.client.get(self.logout_url)
-        self.assertEqual(response.status_code, HTTPStatus.METHOD_NOT_ALLOWED)
 
     def test_unauthorized_user_redirected_to_login_page(self):
         response = self.client.post(self.logout_url)

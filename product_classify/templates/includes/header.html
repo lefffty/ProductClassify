@@ -41,12 +41,7 @@
               <li><a href="{% url "admin:index" %}">Администрирование</a></li>
             {% endif %}
             <li><a href="{% url "accounts:profile" %}">Профиль</a></li>            
-            <li>
-              <form method="post" action="{% url "accounts:logout" %}" class="nav-logout-form">
-                {% csrf_token %}
-                <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                <button type="submit" class="btn btn-link nav-logout-btn">Выйти</button>
-              </form>
+            <li><a href="{% url "accounts:logout" %}">Выйти</a>
             </li>
           </ul>
         </li>
