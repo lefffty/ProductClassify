@@ -400,7 +400,6 @@ class ProfileViewTest(BaseUnitTestCase):
             is_self_registerable=True,
         )
 
-
         cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
         cls.password = "StrongPass123!"
         cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
@@ -451,3 +450,78 @@ class ProfileViewTest(BaseUnitTestCase):
         self.assertContains(response, self.active_user.phone_number)
         self.assertContains(response, self.active_user.role)
         self.assertContains(response, "Активен" if self.active_user.is_active else "Не активен")
+
+
+class ProfileEditViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.faker = Faker()
+
+        group_self = Group.objects.create(name=cls.faker.name()[:16])
+        cls.self_registerable_role = Role.objects.create(
+            code=cls.faker.slug()[:50],
+            name=cls.faker.name()[:RoleConsts.NAME_MAX_LENGTH],
+            description=cls.faker.text(),
+            group=group_self,
+            is_self_registerable=True,
+        )
+
+        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
+        cls.password = "StrongPass123!"
+        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
+        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
+        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
+        cls.phone_number = "+7 (999) 123-45-67"
+
+        cls.active_user = User.objects.create_user(
+            email=cls.email,
+            first_name=cls.first_name,
+            middle_name=cls.middle_name,
+            last_name=cls.last_name,
+            phone_number=cls.phone_number,
+            password=cls.password,
+            role=cls.self_registerable_role,
+        )
+
+        cls.new_middle_name = cls.middle_name + "a"
+        cls.data = {
+            "email": cls.email,
+            "first_name": cls.first_name,
+            "middle_name": cls.new_middle_name,
+            "last_name": cls.last_name,
+            "phone_number": cls.phone_number,
+        }
+
+        cls.url = reverse("accounts:profile_edit")
+        cls.profile_url = reverse("accounts:profile")
+
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.active_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_has_edit_mode_is_true_in_context(self):
+        self.client.force_login(self.active_user)
+        response = self.client.get(self.url)
+        self.assertIn("edit_mode", response.context)
+        self.assertTrue(response.context["edit_mode"])
+
+    def test_uses_profile_template(self):
+        self.client.force_login(self.active_user)
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "accounts/profile.html")
+
+    def test_can_save_a_POST_request(self):
+        self.client.force_login(self.active_user)
+        self.client.post(self.url, data=self.data)
+        self.active_user.refresh_from_db()
+        self.assertEqual(self.active_user.middle_name, self.new_middle_name)
+
+    def test_redirects_after_POST_request(self):
+        self.client.force_login(self.active_user)
+        response = self.client.post(self.url, data=self.data)
+        self.assertRedirects(response, self.profile_url)

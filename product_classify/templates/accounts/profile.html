@@ -1,8 +1,9 @@
+{# accounts/templates/accounts/profile.html #}
 {% extends "base.html" %}
 {% load django_bootstrap5 %}
 
 {% block title %}
-    Профиль пользователя
+    {% if edit_mode %}Редактирование профиля{% else %}Профиль пользователя{% endif %}
 {% endblock title %}
 
 {% block content %}
@@ -11,67 +12,117 @@
         <div class="col-md-10 col-lg-8">
             <div class="card shadow-sm">
                 <div class="card-body">
+
                     <h2 class="card-title h4 mb-4">
-                        <i class="bi bi-person-circle text-primary"></i> Профиль пользователя
+                        {% if edit_mode %}
+                            <i class="bi bi-pencil-square text-primary"></i> Редактирование профиля
+                        {% else %}
+                            <i class="bi bi-person-circle text-primary"></i> Профиль пользователя
+                        {% endif %}
                     </h2>
 
-                    <dl class="row mb-4">
-                        <dt class="col-sm-4 fw-semibold">Адрес электронной почты</dt>
-                        <dd class="col-sm-8">{{ user.email }}</dd>
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
 
-                        <dt class="col-sm-4 fw-semibold">Фамилия</dt>
-                        <dd class="col-sm-8">{{ user.last_name }}</dd>
+                    {% if edit_mode %}
+                        <form id="profile-edit-form" method="post" novalidate>
+                            {% csrf_token %}
 
-                        <dt class="col-sm-4 fw-semibold">Имя</dt>
-                        <dd class="col-sm-8">{{ user.first_name }}</dd>
-
-                        <dt class="col-sm-4 fw-semibold">Отчество</dt>
-                        <dd class="col-sm-8">
-                            {% if user.middle_name %}
-                                {{ user.middle_name }}
-                            {% else %}
-                                <span class="text-muted">—</span>
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {% for error in form.non_field_errors %}
+                                        <p class="mb-0">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
                             {% endif %}
-                        </dd>
 
-                        <dt class="col-sm-4 fw-semibold">Номер телефона</dt>
-                        <dd class="col-sm-8">{{ user.phone_number }}</dd>
+                            {% for field in form %}
+                                <div class="mb-3">
+                                    {% bootstrap_field field show_label=True show_help=True %}
+                                    {% if field.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in field.errors %}
+                                                <span>{{ error }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
 
-                        <dt class="col-sm-4 fw-semibold">Роль</dt>
-                        <dd class="col-sm-8">
-                            {% if user.role %}
-                                {{ user.role.name }}
-                            {% else %}
-                                <span class="text-muted">Не назначена</span>
-                            {% endif %}
-                        </dd>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> Сохранить
+                                </button>
+                                <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+                                    Отмена
+                                </a>
+                            </div>
+                        </form>
 
-                        <dt class="col-sm-4 fw-semibold">Дата регистрации</dt>
-                        <dd class="col-sm-8">{{ user.date_joined|date:"d.m.Y H:i" }}</dd>
+                    {% else %}
+                        <dl class="row mb-4">
+                            <dt class="col-sm-4 fw-semibold">Адрес электронной почты</dt>
+                            <dd class="col-sm-8">{{ user.email }}</dd>
 
-                        <dt class="col-sm-4 fw-semibold">Статус</dt>
-                        <dd class="col-sm-8">
-                            {% if user.is_active %}
-                                <span class="badge bg-success">Активен</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Отключён</span>
-                            {% endif %}
-                            {% if user.is_staff %}
-                                <span class="badge bg-info text-dark">Сотрудник</span>
-                            {% endif %}
-                            {% if user.is_superuser %}
-                                <span class="badge bg-warning text-dark">Суперпользователь</span>
-                            {% endif %}
-                        </dd>
-                    </dl>
-                    <div class="d-flex gap-2">
-                        <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-box-arrow-right"></i> Сменить пароль
-                        </a>
-                        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-box-arrow-right"></i> Выйти
-                        </a>
-                    </div>
+                            <dt class="col-sm-4 fw-semibold">Фамилия</dt>
+                            <dd class="col-sm-8">{{ user.last_name }}</dd>
+
+                            <dt class="col-sm-4 fw-semibold">Имя</dt>
+                            <dd class="col-sm-8">{{ user.first_name }}</dd>
+
+                            <dt class="col-sm-4 fw-semibold">Отчество</dt>
+                            <dd class="col-sm-8">
+                                {% if user.middle_name %}{{ user.middle_name }}
+                                {% else %}<span class="text-muted">—</span>{% endif %}
+                            </dd>
+
+                            <dt class="col-sm-4 fw-semibold">Номер телефона</dt>
+                            <dd class="col-sm-8">{{ user.phone_number }}</dd>
+
+                            <dt class="col-sm-4 fw-semibold">Роль</dt>
+                            <dd class="col-sm-8">
+                                {% if user.role %}{{ user.role.name }}
+                                {% else %}<span class="text-muted">Не назначена</span>{% endif %}
+                            </dd>
+
+                            <dt class="col-sm-4 fw-semibold">Дата регистрации</dt>
+                            <dd class="col-sm-8">{{ user.date_joined|date:"d.m.Y H:i" }}</dd>
+
+                            <dt class="col-sm-4 fw-semibold">Статус</dt>
+                            <dd class="col-sm-8">
+                                {% if user.is_active %}
+                                    <span class="badge bg-success">Активен</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Отключён</span>
+                                {% endif %}
+                                {% if user.is_staff %}
+                                    <span class="badge bg-info text-dark">Сотрудник</span>
+                                {% endif %}
+                                {% if user.is_superuser %}
+                                    <span class="badge bg-warning text-dark">Суперпользователь</span>
+                                {% endif %}
+                            </dd>
+                        </dl>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="{% url 'accounts:profile_edit' %}" class="btn btn-primary">
+                                <i class="bi bi-pencil"></i> Редактировать профиль
+                            </a>
+                            <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-key"></i> Сменить пароль
+                            </a>
+                            <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-box-arrow-right"></i> Выйти
+                            </a>
+                        </div>
+                    {% endif %}
+
                 </div>
             </div>
         </div>

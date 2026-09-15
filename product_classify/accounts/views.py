@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from accounts.forms import LoginForm, SignUpForm
+from accounts.forms import LoginForm, SignUpForm, ProfileForm
 
 User = get_user_model()
 
@@ -89,14 +89,6 @@ def signup_view(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
-def logout_confirmation(request: HttpRequest) -> HttpResponse:
-    return render(
-        request,
-        "accounts/logout.html",
-    )
-
-
-@login_required
 def profile_view(request: HttpRequest):
     user = get_object_or_404(
         User.objects.select_related("role"),
@@ -107,5 +99,28 @@ def profile_view(request: HttpRequest):
         "accounts/profile.html",
         context={
             "user": user,
+            "edit_mode": False,
+        }
+    )
+
+
+@login_required
+def edit_profile_view(request: HttpRequest) -> HttpResponse:
+    user = get_object_or_404(
+        User,
+        pk=request.user.pk
+    )
+    form = ProfileForm(request.POST or None, instance=user)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect(
+            "accounts:profile"
+        )
+    return render(
+        request,
+        "accounts/profile.html",
+        context={
+            "form": form,
+            "edit_mode": True,
         }
     )

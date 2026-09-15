@@ -144,3 +144,15 @@ class LoginForm(forms.Form):
 
         # возвращаем очищенные данные
         return cleaned_data
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = (
+            "email",
+            "first_name",
+            "middle_name",
+            "last_name",
+            "phone_number",
+        )
