@@ -355,7 +355,7 @@ class EditSpecificationViewTest(BaseUnitTestCase):
         )
 
         cls.url = reverse("specifications:edit", args=[cls.parent_prod.pk])
-        cls.invalid_url = reverse("specifications:edit", args=[404])
+        cls.invalid_url = reverse("specifications:edit", args=[9999])
         cls.redirect_url = reverse("products:detail", args=[cls.parent_prod.pk])
 
     def _get_form_data(self, total_forms, initial_forms, forms_data):
