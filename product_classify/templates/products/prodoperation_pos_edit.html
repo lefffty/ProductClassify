@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+    Редактирование позиций входного ресурса для "{{ parent_prod_oper }}"
+{% endblock title %}
+
+{% block content %}
+<div id="prod-oper-pos-formset-container" class="container py-4">
+    <div id="prod-oper-pos-formset-card" class="card shadow-sm">
+        <div class="card-body">
+            <h2 id="prod-oper-pos-formset-header" class="card-title h4 mb-4">
+                <i class="bi bi-pencil-square text-warning"></i> Редактирование позиций входного ресурса
+                <span class="text-muted fs-5">— {{ parent_prod_oper }}</span>
+            </h2>
+
+            <form id="prod-oper-pos-formset" method="post">
+                {% csrf_token %}
+
+                <div id="prod-oper-pos-formset-actions" class="d-flex flex-wrap gap-2 mb-4">
+                    {% if not edit_mode %}
+                        <a id="prod-oper-pos-edit-mode-btn" href="?edit=1" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Редактировать позиции
+                        </a>
+                    {% endif %}
+                    <a id="prod-oper-pos-cancel-btn" href="{% url 'products:detail' product.pk %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Отмена
+                    </a>
+                </div>
+
+                {{ formset.management_form }}
+
+                {% if formset.non_form_errors %}
+                    <div id="prod-oper-pos-formset-non-form-errors" class="alert alert-danger">
+                        {{ formset.non_form_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="table-responsive">
+                    <table id="prod-oper-pos-formset-table" class="table table-hover align-middle mb-0">
+                        <thead id="prod-oper-pos-formset-thead" class="table-light">
+                            <tr>
+                                <th style="width: 35%;">Выходная операция</th>
+                                <th style="width: 20%;">Расход входного ресурса</th>
+                                <th style="width: 20%;">Количество выходного ресурса</th>
+                                <th style="width: 15%;" class="text-center">Удалить</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prod-oper-pos-formset-tbody">
+                            {% for form in formset %}
+                                <tr id="prod-oper-pos-row-{{ forloop.counter0 }}">
+                                    <td>
+                                        {{ form.id }}
+                                        {% if edit_mode %}
+                                            {% bootstrap_field form.output_prod_oper show_label=False show_help=False %}
+                                        {% else %}
+                                            <p class="mb-0">{{ form.instance.output_prod_oper|default:"—" }}</p>
+                                        {% endif %}
+                                        {{ form.output_prod_oper.errors }}
+                                    </td>
+                                    <td>
+                                        {% if edit_mode %}
+                                            {% bootstrap_field form.input_quantity show_label=False show_help=False %}
+                                        {% else %}
+                                            <p class="mb-0">{{ form.instance.input_quantity|default:"—" }}</p>
+                                        {% endif %}
+                                        {{ form.input_quantity.errors }}
+                                    </td>
+                                    <td>
+                                        {% if edit_mode %}
+                                            {% bootstrap_field form.output_quantity show_label=False show_help=False %}
+                                        {% else %}
+                                            <p class="mb-0">{{ form.instance.output_quantity|default:"—" }}</p>
+                                        {% endif %}
+                                        {{ form.output_quantity.errors }}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if form.instance.pk and edit_mode %}
+                                            <div class="form-check d-flex justify-content-center">
+                                                {{ form.DELETE }}
+                                            </div>
+                                        {% elif not form.instance.pk and edit_mode %}
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-row">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% if form.errors %}
+                                    <tr>
+                                        <td colspan="4" class="text-danger">{{ form.errors }}</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if edit_mode %}
+                    <div id="prod-oper-pos-submit-container" class="mt-4 d-flex gap-2">
+                        <button id="prod-oper-pos-submit-btn" type="submit" class="btn btn-success">
+                            <i class="bi bi-save"></i> Сохранить
+                        </button>
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const removeButtons = document.querySelectorAll('.remove-row');
+        removeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const row = this.closest('tr');
+                if (row) {
+                    const deleteField = row.querySelector('input[name$="-DELETE"]');
+                    if (deleteField) {
+                        deleteField.checked = true;
+                        row.style.display = 'none';
+                    } else {
+                        row.remove();
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock content %}

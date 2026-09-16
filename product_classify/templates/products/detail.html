@@ -117,6 +117,9 @@
                 <a href="{% url 'specifications:edit' product.id %}" class="btn btn-warning">
                     <i class="bi bi-pencil-square"></i> Редактировать спецификацию
                 </a>
+                <a href="{% url 'route_tech:edit_prod_operation_pos' product.id %}" class="btn btn-info">
+                    <i class="bi bi-diagram-3"></i> Редактировать позиции входного ресурса
+                </a>
                 <form action="{% url 'specifications:changelog' product.id %}" method="get" style="display: inline;">
                     <button type="submit" class="btn btn-outline-secondary">
                         <i class="bi bi-clock-history"></i> Скачать журнал изменений

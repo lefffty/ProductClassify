@@ -84,6 +84,7 @@ ROLE_PERMISSIONS = {
             "add_enums", "change_enums",
             "delete_enums", "view_enums",
         ]),
+        ("products", ["view_prod"]),
     ],
 
     "chief-mechanic-dept-employee": [

@@ -1,13 +1,24 @@
 from django.views.generic import CreateView, UpdateView, DetailView, DeleteView
 from django.urls import reverse_lazy
+from django.http import HttpRequest
+from django.shortcuts import render, redirect, get_object_or_404
+
+from loguru import logger
 
 from core.mixins import CommonContextMixin
 
+from products.models import Prod
+
+from classes.models import ClassStruct
+from classes.constants import ProductsConsts
+
 from route_tech.forms import (
     EconomicActivitySubjectForm,
+    ProdOperationPosFormSet,
     GroupWorkingCenterForm,
     ProdOperationForm,
 )
+from route_tech.constants import FormSetConsts
 from route_tech.models import EconomicActivitySubject, GroupWorkingCenter, ProdOperation
 
 
@@ -116,3 +127,42 @@ class ProdOperationDetailView(CommonContextMixin, DetailView):
     model = ProdOperation
     pk_url_kwarg = "prod_oper_id"
     template_name = "route_tech/prod_operation/prod_operation.html"
+
+
+def edit_prod_operation_positions_view(request: HttpRequest, product_id: int):
+    product = Prod.objects.get(pk=product_id)
+    edit_mode = request.GET.get("edit") == "1"
+    fastener_classes = ClassStruct.objects.filter(
+        main_class__exact=ProductsConsts.FASTENER_ID
+    )
+    prod_operation = get_object_or_404(ProdOperation, prod=product)
+
+    if request.method == "POST":
+        edit_mode = True
+        formset = ProdOperationPosFormSet(request.POST, instance=prod_operation)
+        if formset.is_valid():
+            formset.save()
+            return redirect("products:detail", product_id=product_id)
+        else:
+            logger.info(formset.errors)
+    else:
+        formset = ProdOperationPosFormSet(instance=prod_operation)
+        if not edit_mode:
+            for form in formset:
+                for field in form.fields.values():
+                    field.disabled = True
+            formset.extra = FormSetConsts.EXTRA
+            formset.can_delete = False
+
+    return render(
+        request,
+        "products/prodoperation_pos_edit.html",
+        {
+            "fastener_classes": fastener_classes,
+            "formset": formset,
+            "product": product,
+            "parent_prod_oper": product,
+            "prod_operation": prod_operation,
+            "edit_mode": edit_mode,
+        },
+    )

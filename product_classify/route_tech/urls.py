@@ -37,9 +37,18 @@ prod_operation_patterns = [
     ),
 ]
 
+prod_operation_pos_patterns = [
+    path(
+        "<int:product_id>/edit",
+        views.edit_prod_operation_positions_view,
+        name="edit_prod_operation_pos"
+    ),
+]
+
 
 urlpatterns = [
     path("eas/", include(eas_patterns)),
     path("gwc/", include(gwc_patterns)),
     path("prod_oper/", include(prod_operation_patterns)),
+    path("prod_operation_positions/", include(prod_operation_pos_patterns)),
 ]
