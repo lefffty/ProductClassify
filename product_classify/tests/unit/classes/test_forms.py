@@ -5,6 +5,20 @@ from unittest.mock import patch
 from faker import Faker
 
 from tests.unit.base import BaseUnitTestCase
+from tests.unit.ei.factories.ei import EiFactory
+from tests.unit.parametr.factories.parametr import ParametrFactory
+from tests.unit.classes.factories.parclass import (
+    ParClassFormData,
+    ParClassFactory,
+    ChangeParClassFormData
+)
+from tests.unit.classes.factories.class_struct import (
+    ClassFormData,
+    ProdClassFormData,
+    EnumsClassFormData,
+    ClassStructFactory,
+    ChildClassStructFactory,
+)
 
 from ei.models import Ei
 from parametr.models import Parametr
@@ -40,44 +54,13 @@ class ProdClassFormTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.base_ei = Ei.objects.first()
 
-        cls.root = ClassStruct.objects.create(
-            name="Root",
-            short_name="R",
-            base_ei=cls.base_ei,
-            main_class=None,
-        )
-        cls.child = ClassStruct.objects.create(
-            name="Child",
-            short_name="C",
-            base_ei=cls.base_ei,
-            main_class=cls.root,
-        )
-        cls.other = ClassStruct.objects.create(
-            name="Other",
-            short_name="O",
-            base_ei=cls.base_ei,
-            main_class=None,
-        )
+        cls.root = ClassStructFactory(base_ei=cls.base_ei)
+        cls.child = ChildClassStructFactory(base_ei=cls.base_ei, main_class=cls.root)
+        cls.other = ClassStructFactory(base_ei=cls.base_ei)
 
-        cls.invalid_main_class = ClassStruct.objects.create(
-            name="Test Main Class",
-            short_name="Test Main Class",
-            base_ei=cls.base_ei,
-            main_class=None,
-        )
-        cls.valid_main_class = ClassStruct.objects.create(
-            name="Test Class",
-            short_name="Test Class",
-            base_ei=Ei.objects.first(),
-            main_class=cls.child,
-        )
-        cls.ei = Ei.objects.create(
-            name="Test EI",
-            short_name="Test EI",
-            code="0007",
-            convert_factor=1,
-            main_class=None,
-        )
+        cls.invalid_main_class = ClassStructFactory(base_ei=cls.base_ei)
+        cls.valid_main_class = ClassStructFactory(base_ei=cls.base_ei, main_class=cls.child)
+        cls.ei = EiFactory()
 
     def test_main_class_queryset_is_terminal_product_classes(self):
         """Проверяет, что поле main_class в форме использует queryset из ClassStruct.terminal_product_classes()."""
@@ -102,12 +85,7 @@ class ProdClassFormTest(BaseUnitTestCase):
                 "check_class_struct_cycles",
                 return_value=False,
             ) as mock_check_class_struct_cycles:
-                form_data = {
-                    "name": self.root.name,
-                    "short_name": self.root.short_name,
-                    "main_class": self.other,
-                    "base_ei": self.root.base_ei,
-                }
+                form_data = ProdClassFormData(main_class=self.other.pk, base=self.base_ei.pk)
                 form = ProdClassForm(data=form_data, instance=self.root)
                 self.assertTrue(form.is_valid())
                 mock_check_class_struct_cycles.assert_called_once()
@@ -131,12 +109,7 @@ class ProdClassFormTest(BaseUnitTestCase):
 
     def test_name_field_is_required(self):
         """Проверяет, что поле name обязательно для заполнения и выводится кастомное сообщение об ошибке."""
-        form_data = {
-            "name": "",
-            "short_name": "Test Name",
-            "main_class": self.valid_main_class,
-            "base_ei": self.ei,
-        }
+        form_data = ProdClassFormData(name="", main_class=self.valid_main_class.pk, base_ei=self.base_ei.pk)
         form = ProdClassForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("name", form.errors)
@@ -146,12 +119,7 @@ class ProdClassFormTest(BaseUnitTestCase):
 
     def test_main_class_field_is_required(self):
         """Проверяет, что поле main_class обязательно для заполнения и выводится кастомное сообщение об ошибке."""
-        form_data = {
-            "name": "Test Name",
-            "short_name": "Test Name",
-            "main_class": None,
-            "base_ei": self.ei,
-        }
+        form_data = ProdClassFormData(main_class="", base_ei=self.ei.pk)
         form = ProdClassForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("main_class", form.errors)
@@ -162,12 +130,7 @@ class ProdClassFormTest(BaseUnitTestCase):
 
     def test_non_terminal_main_class_is_invalid(self):
         """Проверяет, что выбор родительского класса, не входящего в терминальные классы, приводит к невалидности формы."""
-        form_data = {
-            "name": "Test Name",
-            "short_name": "Test Name",
-            "main_class": self.invalid_main_class,
-            "base_ei": self.ei,
-        }
+        form_data = ProdClassFormData(main_class=self.invalid_main_class.pk, base_ei=self.base_ei.pk)
         form = ProdClassForm(data=form_data)
         self.assertFalse(form.is_valid())
 
@@ -177,12 +140,7 @@ class ProdClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.terminal_product_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": self.root.name,
-                "short_name": self.root.short_name,
-                "main_class": self.child,
-                "base_ei": self.root.base_ei if self.root.base_ei else None,
-            }
+            form_data = ProdClassFormData(main_class=self.child.pk, base_ei=self.base_ei.pk)
             form = ProdClassForm(data=form_data, instance=self.root)
             self.assertFalse(form.is_valid())
             self.assertIn("__all__", form.errors)
@@ -202,12 +160,7 @@ class ProdClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.terminal_product_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": self.root.name,
-                "short_name": self.root.short_name,
-                "main_class": self.other,
-                "base_ei": self.root.base_ei if self.root.base_ei else None,
-            }
+            form_data = ProdClassFormData(main_class=self.other.pk, base_ei=self.base_ei.pk)
             form = ProdClassForm(data=form_data, instance=self.root)
             self.assertTrue(form.is_valid())
             obj = form.save()
@@ -219,12 +172,7 @@ class ProdClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.terminal_product_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": "Test Name",
-                "short_name": "Test Name",
-                "main_class": self.root,
-                "base_ei": self.ei,
-            }
+            form_data = ProdClassFormData(main_class=self.root.pk, base_ei=self.ei.pk)
             form = ProdClassForm(data=form_data)
             self.assertTrue(form.is_valid())
             obj = form.save()
@@ -236,17 +184,12 @@ class ProdClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.terminal_product_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": "Test Name",
-                "short_name": self.root.short_name,
-                "main_class": self.other,
-                "base_ei": self.root.base_ei if self.root.base_ei else None,
-            }
+            form_data = ProdClassFormData(main_class=self.other.pk, base_ei=self.base_ei.pk)
             form = ProdClassForm(data=form_data, instance=self.root)
             self.assertTrue(form.is_valid())
             obj = form.save()
             self.assertEqual(obj.pk, self.root.pk)
-            self.assertEqual(obj.name, "Test Name")
+            self.assertEqual(obj.name, form_data["name"])
 
     def test_cycle_when_main_class_is_self(self):
         """Проверяет, что установка родительским классом самого себя приводит к ошибке цикла."""
@@ -254,12 +197,7 @@ class ProdClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.terminal_product_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": "Test Name",
-                "short_name": self.root.short_name,
-                "main_class": self.root,
-                "base_ei": self.root.base_ei if self.root.base_ei else None,
-            }
+            form_data = ProdClassFormData(main_class=self.root.pk, base_ei=self.base_ei.pk)
             form = ProdClassForm(data=form_data, instance=self.root)
             self.assertFalse(form.is_valid())
             self.assertIn("__all__", form.errors)
@@ -280,12 +218,7 @@ class ProdClassFormTest(BaseUnitTestCase):
             with patch.object(
                 ClassStruct, "check_class_struct_cycles"
             ) as mock_check_class_struct_cycles:
-                form_data = {
-                    "name": "Test Name",
-                    "short_name": self.root.short_name,
-                    "main_class": self.root,
-                    "base_ei": self.root.base_ei if self.root.base_ei else None,
-                }
+                form_data = ProdClassFormData(main_class=self.root.pk, base_ei=self.base_ei.pk)
                 form = ProdClassForm(data=form_data)
                 self.assertTrue(form.is_valid())
                 mock_check_class_struct_cycles.assert_not_called()
@@ -296,12 +229,7 @@ class ProdClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.terminal_product_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": "Test Name",
-                "short_name": None,
-                "main_class": self.valid_main_class,
-                "base_ei": self.ei.pk,
-            }
+            form_data = ProdClassFormData(short_name="", main_class=self.valid_main_class.pk, base_ei=self.ei.pk)
             form = ProdClassForm(data=form_data)
             self.assertTrue(form.is_valid())
 
@@ -311,22 +239,12 @@ class ProdClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.terminal_product_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": "Test Name",
-                "short_name": "Test Name",
-                "main_class": self.valid_main_class,
-                "base_ei": None,
-            }
+            form_data = ProdClassFormData(main_class=self.valid_main_class.pk)
             form = ProdClassForm(data=form_data)
             self.assertTrue(form.is_valid())
 
     def test_form_displays_all_validation_errors(self):
-        form_data = {
-            "name": "",
-            "short_name": "",
-            "main_class": None,
-            "base_ei": None,
-        }
+        form_data = ProdClassFormData(name="", short_name="")
         form = ProdClassForm(data=form_data)
         self.assertFalse(form.is_valid())
 
@@ -335,7 +253,7 @@ class ProdClassFormTest(BaseUnitTestCase):
             "main_class": ["Поле для родительского класса необходимо заполнить"],
         }
 
-        for key, value in expected_errors.items():
+        for key, _ in expected_errors.items():
             self.assertIn(key, form.errors)
             self.assertEqual(form.errors[key], expected_errors[key])
 
@@ -345,30 +263,9 @@ class EnumClassFormTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.base_ei = Ei.objects.first()
 
-        cls.root = ClassStruct.objects.create(
-            name="Test Name",
-            short_name="Test Name",
-            base_ei=cls.base_ei,
-            main_class=None,
-        )
-        cls.child = ClassStruct.objects.create(
-            name="Test Name",
-            short_name="Test Name",
-            base_ei=cls.base_ei,
-            main_class=cls.root,
-        )
-        cls.other = ClassStruct.objects.create(
-            name="Test Name",
-            short_name="Test Name",
-            base_ei=cls.base_ei,
-            main_class=None,
-        )
-
-        cls.NEW_INSTANCE_NAME = "New test name"
-        cls.NEW_INSTANCE_SHORT_NAME = "New test name"
-
-        cls.UPDATED_INSTANCE_NAME = "Updated test name"
-        cls.UPDATED_INSTANCE_SHORT_NAME = "Upd. test name"
+        cls.root = ClassStructFactory(base_ei=cls.base_ei)
+        cls.child = ClassStructFactory(base_ei=cls.base_ei, main_class=cls.root)
+        cls.other = ClassStructFactory(base_ei=cls.base_ei)
 
     def test_main_class_queryset_is_all_enum_classes(self):
         """Проверяет, что поле main_class в форме использует queryset из ClassStruct.all_enum_classes()."""
@@ -377,11 +274,7 @@ class EnumClassFormTest(BaseUnitTestCase):
 
     def test_main_class_is_required(self):
         """Проверяет, что поле main_class обязательно для заполнения и выводится кастомное сообщение об ошибке."""
-        form_data = {
-            "name": self.NEW_INSTANCE_NAME,
-            "short_name": self.NEW_INSTANCE_SHORT_NAME,
-            "main_class": None,
-        }
+        form_data = EnumsClassFormData()
         form = EnumClassForm(data=form_data)
         expected_error_msg = "Поле для родительского класса необходимо заполнить"
         self.assertFalse(form.is_valid())
@@ -393,11 +286,7 @@ class EnumClassFormTest(BaseUnitTestCase):
 
     def test_name_is_required(self):
         """Проверяет, что поле name обязательно для заполнения и выводится кастомное сообщение об ошибке."""
-        form_data = {
-            "name": "",
-            "short_name": self.NEW_INSTANCE_SHORT_NAME,
-            "main_class": self.other,
-        }
+        form_data = EnumsClassFormData(name="", main_class=self.other.pk)
         form = EnumClassForm(data=form_data)
         expected_error_msg = "Поле для названия класса необходимо заполнить"
         self.assertFalse(form.is_valid())
@@ -413,11 +302,7 @@ class EnumClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": self.NEW_INSTANCE_NAME,
-                "short_name": "",
-                "main_class": self.other,
-            }
+            form_data = EnumsClassFormData(short_name="", main_class=self.other.pk)
             form = EnumClassForm(data=form_data)
             self.assertTrue(form.is_valid(), form.errors)
 
@@ -427,11 +312,7 @@ class EnumClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": self.NEW_INSTANCE_NAME,
-                "short_name": None,
-                "main_class": self.other,
-            }
+            form_data = EnumsClassFormData(short_name="", main_class=self.other.pk)
             form = EnumClassForm(data=form_data)
             self.assertTrue(form.is_valid())
 
@@ -446,11 +327,7 @@ class EnumClassFormTest(BaseUnitTestCase):
                 "check_class_struct_cycles",
                 return_value=False,
             ) as mock_check_class_struct_cycles:
-                form_data = {
-                    "name": self.UPDATED_INSTANCE_NAME,
-                    "short_name": self.UPDATED_INSTANCE_SHORT_NAME,
-                    "main_class": self.other,
-                }
+                form_data = EnumsClassFormData(main_class=self.other.pk)
                 form = EnumClassForm(data=form_data, instance=self.root)
                 self.assertTrue(form.is_valid())
                 mock_check_class_struct_cycles.assert_called_once()
@@ -470,11 +347,7 @@ class EnumClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": self.UPDATED_INSTANCE_NAME,
-                "short_name": self.UPDATED_INSTANCE_SHORT_NAME,
-                "main_class": self.child,
-            }
+            form_data = EnumsClassFormData(main_class=self.child.pk)
             form = EnumClassForm(data=form_data, instance=self.root)
             expected_error_msg = (
                 "При изменении класса в классификаторе образовывается цикл!"
@@ -494,11 +367,7 @@ class EnumClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": self.UPDATED_INSTANCE_NAME,
-                "short_name": self.UPDATED_INSTANCE_SHORT_NAME,
-                "main_class": self.other,
-            }
+            form_data = EnumsClassFormData(main_class=self.other.pk)
             form = EnumClassForm(data=form_data, instance=self.root)
             self.assertTrue(form.is_valid())
 
@@ -508,11 +377,7 @@ class EnumClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": self.NEW_INSTANCE_NAME,
-                "short_name": self.NEW_INSTANCE_SHORT_NAME,
-                "main_class": self.root,
-            }
+            form_data = EnumsClassFormData(main_class=self.root.pk)
             form = EnumClassForm(data=form_data)
             self.assertTrue(form.is_valid())
 
@@ -522,17 +387,13 @@ class EnumClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": self.UPDATED_INSTANCE_NAME,
-                "short_name": self.UPDATED_INSTANCE_SHORT_NAME,
-                "main_class": self.other,
-            }
+            form_data = EnumsClassFormData(main_class=self.other.pk)
             form = EnumClassForm(data=form_data, instance=self.root)
             self.assertTrue(form.is_valid())
             obj = form.save()
             self.assertEqual(form_data["name"], obj.name)
             self.assertEqual(form_data["short_name"], obj.short_name)
-            self.assertEqual(form_data["main_class"], obj.main_class)
+            self.assertEqual(form_data["main_class"], obj.main_class.pk)
 
     def test_cycle_when_main_class_is_self(self):
         """Проверяет, что установка родительским классом самого себя приводит к ошибке цикла."""
@@ -540,11 +401,7 @@ class EnumClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": self.UPDATED_INSTANCE_NAME,
-                "short_name": self.UPDATED_INSTANCE_SHORT_NAME,
-                "main_class": self.root,
-            }
+            form_data = EnumsClassFormData(main_class=self.root.pk)
             expected_error_msg = (
                 "При изменении класса в классификаторе образовывается цикл!"
             )
@@ -566,11 +423,7 @@ class EnumClassFormTest(BaseUnitTestCase):
                 ClassStruct,
                 "check_class_struct_cycles",
             ) as mock_check_class_struct_cycles:
-                form_data = {
-                    "name": self.NEW_INSTANCE_NAME,
-                    "short_name": self.NEW_INSTANCE_SHORT_NAME,
-                    "main_class": self.other,
-                }
+                form_data = EnumsClassFormData(main_class=self.other.pk)
                 form = EnumClassForm(data=form_data)
                 self.assertTrue(form.is_valid())
                 obj = form.save()
@@ -583,37 +436,24 @@ class EnumClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": self.UPDATED_INSTANCE_NAME,
-                "short_name": self.UPDATED_INSTANCE_SHORT_NAME,
-                "main_class": self.root,
-            }
+            form_data = EnumsClassFormData(main_class=self.root.pk)
             form = EnumClassForm(data=form_data, instance=self.child)
             obj = form.save()
             self.assertIsNotNone(obj.pk)
             self.assertEqual(form_data["name"], obj.name)
             self.assertEqual(form_data["short_name"], obj.short_name)
-            self.assertEqual(form_data["main_class"], obj.main_class)
+            self.assertEqual(form_data["main_class"], obj.main_class.pk)
 
     def test_non_enum_main_class_is_invalid(self):
         """Проверяет, что выбор родительского класса, не входящего в all_enum_classes, приводит к невалидности формы."""
-        invalid_enum_main_class = ClassStruct.objects.create(
-            name="invalid_enum_main_class",
-            short_name="invalid_enum",
-            main_class=None,
-            base_ei=None,
-        )
+        invalid_enum_main_class = ClassStructFactory()
         with patch(
             "classes.models.ClassStruct.all_enum_classes",
             return_value=ClassStruct.objects.filter(
                 pk__in=[self.root.pk, self.child.pk, self.other.pk]
             ),
         ):
-            form_data = {
-                "name": self.NEW_INSTANCE_NAME,
-                "short_name": self.NEW_INSTANCE_SHORT_NAME,
-                "main_class": invalid_enum_main_class,
-            }
+            form_data = EnumsClassFormData(main_class=invalid_enum_main_class.pk)
             form = EnumClassForm(data=form_data)
             self.assertFalse(form.is_valid())
             self.assertIn("main_class", form.errors)
@@ -624,25 +464,17 @@ class EnumClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            form_data = {
-                "name": self.NEW_INSTANCE_NAME,
-                "short_name": self.NEW_INSTANCE_SHORT_NAME,
-                "main_class": self.root,
-            }
+            form_data = EnumsClassFormData(main_class=self.root.pk)
             form = EnumClassForm(data=form_data)
             self.assertTrue(form.is_valid())
             obj = form.save()
             self.assertIsNotNone(obj.pk)
             self.assertEqual(form_data["name"], obj.name)
             self.assertEqual(form_data["short_name"], obj.short_name)
-            self.assertEqual(form_data["main_class"], obj.main_class)
+            self.assertEqual(form_data["main_class"], obj.main_class.pk)
 
     def test_form_displays_all_validation_errors(self):
-        form_data = {
-            "name": "",
-            "short_name": "",
-            "main_class": None,
-        }
+        form_data = EnumsClassFormData(name="", short_name="")
         form = EnumClassForm(data=form_data)
         self.assertFalse(form.is_valid())
 
@@ -651,7 +483,7 @@ class EnumClassFormTest(BaseUnitTestCase):
             "main_class": ["Поле для родительского класса необходимо заполнить"],
         }
 
-        for key, value in expected_errors.items():
+        for key, _ in expected_errors.items():
             self.assertIn(key, form.errors)
             self.assertEqual(form.errors[key], expected_errors[key])
 
@@ -664,48 +496,13 @@ class ParClassFormTest(BaseUnitTestCase):
         cls.int_enum_parametr = ClassStruct.objects.get(pk=EnumsIds.INT)
         cls.agregat_parametr_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.nuts_product_class = ClassStruct.objects.create(
-            name="nuts_product_class",
-            short_name="nuts_prod_class",
-            base_ei=None,
-            main_class=cls.nuts_class,
-        )
-        cls.other_nuts_product_class = ClassStruct.objects.create(
-            name="nuts_product_class",
-            short_name="nuts_prod_class",
-            base_ei=None,
-            main_class=cls.nuts_class,
-        )
-        cls.non_product_class = ClassStruct.objects.create(
-            name="non_product_class",
-            short_name="non_prod_class",
-            base_ei=None,
-            main_class=None,
-        )
-        cls.enum_parametr = Parametr.objects.create(
-            name="enum_parametr",
-            short_name="enum_parametr",
-            parametr_type=cls.int_enum_parametr,
-            par_ei=cls.par_ei,
-        )
-        cls.num_parametr = Parametr.objects.create(
-            name="num_parametr",
-            short_name="num_parametr",
-            parametr_type=cls.int_parametr,
-            par_ei=cls.par_ei,
-        )
-        cls.other_num_parametr = Parametr.objects.create(
-            name="other_num_par",
-            short_name="other_num_par",
-            parametr_type=cls.int_parametr,
-            par_ei=cls.par_ei,
-        )
-        cls.agregat_parametr = Parametr.objects.create(
-            name="agregat_parametr",
-            short_name="agregat_par",
-            parametr_type=cls.agregat_parametr_type,
-            par_ei=cls.par_ei,
-        )
+        cls.nuts_product_class = ClassStructFactory(main_class=cls.nuts_class)
+        cls.other_nuts_product_class = ClassStructFactory(main_class=cls.nuts_class)
+        cls.non_product_class = ClassStructFactory()
+        cls.enum_parametr = ParametrFactory(parametr_type=cls.int_enum_parametr, par_ei=cls.par_ei)
+        cls.num_parametr = ParametrFactory(parametr_type=cls.int_parametr, par_ei=cls.par_ei)
+        cls.other_num_parametr = ParametrFactory(parametr_type=cls.int_parametr, par_ei=cls.par_ei)
+        cls.agregat_parametr = ParametrFactory(parametr_type=cls.agregat_parametr_type, par_ei=cls.par_ei)
         cls.min_value = 100.00
         cls.max_value = 200.00
         cls.new_min_value = 10.00
@@ -729,12 +526,13 @@ class ParClassFormTest(BaseUnitTestCase):
         self,
     ):
         """Проверяет, что при передаче class_field в конструктор формы поле class_field получает начальное значение."""
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.int_parametr,
-            "min_value": None,
-            "max_value": None,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.int_parametr,
+            min_value=None,
+            max_value=None,
+            num=1,
+        )
         form = ParClassForm(class_field=self.nuts_product_class, data=form_data)
         self.assertIsNotNone(form.fields["class_field"].initial)
         self.assertEqual(form.fields["class_field"].initial, self.nuts_product_class)
@@ -743,23 +541,25 @@ class ParClassFormTest(BaseUnitTestCase):
         self,
     ):
         """Проверяет, что без передачи class_field в конструктор поле class_field не имеет начального значения."""
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.int_parametr,
-            "min_value": None,
-            "max_value": None,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.int_parametr,
+            min_value="",
+            max_value="",
+            num=1,
+        )
         form = ParClassForm(data=form_data)
         self.assertIsNone(form.fields["class_field"].initial)
 
     def test_class_field_is_required(self):
         """Проверяет, что поле class_field обязательно для заполнения."""
-        form_data = {
-            "class_field": None,
-            "parametr": self.num_parametr,
-            "min_value": None,
-            "max_value": None,
-        }
+        form_data = ParClassFormData(
+            class_field=None,
+            parametr=self.num_parametr,
+            min_value="",
+            max_value="",
+            num=1,
+        )
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertEqual(
@@ -769,12 +569,13 @@ class ParClassFormTest(BaseUnitTestCase):
 
     def test_parametr_field_is_required(self):
         """Проверяет, что поле parametr обязательно для заполнения."""
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": None,
-            "min_value": None,
-            "max_value": None,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=None,
+            min_value="",
+            max_value="",
+            num=1,
+        )
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertEqual(
@@ -783,56 +584,53 @@ class ParClassFormTest(BaseUnitTestCase):
 
     def test_min_value_is_optional(self):
         """Проверяет, что поле min_value может быть пустым (None) и форма проходит валидацию."""
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.num_parametr,
-            "min_value": None,
-            "max_value": self.max_value,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.num_parametr,
+            min_value="",
+        )
         form = ParClassForm(data=form_data)
         self.assertTrue(form.is_valid(), form.errors)
 
     def test_max_value_is_optional(self):
         """Проверяет, что поле max_value может быть пустым (None) и форма проходит валидацию."""
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.num_parametr,
-            "min_value": self.min_value,
-            "max_value": None,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.num_parametr,
+            max_value="",
+        )
         form = ParClassForm(data=form_data)
         self.assertTrue(form.is_valid(), form.errors)
 
     def test_invalid_class_field_raises_validation_error(self):
         """Проверяет, что выбор class_field, не входящего в products(), вызывает ошибку валидации."""
-        form_data = {
-            "class_field": self.non_product_class,
-            "parametr": self.num_parametr,
-            "min_value": None,
-            "max_value": None,
-        }
+        form_data = ParClassFormData(
+            class_field=self.non_product_class,
+            parametr=self.num_parametr,
+            min_value="",
+            max_value="",
+        )
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
 
     def test_invalid_parametr_field_raises_validation_error(self):
         """Проверяет, что выбор parametr, не входящего в parameters(), вызывает ошибку валидации."""
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.agregat_parametr,
-            "min_value": None,
-            "max_value": None,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.agregat_parametr,
+            min_value="",
+            max_value="",
+        )
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
 
     def test_enum_parametr_having_min_value_raises_validation_error(self):
         """Проверяет, что для enum-параметра указание min_value вызывает ошибку валидации."""
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.enum_parametr,
-            "min_value": self.min_value,
-            "max_value": None,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.enum_parametr,
+            max_value="",
+        )
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("__all__", form.errors)
@@ -843,12 +641,11 @@ class ParClassFormTest(BaseUnitTestCase):
 
     def test_enum_parametr_having_max_value_raises_validation_error(self):
         """Проверяет, что для enum-параметра указание max_value вызывает ошибку валидации."""
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.enum_parametr,
-            "min_value": None,
-            "max_value": self.max_value,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.enum_parametr,
+            min_value="",
+        )
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn("__all__", form.errors)
@@ -859,56 +656,52 @@ class ParClassFormTest(BaseUnitTestCase):
 
     def test_invalid_min_value_raises_validation_error(self):
         """Проверяет, что отрицательное или нулевое значение min_value вызывает ошибку валидации."""
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.num_parametr,
-            "min_value": self.invalid_min_value,
-            "max_value": None,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.num_parametr,
+            min_value=self.invalid_min_value,
+            max_value="",
+        )
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
 
     def test_invalid_max_value_raises_validation_error(self):
         """Проверяет, что отрицательное или нулевое значение max_value вызывает ошибку валидации."""
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.num_parametr,
-            "min_value": None,
-            "max_value": self.invalid_max_value,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.enum_parametr,
+            min_value="",
+            max_value=self.invalid_max_value,
+        )
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
 
     def test_correct_data_for_num_parametr_is_valid(self):
         """Проверяет, что форма с корректными данными для числового параметра проходит валидацию."""
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.num_parametr,
-            "min_value": self.min_value,
-            "max_value": self.max_value,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.num_parametr,
+        )
         form = ParClassForm(data=form_data)
         self.assertTrue(form.is_valid())
 
     def test_correct_data_for_enum_parametr_is_valid(self):
         """Проверяет, что форма с корректными данными для enum-параметра (без min/max) проходит валидацию."""
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.enum_parametr,
-            "min_value": None,
-            "max_value": None,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.enum_parametr,
+            min_value="",
+            max_value="",
+        )
         form = ParClassForm(data=form_data)
         self.assertTrue(form.is_valid())
 
     def test_num_par_class_instance_is_saved_correctly(self):
         """Проверяет, что объект ParClass для числового параметра сохраняется корректно."""
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.num_parametr,
-            "min_value": self.min_value,
-            "max_value": self.max_value,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.num_parametr,
+        )
         form = ParClassForm(data=form_data)
         self.assertTrue(form.is_valid())
 
@@ -921,12 +714,12 @@ class ParClassFormTest(BaseUnitTestCase):
 
     def test_enum_par_class_instance_is_saved_correctly(self):
         """Проверяет, что объект ParClass для enum-параметра сохраняется корректно."""
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.enum_parametr,
-            "min_value": None,
-            "max_value": None,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.enum_parametr,
+            min_value=None,
+            max_value=None,
+        )
         form = ParClassForm(data=form_data)
         self.assertTrue(form.is_valid())
 
@@ -939,20 +732,17 @@ class ParClassFormTest(BaseUnitTestCase):
 
     def test_edit_form_is_correctly_updating_min_value_and_max_value_fields(self):
         """Проверяет, что при редактировании поля min_value и max_value обновляются корректно."""
-        instance = ParClass.objects.create(
+        instance = ParClassFactory(
             class_field=self.nuts_product_class,
             parametr=self.num_parametr,
-            min_value=self.min_value,
-            max_value=self.max_value,
-            num=1,
+            num=1,            
         )
 
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.num_parametr,
-            "min_value": self.new_min_value,
-            "max_value": self.new_max_value,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.num_parametr,            
+        )
+
         form = ParClassForm(data=form_data, instance=instance)
         obj = form.save()
         self.assertEqual(obj.pk, instance.pk)
@@ -963,20 +753,17 @@ class ParClassFormTest(BaseUnitTestCase):
         self,
     ):
         """Проверяет, что при смене параметра на другой того же типа (числовой) форма валидна и сохраняет изменения."""
-        instance = ParClass.objects.create(
+        instance = ParClassFactory(
             class_field=self.nuts_product_class,
             parametr=self.num_parametr,
-            min_value=self.min_value,
-            max_value=self.max_value,
             num=1,
         )
 
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.other_num_parametr,
-            "min_value": self.new_min_value,
-            "max_value": self.new_max_value,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.other_num_parametr,
+        )
+
         form = ParClassForm(data=form_data, instance=instance)
         obj = form.save()
         self.assertEqual(obj.parametr, form_data["parametr"])
@@ -987,20 +774,18 @@ class ParClassFormTest(BaseUnitTestCase):
         self,
     ):
         """Проверяет, что при смене параметра на enum (с очисткой min/max) форма валидна и сохраняет изменения."""
-        instance = ParClass.objects.create(
+        instance = ParClassFactory(
             class_field=self.nuts_product_class,
             parametr=self.num_parametr,
-            min_value=self.min_value,
-            max_value=self.max_value,
-            num=1,
+            num=1,            
         )
 
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.enum_parametr,
-            "min_value": None,
-            "max_value": None,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.enum_parametr,
+            min_value=None,
+            max_value=None,
+        )
         form = ParClassForm(data=form_data, instance=instance)
         obj = form.save()
         self.assertEqual(obj.parametr, form_data["parametr"])
@@ -1012,20 +797,16 @@ class ParClassFormTest(BaseUnitTestCase):
     ):
         """Проверяет, что при смене параметра на enum с оставшимися min/max возникает ошибка валидации."""
 
-        instance = ParClass.objects.create(
+        instance = ParClassFactory(
             class_field=self.nuts_product_class,
             parametr=self.num_parametr,
-            min_value=self.min_value,
-            max_value=self.max_value,
-            num=1,
+            num=1,            
         )
 
-        form_data = {
-            "class_field": self.nuts_product_class,
-            "parametr": self.enum_parametr,
-            "min_value": self.min_value,
-            "max_value": self.max_value,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_product_class,
+            parametr=self.enum_parametr,
+        )
         form = ParClassForm(data=form_data, instance=instance)
         self.assertFalse(form.is_valid())
         expected_error_msg = ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(form_data["parametr"].name)
@@ -1033,20 +814,16 @@ class ParClassFormTest(BaseUnitTestCase):
 
     def test_edit_form_correctly_updates_class_field(self):
         """Проверяет, что при смене class_field объект обновляется и num пересчитывается для нового класса."""
-        instance = ParClass.objects.create(
+        instance = ParClassFactory(
             class_field=self.nuts_class,
             parametr=self.num_parametr,
-            min_value=self.min_value,
-            max_value=self.max_value,
-            num=1,
+            num=1,            
         )
 
-        form_data = {
-            "class_field": self.other_nuts_product_class,
-            "parametr": self.num_parametr,
-            "min_value": self.min_value,
-            "max_value": self.max_value,
-        }
+        form_data = ParClassFormData(
+            class_field=self.other_nuts_product_class,
+            parametr=self.num_parametr,
+        )
         form = ParClassForm(data=form_data, instance=instance)
         self.assertTrue(form.is_valid())
         obj = form.save()
@@ -1055,43 +832,39 @@ class ParClassFormTest(BaseUnitTestCase):
 
     def test_equal_pairs_raises_validation_error(self):
         """Проверяет, что попытка создать дублирующую пару (class_field, parametr) вызывает ошибку валидации."""
-        ParClass.objects.create(
+        _ = ParClassFactory(
             class_field=self.nuts_class,
             parametr=self.num_parametr,
-            min_value=self.min_value,
-            max_value=self.max_value,
             num=1,
         )
 
-        form_data = {
-            "class_field": self.nuts_class,
-            "parametr": self.num_parametr,
-            "min_value": self.min_value,
-            "max_value": self.max_value,
-        }
+        form_data = ParClassFormData(
+            class_field=self.nuts_class,
+            parametr=self.num_parametr,
+            min_value=None,
+            max_value=None,
+        )
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
 
     def test_class_field_parclass_instances_have_correct_num_values(self):
         """Проверяет, что при создании нескольких объектов для одного класса num последовательно увеличивается."""
-        instance1_form_data = {
-            "class_field": self.nuts_class,
-            "parametr": self.num_parametr,
-            "min_value": self.min_value,
-            "max_value": self.max_value,
-        }
+        instance1_form_data = ParClassFormData(
+            class_field=self.nuts_class,
+            parametr=self.num_parametr,
+        )
         form = ParClassForm(data=instance1_form_data)
         self.assertTrue(form.is_valid())
         obj1 = form.save()
         self.assertIsNotNone(obj1.pk)
         self.assertEqual(obj1.num, 1)
 
-        instance2_form_data = {
-            "class_field": self.nuts_class,
-            "parametr": self.enum_parametr,
-            "min_value": None,
-            "max_value": None,
-        }
+        instance2_form_data = ParClassFormData(
+            class_field=self.nuts_class,
+            parametr=self.enum_parametr,
+            min_value=None,
+            max_value=None,
+        )
         form = ParClassForm(data=instance2_form_data)
         self.assertTrue(form.is_valid())
         obj2 = form.save()
@@ -1100,28 +873,28 @@ class ParClassFormTest(BaseUnitTestCase):
 
     def test_num_field_has_correct_value_after_updating_class_field(self):
         """Проверяет, что при смене class_field num пересчитывается для нового класса (с учётом уже существующих записей)."""
-        ParClass.objects.create(
+        ParClassFactory(
             class_field=self.nuts_product_class,
             parametr=self.num_parametr,
             min_value=self.min_value,
             max_value=self.max_value,
-            num=1,
+            num=1,            
         )
-        ParClass.objects.create(
+        ParClassFactory(
             class_field=self.nuts_product_class,
             parametr=self.other_num_parametr,
             min_value=self.min_value,
             max_value=self.max_value,
-            num=2,
+            num=2,            
         )
-        instance = ParClass.objects.create(
+        instance = ParClassFactory(
             class_field=self.nuts_product_class,
             parametr=self.enum_parametr,
             min_value=None,
             max_value=None,
             num=3,
         )
-        ParClass.objects.create(
+        ParClassFactory(
             class_field=self.other_nuts_product_class,
             parametr=self.other_num_parametr,
             min_value=self.min_value,
@@ -1129,12 +902,12 @@ class ParClassFormTest(BaseUnitTestCase):
             num=1,
         )
 
-        form_data = {
-            "class_field": self.other_nuts_product_class,
-            "parametr": self.enum_parametr,
-            "min_value": None,
-            "max_value": None,
-        }
+        form_data = ParClassFormData(
+            class_field=self.other_nuts_product_class,
+            parametr=self.enum_parametr,
+            min_value=None,
+            max_value=None,
+        )
         form = ParClassForm(data=form_data, instance=instance)
         self.assertTrue(form.is_valid())
         obj = form.save()
@@ -1142,20 +915,18 @@ class ParClassFormTest(BaseUnitTestCase):
 
     def test_edit_without_changing_class_field_keeps_num(self):
         """Проверяет, что при редактировании без изменения class_field значение num не меняется."""
-        instance = ParClass.objects.create(
+        instance = ParClassFactory(
             class_field=self.nuts_product_class,
             parametr=self.num_parametr,
             min_value=self.min_value,
             max_value=self.max_value,
-            num=1,
+            num=1,            
         )
 
-        form_data = {
-            "class_field": self.other_nuts_product_class,
-            "parametr": self.num_parametr,
-            "min_value": self.min_value,
-            "max_value": self.max_value,
-        }
+        form_data = ParClassFormData(
+            class_field=self.other_nuts_product_class,
+            parametr=self.num_parametr,
+        )
         form = ParClassForm(data=form_data, instance=instance)
         self.assertTrue(form.is_valid())
         obj = form.save()
@@ -1171,12 +942,10 @@ class ParClassFormTest(BaseUnitTestCase):
             num=1,
         )
 
-        form_data = {
-            "class_field": self.other_nuts_product_class,
-            "parametr": self.num_parametr,
-            "min_value": self.new_min_value,
-            "max_value": self.new_max_value,
-        }
+        form_data = ParClassFormData(
+            class_field=self.other_nuts_product_class,
+            parametr=self.num_parametr,
+        )
         form = ParClassForm(data=form_data, instance=instance)
         self.assertTrue(form.is_valid())
         obj = form.save()
@@ -1184,12 +953,12 @@ class ParClassFormTest(BaseUnitTestCase):
 
     def test_model_clean_raises_error_if_min_value_greater_than_max_value(self):
         """Проверяет, что модель выбрасывает ошибку валидации, если min_value > max_value."""
-        form_data = {
-            "class_field": self.other_nuts_product_class,
-            "parametr": self.num_parametr,
-            "min_value": self.new_max_value,
-            "max_value": self.new_min_value,
-        }
+        form_data = ParClassFormData(
+            class_field=self.other_nuts_product_class,
+            parametr=self.num_parametr,
+            min_value=self.max_value,
+            max_value=self.min_value,
+        )
         form = ParClassForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertEqual(
@@ -1206,68 +975,22 @@ class ChangeParClassNumFormTest(BaseUnitTestCase):
         cls.int_enum_parametr = ClassStruct.objects.get(pk=EnumsIds.INT)
         cls.agregat_parametr_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.nuts_product_class = ClassStruct.objects.create(
-            name="nuts_product_class",
-            short_name="nuts_prod_class",
-            base_ei=None,
-            main_class=cls.nuts_class,
-        )
-        cls.other_nuts_product_class = ClassStruct.objects.create(
-            name="nuts_product_class",
-            short_name="nuts_prod_class",
-            base_ei=None,
-            main_class=cls.nuts_class,
-        )
-        cls.non_product_class = ClassStruct.objects.create(
-            name="non_product_class",
-            short_name="non_prod_class",
-            base_ei=None,
-            main_class=None,
-        )
-        cls.enum_parametr = Parametr.objects.create(
-            name="enum_parametr",
-            short_name="enum_parametr",
-            parametr_type=cls.int_enum_parametr,
-            par_ei=cls.par_ei,
-        )
-        cls.num_parametr = Parametr.objects.create(
-            name="num_parametr",
-            short_name="num_parametr",
-            parametr_type=cls.int_parametr,
-            par_ei=cls.par_ei,
-        )
+        cls.nuts_product_class = ClassStructFactory(main_class=cls.nuts_class)
+        cls.other_nuts_product_class = ClassStructFactory(main_class=cls.nuts_class)
+        cls.non_product_class = ClassStructFactory()
+        cls.enum_parametr = ParametrFactory(parametr_type=cls.int_enum_parametr, par_ei=cls.par_ei)
+        cls.num_parametr = ParametrFactory(parametr_type=cls.int_parametr, par_ei=cls.par_ei)
 
-        cls.min_value = 10.00
-        cls.max_value = 12.00
-
-        cls.parclass_1 = ParClass.objects.create(
-            class_field=cls.nuts_product_class,
-            parametr=cls.num_parametr,
-            min_value=cls.min_value,
-            max_value=cls.max_value,
-            num=1,
-        )
-        cls.parclass_2 = ParClass.objects.create(
-            class_field=cls.nuts_product_class,
-            parametr=cls.enum_parametr,
-            min_value=None,
-            max_value=None,
-            num=2,
-        )
-        cls.parclass_3 = ParClass.objects.create(
-            class_field=cls.other_nuts_product_class,
-            parametr=cls.num_parametr,
-            min_value=cls.min_value,
-            max_value=cls.max_value,
-            num=1,
-        )
+        cls.parclass_1 = ParClassFactory(class_field=cls.nuts_product_class, parametr=cls.num_parametr, num=1)
+        cls.parclass_2 = ParClassFactory(class_field=cls.nuts_product_class, parametr=cls.enum_parametr, num=2, min_value=None, max_value=None)
+        cls.parclass_3 = ParClassFactory(class_field=cls.other_nuts_product_class, parametr=cls.num_parametr, num=1)
 
     def test_class_field_1_is_required(self):
         """Проверяет, что поле cls_1 обязательно для заполнения."""
-        form_data = {
-            "cls_1": None,
-            "cls_2": self.parclass_2,
-        }
+        form_data = ChangeParClassFormData(
+            cls_1=None,
+            cls_2=self.parclass_2,
+        )
         form = ChangeParClassNumForm(
             data=form_data, class_id=self.nuts_product_class.pk
         )
@@ -1278,10 +1001,10 @@ class ChangeParClassNumFormTest(BaseUnitTestCase):
 
     def test_cls_2_is_required(self):
         """Проверяет, что поле cls_2 обязательно для заполнения."""
-        form_data = {
-            "cls_1": self.parclass_1,
-            "cls_2": None,
-        }
+        form_data = ChangeParClassFormData(
+            cls_1=self.parclass_1,
+            cls_2=None,
+        )
         form = ChangeParClassNumForm(
             data=form_data, class_id=self.nuts_product_class.pk
         )
@@ -1291,22 +1014,24 @@ class ChangeParClassNumFormTest(BaseUnitTestCase):
         )
 
     def test_clean_raises_validation_error_if_objects_are_equal(self):
-        """Проверяет, что при выборе двух одинаковых объектов ParClass выбрасывается ValidationError с соответствующим сообщением."""
-        form_data = {
-            "cls_1": self.parclass_1,
-            "cls_2": self.parclass_1,
-        }
+        """Проверяет, что при выборе двух одинаковых объектов ParClass
+        выбрасывается ValidationError с соответствующим сообщением."""
+        form_data = ChangeParClassFormData(
+            cls_1=self.parclass_1,
+            cls_2=self.parclass_1,
+        )
         form = ChangeParClassNumForm(
             data=form_data, class_id=self.nuts_product_class.pk
         )
         self.assertFalse(form.is_valid())
 
     def test_error_message_for_duplicate_objects(self):
-        """Проверяет, что при выборе одинаковых объектов сообщение об ошибке соответствует ожидаемому."""
-        form_data = {
-            "cls_1": self.parclass_1,
-            "cls_2": self.parclass_1,
-        }
+        """Проверяет, что при выборе одинаковых объектов сообщение
+        об ошибке соответствует ожидаемому."""
+        form_data = ChangeParClassFormData(
+            cls_1=self.parclass_1,
+            cls_2=self.parclass_1,
+        )
         form = ChangeParClassNumForm(
             data=form_data, class_id=self.nuts_product_class.pk
         )
@@ -1315,11 +1040,12 @@ class ChangeParClassNumFormTest(BaseUnitTestCase):
         self.assertEqual(form.errors["__all__"][0], expected_error_msg)
 
     def test_clean_does_not_raise_error_if_objects_are_different(self):
-        """Проверяет, что при выборе двух разных объектов ParClass форма проходит валидацию."""
-        form_data = {
-            "cls_1": self.parclass_1.pk,
-            "cls_2": self.parclass_2.pk,
-        }
+        """Проверяет, что при выборе двух разных объектов ParClass
+        форма проходит валидацию."""
+        form_data = ChangeParClassFormData(
+            cls_1=self.parclass_1.pk,
+            cls_2=self.parclass_2.pk,
+        )
         form = ChangeParClassNumForm(
             data=form_data, class_id=self.nuts_product_class.pk
         )
@@ -1332,11 +1058,12 @@ class ChangeParClassNumFormTest(BaseUnitTestCase):
         self.assertEqual(len(form.fields["cls_2"].queryset), 0)
 
     def test_num_values_were_successfully_swapped(self):
-        """Проверяет, что после валидации формы значения num у двух выбранных объектов ParClass успешно меняются местами."""
-        form_data = {
-            "cls_1": self.parclass_1.pk,
-            "cls_2": self.parclass_2.pk,
-        }
+        """Проверяет, что после валидации формы значения num
+        у двух выбранных объектов ParClass успешно меняются местами."""
+        form_data = ChangeParClassFormData(
+            cls_1=self.parclass_1.pk,
+            cls_2=self.parclass_2.pk,
+        )
         form = ChangeParClassNumForm(
             data=form_data, class_id=self.nuts_product_class.pk
         )
@@ -1351,43 +1078,14 @@ class ChangeParClassNumFormTest(BaseUnitTestCase):
 class OperationClassFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.welding = ClassStruct.objects.get(pk=OperationConsts.WELDING)
         cls.non_operation = ClassStruct.objects.first()
 
-        name = cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH]
-        short_name = cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.valid_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": cls.welding.pk
-        }
-
-        cls.empty_name_data = {
-            "name": "",
-            "short_name": short_name,
-            "main_class": cls.welding.pk
-        }
-
-        cls.empty_main_class_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": ""
-        }
-
-        cls.empty_short_name_data = {
-            "name": name,
-            "short_name": "",
-            "main_class": cls.welding.pk            
-        }
-
-        cls.non_operation_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": cls.non_operation.pk
-        }
+        cls.valid_data = ClassFormData(main_class=cls.welding)
+        cls.empty_name_data = ClassFormData(name="", main_class=cls.welding)
+        cls.empty_main_class_data = ClassFormData()
+        cls.empty_short_name_data = ClassFormData(short_name="", main_class=cls.welding)
+        cls.non_operation_data = ClassFormData(main_class=cls.non_operation)
 
     def test_main_class_queryset_is_operations_queryset(self):
         form = OperationClassForm()
@@ -1417,14 +1115,12 @@ class OperationClassFormTest(BaseUnitTestCase):
         self.assertIsNotNone(instance.pk)
         self.assertEqual(instance.name, self.valid_data["name"])
         self.assertEqual(instance.short_name, self.valid_data["short_name"])
-        self.assertEqual(instance.main_class.pk, self.valid_data["main_class"])
+        self.assertEqual(instance.main_class, self.valid_data["main_class"])
 
 
 class EconomicActivitySubjectClassFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.economic_activity_subject = ClassStruct.objects.get(
             pk=MetaConsts.ECONOMIC_ACTIVITY_SUBJECT
         )
@@ -1435,38 +1131,11 @@ class EconomicActivitySubjectClassFormTest(BaseUnitTestCase):
             .first()
         )
 
-        name = cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH]
-        short_name = cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.valid_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": cls.economic_activity_subject.pk,
-        }
-
-        cls.empty_name_data = {
-            "name": "",
-            "short_name": short_name,
-            "main_class": cls.economic_activity_subject.pk,
-        }
-
-        cls.empty_short_name_data = {
-            "name": name,
-            "short_name": "",
-            "main_class": cls.economic_activity_subject.pk,
-        }
-
-        cls.empty_main_class_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": "",
-        }
-
-        cls.invalid_main_class_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": cls.invalid_main_class.pk,
-        }
+        cls.valid_data = ClassFormData(main_class=cls.economic_activity_subject)
+        cls.empty_name_data = ClassFormData(name="", main_class=cls.economic_activity_subject)
+        cls.empty_main_class_data = ClassFormData()
+        cls.empty_short_name_data = ClassFormData(short_name="", main_class=cls.economic_activity_subject)
+        cls.invalid_main_class_data = ClassFormData(main_class=cls.invalid_main_class)
 
     def test_valid_form(self):
         form = EconomicActivitySubjectClassForm(data=self.valid_data)
@@ -1503,38 +1172,14 @@ class EconomicActivitySubjectClassFormTest(BaseUnitTestCase):
 class MeansOfLaborClassFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.valid_main_class = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
 
         cls.invalid_main_class = ClassStruct.objects.first()
 
-        name = cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH]
-        short_name = cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.valid_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": cls.valid_main_class.pk,
-        }
-
-        cls.empty_name_data = {
-            "name": "",
-            "short_name": short_name,
-            "main_class": cls.valid_main_class.pk,
-        }
-
-        cls.empty_main_class_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": "",
-        }
-
-        cls.invalid_main_class_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": cls.invalid_main_class.pk,
-        }
+        cls.valid_data = ClassFormData(main_class=cls.valid_main_class)
+        cls.empty_name_data = ClassFormData(name="", main_class=cls.valid_main_class)
+        cls.empty_main_class_data = ClassFormData()
+        cls.invalid_main_class_data = ClassFormData(main_class=cls.invalid_main_class)
 
     def test_valid_form(self):
         form = MeansOfLaborClassForm(data=self.valid_data)
@@ -1567,42 +1212,16 @@ class MeansOfLaborClassFormTest(BaseUnitTestCase):
 class QualificationClassFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.qualification = ClassStruct.objects.get(pk=MetaConsts.QUALIFICATION)
-
         cls.invalid_main_class = (
             ClassStruct.objects
             .exclude(pk=MetaConsts.QUALIFICATION)
             .first()
         )
-
-        name = cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH]
-        short_name = cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.valid_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": cls.qualification.pk,
-        }
-
-        cls.empty_name_data = {
-            "name": "",
-            "short_name": short_name,
-            "main_class": cls.qualification.pk,
-        }
-
-        cls.empty_main_class_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": "",
-        }
-
-        cls.invalid_main_class_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": cls.invalid_main_class.pk,
-        }
+        cls.valid_data = ClassFormData(main_class=cls.qualification)
+        cls.empty_name_data = ClassFormData(name="", main_class=cls.qualification)
+        cls.empty_main_class_data = ClassFormData()
+        cls.invalid_main_class_data = ClassFormData(main_class=cls.invalid_main_class)
 
     def test_valid_form(self):
         form = QualificationClassForm(data=self.valid_data)
@@ -1642,8 +1261,6 @@ class QualificationClassFormTest(BaseUnitTestCase):
 class ProfessionClassFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.profession = ClassStruct.objects.get(pk=MetaConsts.PROFESSION)
 
         cls.invalid_main_class = (
@@ -1652,32 +1269,10 @@ class ProfessionClassFormTest(BaseUnitTestCase):
             .first()
         )
 
-        name = cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH]
-        short_name = cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.valid_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": cls.profession.pk,
-        }
-
-        cls.empty_name_data = {
-            "name": "",
-            "short_name": short_name,
-            "main_class": cls.profession.pk,
-        }
-
-        cls.empty_main_class_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": "",
-        }
-
-        cls.invalid_main_class_data = {
-            "name": name,
-            "short_name": short_name,
-            "main_class": cls.invalid_main_class.pk,
-        }
+        cls.valid_data = ClassFormData(main_class=cls.profession)
+        cls.empty_name_data = ClassFormData(name="", main_class=cls.profession)
+        cls.empty_main_class_data = ClassFormData()
+        cls.invalid_main_class_data = ClassFormData(main_class=cls.invalid_main_class)
 
     def test_valid_form(self):
         form = ProfessionClassForm(data=self.valid_data)

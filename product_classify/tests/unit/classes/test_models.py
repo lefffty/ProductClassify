@@ -3,6 +3,7 @@ from django.db.models import QuerySet
 from django.db import IntegrityError
 
 from tests.unit.base import BaseUnitTestCase
+from tests.unit.classes.factories.class_struct import ClassStructFactory
 
 from parametr.models import Parametr
 from ei.models import Ei
@@ -16,31 +17,10 @@ class ClassStructModelTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
 
-    @staticmethod
-    def get_expected_model_error_message(model_name: str) -> str:
-        return f"Expected model 'ClassStruct', got '{model_name}'"
-
-    @staticmethod
-    def get_class_methods_call_error_message(method_name: str) -> str:
-        return f"ClassStruct.{method_name}() did not return a QuerySet instance"
-
-    @staticmethod
-    def get_expected_ids_error_message(expected_ids: set[int], actual_ids: set[int]):
-        return f"Expected to get objects with ids {expected_ids}, but got {actual_ids}"
-
-    @staticmethod
-    def get_expected_length_error_message(
-        expected_length: int, actual_length: int
-    ) -> str:
-        return f"Expected to get {expected_length} objects, but got {actual_length} objects"
-
     def test_create_with_minimal_requirements(self):
-        obj = ClassStruct.objects.create(
-            name="test_class",
-            short_name="tc1",
-            base_ei=None,
-            main_class=None,
-        )
+        name = "test_class"
+        short_name = "tc1"
+        obj = ClassStructFactory(name=name, short_name=short_name)
         self.assertIsNotNone(obj.pk)
         self.assertEqual(obj.name, "test_class")
         self.assertEqual(obj.short_name, "tc1")
@@ -48,97 +28,57 @@ class ClassStructModelTest(BaseUnitTestCase):
         self.assertIsNone(obj.main_class)
 
     def test_string_representation(self):
-        class1 = ClassStruct(
-            name="test_class1",
-            short_name="tc1",
-            base_ei=None,
-            main_class=None,
-        )
-        msg = "Incorrect string representation of ClassStruct object"
-        self.assertEqual(str(class1), "test_class1", msg)
+        class1 = ClassStructFactory()
+        self.assertEqual(str(class1), class1.name)
 
     def test_products_returns_valid_queryset_and_valid_class(self):
         products = ClassStruct.products()
-        msg1 = self.get_class_methods_call_error_message(ClassStruct.products.__name__)
-        msg2 = self.get_expected_model_error_message(products.model)
-        self.assertIsInstance(products, QuerySet, msg1)
-        self.assertEqual(products.model, ClassStruct, msg2)
+        self.assertIsInstance(products, QuerySet)
+        self.assertEqual(products.model, ClassStruct)
 
     def test_products_contains_expected_ids(self):
         products = ClassStruct.products()
         expected_ids = {1, 2, 3, 4, 5}
         actual_ids = set(products.values_list("id", flat=True))
-        length_msg = self.get_expected_length_error_message(
-            len(expected_ids), len(actual_ids)
-        )
-        msg = self.get_expected_ids_error_message(expected_ids, actual_ids)
-        self.assertEqual(len(actual_ids), len(expected_ids), length_msg)
-        self.assertSetEqual(actual_ids, expected_ids, msg)
+        self.assertEqual(len(actual_ids), len(expected_ids))
+        self.assertSetEqual(actual_ids, expected_ids)
 
     def test_terminal_product_classes_returns_queryset_and_valid_class(self):
         terminal_product_classes = ClassStruct.terminal_product_classes()
-        msg1 = self.get_class_methods_call_error_message(
-            ClassStruct.terminal_product_classes.__name__
-        )
-        msg2 = self.get_expected_model_error_message(terminal_product_classes.model)
-        self.assertIsInstance(terminal_product_classes, QuerySet, msg1)
-        self.assertEqual(terminal_product_classes.model, ClassStruct, msg2)
+        self.assertIsInstance(terminal_product_classes, QuerySet)
+        self.assertEqual(terminal_product_classes.model, ClassStruct)
 
     def test_terminal_enum_classes_returns_queryset_and_valid_class(self):
         terminal_enum_classes = ClassStruct.terminal_enum_classes()
-        msg1 = self.get_class_methods_call_error_message(
-            ClassStruct.terminal_enum_classes.__name__
-        )
-        msg2 = self.get_expected_model_error_message(terminal_enum_classes.model)
-        self.assertIsInstance(terminal_enum_classes, QuerySet, msg1)
-        self.assertEqual(terminal_enum_classes.model, ClassStruct, msg2)
+        self.assertIsInstance(terminal_enum_classes, QuerySet)
+        self.assertEqual(terminal_enum_classes.model, ClassStruct)
 
     def test_parametr_types_returns_queryset_and_valid_class(self):
         parametr_types = ClassStruct.parametr_types()
-        msg1 = self.get_class_methods_call_error_message(
-            ClassStruct.parametr_types.__name__
-        )
-        msg2 = self.get_expected_model_error_message(parametr_types.model)
-        self.assertIsInstance(parametr_types, QuerySet, msg1)
-        self.assertEqual(parametr_types.model, ClassStruct, msg2)
+        self.assertIsInstance(parametr_types, QuerySet)
+        self.assertEqual(parametr_types.model, ClassStruct)
 
     def test_parametr_types_contains_expected_ids(self):
         parametr_types = ClassStruct.parametr_types()
         actual_ids = set(parametr_types.values_list("id", flat=True))
-        msg = self.get_expected_ids_error_message(TYPE_IDS, actual_ids)
-        length_msg = self.get_expected_length_error_message(
-            len(TYPE_IDS), len(actual_ids)
-        )
-        self.assertEqual(len(actual_ids), len(TYPE_IDS), length_msg)
-        self.assertSetEqual(actual_ids, set(TYPE_IDS), msg)
+        self.assertEqual(len(actual_ids), len(TYPE_IDS))
+        self.assertSetEqual(actual_ids, set(TYPE_IDS))
 
     def test_enum_classes_returns_queryset_and_valid_class(self):
         enum_classes = ClassStruct.enum_classes()
-        msg1 = self.get_class_methods_call_error_message(
-            ClassStruct.enum_classes.__name__
-        )
-        msg2 = self.get_expected_model_error_message(enum_classes.model)
-        self.assertIsInstance(enum_classes, QuerySet, msg1)
-        self.assertEqual(enum_classes.model, ClassStruct, msg2)
+        self.assertIsInstance(enum_classes, QuerySet)
+        self.assertEqual(enum_classes.model, ClassStruct)
 
     def test_enum_classes_contains_expected_ids(self):
         enum_classes = ClassStruct.enum_classes()
         actual_ids = set(enum_classes.values_list("id", flat=True))
-        length_msg = self.get_expected_length_error_message(
-            len(ENUM_PARAMS), len(actual_ids)
-        )
-        msg = self.get_expected_ids_error_message(ENUM_PARAMS, actual_ids)
-        self.assertEqual(len(actual_ids), len(ENUM_PARAMS), length_msg)
-        self.assertSetEqual(actual_ids, set(ENUM_PARAMS), msg)
+        self.assertEqual(len(actual_ids), len(ENUM_PARAMS))
+        self.assertSetEqual(actual_ids, set(ENUM_PARAMS))
 
     def test_all_enum_classes_returns_queryset_and_valid_class(self):
         all_enum_classes = ClassStruct.all_enum_classes()
-        msg1 = self.get_class_methods_call_error_message(
-            ClassStruct.all_enum_classes.__name__
-        )
-        msg2 = self.get_expected_model_error_message(all_enum_classes.model)
-        self.assertIsInstance(all_enum_classes, QuerySet, msg1)
-        self.assertEqual(all_enum_classes.model, ClassStruct, msg2)
+        self.assertIsInstance(all_enum_classes, QuerySet)
+        self.assertEqual(all_enum_classes.model, ClassStruct)
 
     def test_technological_operations(self):
         technological_operations = ClassStruct.technological_operations()
