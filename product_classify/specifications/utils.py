@@ -312,7 +312,6 @@ def create_change_log_pdf(results: List[SpecificationLogResult]) -> BytesIO:
 
 
 def save_formset_with_logging(formset: BaseInlineFormSet, product: Prod):
-    # Собираем старые объекты для форм с pk
     old_objects = {}
     for form in formset.initial_forms:
         if form.instance.pk:
@@ -320,10 +319,8 @@ def save_formset_with_logging(formset: BaseInlineFormSet, product: Prod):
                 pk=form.instance.pk
             )
 
-    # Сохраняем без коммита, чтобы получить новые экземпляры
     instances = formset.save(commit=False)
 
-    # Обрабатываем удалённые объекты (создаём лог, затем удаляем)
     for form in formset.deleted_forms:
         if form.instance.pk:
             old_obj = old_objects.get(form.instance.pk)
@@ -335,7 +332,6 @@ def save_formset_with_logging(formset: BaseInlineFormSet, product: Prod):
                 )
             form.instance.delete()
 
-    # Сохраняем новые и изменённые экземпляры
     for instance in instances:
         is_new = instance.pk is None
         instance.save()
@@ -355,5 +351,14 @@ def save_formset_with_logging(formset: BaseInlineFormSet, product: Prod):
                     new_quantity=instance.quantity,
                 )
 
-    # Сохраняем m2m (если есть)
     formset.save_m2m()
+
+
+def get_total_cost_ratio_filename(product_name: str):
+    filename = f"Спецификация_изделия_{product_name}.pdf"
+    return filename
+
+
+def get_changelog_filename(product_name: str):
+    filename = f"История_изменений_спецификации_изделия_{product_name}.pdf"
+    return filename

@@ -1,7 +1,6 @@
-from django.http import HttpRequest, FileResponse
+from django.http import HttpRequest, FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction
-from django.forms import inlineformset_factory
 
 from loguru import logger
 
@@ -12,31 +11,20 @@ from accounts.constants import RoleCodes
 from classes.models import ClassStruct
 from classes.constants import ProductsConsts
 
+from specifications.forms import ProdComponentFormSet
 from specifications.constants import FormsetConsts
 from specifications.models import ProdComponent, Prod, SpecificationLogs
-from specifications.forms import ProdComponentForm
 from specifications.utils import (
     create_total_cost_ratio_pdf,
     create_change_log_pdf,
     save_formset_with_logging,
-)
-
-ProdComponentFormSet = inlineformset_factory(
-    Prod,
-    ProdComponent,
-    form=ProdComponentForm,
-    fk_name="parent_prod",
-    fields=(
-        "component",
-        "quantity",
-    ),
-    extra=1,
-    can_delete=True,
+    get_changelog_filename,
+    get_total_cost_ratio_filename,
 )
 
 
 @roles_required(RoleCodes.BUILDER)
-def get_total_cost_ratio_view(request: HttpRequest, product_id: int):
+def get_total_cost_ratio_view(request: HttpRequest, product_id: int) -> FileResponse:
     try:
         raw_quantity = request.GET.get("quantity")
         quantity = int(raw_quantity)
@@ -45,11 +33,11 @@ def get_total_cost_ratio_view(request: HttpRequest, product_id: int):
 
     results = ProdComponent.total_cost_ratio(product_id, quantity)
 
-    product = Prod.objects.get(pk=product_id)
+    product = get_object_or_404(Prod, pk=product_id)
 
     buffer = create_total_cost_ratio_pdf(results, product)
 
-    filename = f"Спецификация_изделия_{product.name}.pdf"
+    filename = get_total_cost_ratio_filename(product.name)
 
     return FileResponse(
         buffer, as_attachment=True, filename=filename, content_type="application/pdf"
@@ -57,14 +45,14 @@ def get_total_cost_ratio_view(request: HttpRequest, product_id: int):
 
 
 @roles_required(RoleCodes.BUILDER)
-def get_product_changelog_view(_: HttpRequest, product_id: int):
+def get_product_changelog_view(_: HttpRequest, product_id: int) -> FileResponse:
     results = SpecificationLogs.get_changelog(product_id)
 
-    product = Prod.objects.get(pk=product_id)
+    product = get_object_or_404(Prod, pk=product_id)
 
     buffer = create_change_log_pdf(results)
 
-    filename = f"История_изменений_спецификации_изделия_{product.name}.pdf"
+    filename = get_changelog_filename(product.name)
 
     return FileResponse(
         buffer,
@@ -75,7 +63,7 @@ def get_product_changelog_view(_: HttpRequest, product_id: int):
 
 
 @roles_required(RoleCodes.BUILDER)
-def edit_specification_view(request: HttpRequest, product_id: int):
+def edit_specification_view(request: HttpRequest, product_id: int) -> HttpResponse:
     product = get_object_or_404(Prod, pk=product_id)
     edit_mode = request.GET.get("edit") == "1"
     fastener_classes = ClassStruct.objects.filter(
@@ -96,7 +84,6 @@ def edit_specification_view(request: HttpRequest, product_id: int):
             for form in formset:
                 for field in form.fields.values():
                     field.disabled = True
-            # Отключаем добавление/удаление в режиме просмотра
             formset.extra = FormsetConsts.EXTRA
             formset.can_delete = False
 

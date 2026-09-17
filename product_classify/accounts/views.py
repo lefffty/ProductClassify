@@ -110,12 +110,15 @@ def edit_profile_view(request: HttpRequest) -> HttpResponse:
         User,
         pk=request.user.pk
     )
-    form = ProfileForm(request.POST or None, instance=user)
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        return redirect(
-            "accounts:profile"
-        )
+    if request.method == "POST":
+        form = ProfileForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect(
+                "accounts:profile"
+            )
+    else:
+        form = ProfileForm(instance=user)
     return render(
         request,
         "accounts/profile.html",

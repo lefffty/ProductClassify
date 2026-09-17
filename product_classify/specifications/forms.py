@@ -1,5 +1,7 @@
 from django import forms
 
+from products.models import Prod
+
 from specifications.models import ProdComponent
 
 
@@ -37,3 +39,17 @@ class ProdComponentForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+ProdComponentFormSet = forms.inlineformset_factory(
+    Prod,
+    ProdComponent,
+    form=ProdComponentForm,
+    fk_name="parent_prod",
+    fields=(
+        "component",
+        "quantity",
+    ),
+    extra=1,
+    can_delete=True,
+)
