@@ -2,18 +2,17 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from urllib.parse import urlencode
-from faker import Faker
-from random import randint
 from http import HTTPStatus
 
 from tests.unit.base import BaseUnitTestCase
+from tests.unit.accounts.factories.user import UserFactory
+from tests.unit.ei.factories.ei import EiFormDataFactory
 
 from accounts.models import Role
-from accounts.constants import UserConsts, RoleCodes
+from accounts.constants import RoleCodes
 
 from ei.models import Ei
 from ei.errors import EiErrors
-from ei.constants import EiConsts
 
 User = get_user_model()
 
@@ -21,44 +20,11 @@ User = get_user_model()
 class EiListViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("ei:list")
         cls.login_url = reverse("accounts:login")
@@ -98,51 +64,11 @@ class EiListViewTest(BaseUnitTestCase):
 class EiDetailViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-65"
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.instance = Ei.objects.first()
         cls.url = reverse("ei:detail", args=[cls.instance.pk])
@@ -191,89 +117,19 @@ class EiDetailViewTest(BaseUnitTestCase):
 class EiCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
         cls.main_class = Ei.objects.first()
 
-        cls.data = {
-            "name": cls.faker.name()[:EiConsts.NAME_MAX_LENGTH],
-            "short_name": cls.faker.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
-            "code": cls.faker.postcode()[:EiConsts.CODE_MAX_LENGTH],
-            "convert_factor": randint(1, 100),
-            "main_class": cls.main_class.pk,
-        }
-        cls.empty_name_data = {
-            "name": "",
-            "short_name": cls.faker.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
-            "code": cls.faker.postcode()[:EiConsts.CODE_MAX_LENGTH],
-            "convert_factor": randint(1, 100),
-            "main_class": cls.main_class.pk,
-        }
-        cls.empty_short_name_data = {
-            "name": cls.faker.name()[:EiConsts.NAME_MAX_LENGTH],
-            "short_name": "",
-            "code": cls.faker.postcode()[:EiConsts.CODE_MAX_LENGTH],
-            "convert_factor": randint(1, 100),
-            "main_class": cls.main_class.pk,
-        }
-        cls.empty_convert_factor_data = {
-            "name": cls.faker.name()[:EiConsts.NAME_MAX_LENGTH],
-            "short_name": cls.faker.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
-            "code": cls.faker.postcode()[:EiConsts.CODE_MAX_LENGTH],
-            "convert_factor": "",
-            "main_class": cls.main_class.pk,
-        }
-        cls.negative_convert_factor_data = {
-            "name": cls.faker.name()[:EiConsts.NAME_MAX_LENGTH],
-            "short_name": cls.faker.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
-            "code": cls.faker.postcode()[:EiConsts.CODE_MAX_LENGTH],
-            "convert_factor": -1,
-            "main_class": cls.main_class.pk,
-        }
+        cls.data = EiFormDataFactory(main_class=cls.main_class.pk)
+        cls.empty_name_data = EiFormDataFactory(main_class=cls.main_class.pk, name="")
+        cls.empty_short_name_data = EiFormDataFactory(main_class=cls.main_class.pk, short_name="")
+        cls.empty_convert_factor_data = EiFormDataFactory(main_class=cls.main_class.pk, convert_factor="")
+        cls.negative_convert_factor_data = EiFormDataFactory(main_class=cls.main_class.pk, convert_factor=-1)
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-65"
-
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("ei:add")
         cls.redirect_url = reverse("ei:list")
@@ -342,51 +198,11 @@ class EiCreateViewTest(BaseUnitTestCase):
 class EiDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-    
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-65"
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.ei_id = Ei.objects.last().pk
         cls.url = reverse("ei:delete", args=[cls.ei_id])
@@ -428,59 +244,14 @@ class EiUpdateViewTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.ei = Ei.objects.last()
         cls.ei_id = cls.ei.pk
-        cls.faker = Faker()
 
-        cls.data = {
-            "name": cls.faker.name()[:EiConsts.NAME_MAX_LENGTH],
-            "short_name": cls.faker.name()[:EiConsts.SHORT_NAME_MAX_LENGTH].strip(),
-            "code": cls.faker.postcode()[:EiConsts.CODE_MAX_LENGTH],
-            "convert_factor": randint(1, 100),
-            "main_class": cls.ei.main_class.pk,
-        }
+        cls.data = EiFormDataFactory(main_class=cls.ei.main_class.pk)
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-65"
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("ei:edit", args=[cls.ei_id])
         cls.redirect_url = reverse("ei:detail", args=[cls.ei_id])

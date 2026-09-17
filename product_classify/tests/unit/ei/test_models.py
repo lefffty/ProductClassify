@@ -1,76 +1,42 @@
 from tests.unit.base import BaseUnitTestCase
-
-from faker import Faker
-from random import randint
-
-from ei.constants import EiConsts
-from ei.models import Ei
+from tests.unit.ei.factories.ei import EiFactory, ChildEiFactory
 
 
 class EiModelTest(BaseUnitTestCase):
     def test_string_representation(self):
-        ei = Ei(
-            name="test_name",
-            short_name="test_short_name",
-            code="test_code",
-            convert_factor=1,
-            main_class=None,
-        )
-        msg = "Incorrect string representation of Ei object"
-        self.assertEqual(str(ei), "test_short_name", msg)
+        short_name = "short_"
+        ei = EiFactory(short_name=short_name)
+        self.assertEqual(str(ei), short_name)
 
     def test_create_with_minimal_requirements(self):
-        ei = Ei.objects.create(
-            name="test_name",
-            short_name="test",
-        )
-        self.assertEqual(ei.name, "test_name")
-        self.assertEqual(ei.short_name, "test")
+        ei = EiFactory()
         self.assertIsNotNone(ei.pk)
+        self.assertIsNotNone(ei.name)
+        self.assertIsNotNone(ei.short_name)
         self.assertIsNotNone(ei.code)
-        self.assertIsNone(ei.convert_factor)
+        self.assertIsNotNone(ei.convert_factor)
         self.assertIsNone(ei.main_class)
 
     def test_convert_factor_accepts_integer(self):
-        ei = Ei.objects.create(name="test_name", short_name="test", convert_factor=1)
-        self.assertEqual(ei.convert_factor, 1)
+        convert_factor = 1
+        ei = EiFactory(convert_factor=1)
+        self.assertEqual(ei.convert_factor, convert_factor)
 
     def test_convert_factor_accepts_float(self):
-        ei = Ei.objects.create(name="test_name", short_name="test", convert_factor=1.0)
-        self.assertEqual(ei.convert_factor, 1.0)
+        convert_factor = 1.0
+        ei = EiFactory(convert_factor=1.0)
+        self.assertEqual(ei.convert_factor, convert_factor)
 
     def test_main_class_relation(self):
-        parent = Ei.objects.create(
-            name="parent",
-            short_name="parent",
-        )
-        child = Ei.objects.create(name="child", short_name="child", main_class=parent)
+        parent = EiFactory()
+        child = ChildEiFactory(main_class=parent)
         self.assertEqual(child.main_class, parent)
         self.assertIn(child, parent.child_eis.all())
 
-    def test_main_class_reassignment_is_correct_(self):
-        fake = Faker()
-        ei1 = Ei.objects.create(
-            name=fake.name()[:EiConsts.NAME_MAX_LENGTH],
-            short_name=fake.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
-            code=fake.name()[:EiConsts.CODE_MAX_LENGTH],
-            convert_factor=1,
-            main_class=None
-        )
-        ei2 = Ei.objects.create(
-            name=fake.name()[:EiConsts.NAME_MAX_LENGTH],
-            short_name=fake.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
-            code=fake.name()[:EiConsts.CODE_MAX_LENGTH],
-            convert_factor=randint(2, 100),
-            main_class=ei1
-        )
-        ei3 = Ei.objects.create(
-            name=fake.name()[:EiConsts.NAME_MAX_LENGTH],
-            short_name=fake.name()[:EiConsts.SHORT_NAME_MAX_LENGTH],
-            code=fake.name()[:EiConsts.CODE_MAX_LENGTH],
-            convert_factor=randint(2, 100),
-            main_class=ei1
-        )
+    def test_main_class_reassignment_is_correct(self):
+        ei1 = EiFactory()
+        ei2 = ChildEiFactory(main_class=ei1)
+        ei3 = ChildEiFactory(main_class=ei2)
 
         ei1.delete()
         ei2.refresh_from_db()
