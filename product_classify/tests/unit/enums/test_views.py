@@ -1,25 +1,24 @@
-from urllib.parse import urlencode
-
 from django.urls import reverse
 from django.utils.html import escape
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 
+from urllib.parse import urlencode
 from http import HTTPStatus
-from faker import Faker
-from random import randint
 from io import BytesIO
 from PIL import Image
 
 from tests.unit.base import BaseUnitTestCase
+from tests.unit.accounts.factories.user import UserFactory
+from tests.unit.classes.factories.class_struct import ClassStructFactory
+from tests.unit.enums.factories.enums import EnumsFactory, EnumsFormData, ChangeNumFormData
 
 from accounts.models import Role
-from accounts.constants import RoleCodes, UserConsts
+from accounts.constants import RoleCodes
 
 from classes.models import ClassStruct
-from classes.constants import ClassStructConsts, EnumsIds
+from classes.constants import EnumsIds
 
-from enums.constants import EnumsConsts
 from enums.errors import (
     StringEnumErrors,
     CommonEnumErrors, 
@@ -36,74 +35,32 @@ User = get_user_model()
 class EnumsListViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
         cls.int_enum = ClassStruct.objects.get(pk=EnumsIds.INT)
         cls.string_enum = ClassStruct.objects.get(pk=EnumsIds.STRING)
-        cls.int_enum_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.int_enum_subclass = ClassStructFactory(
             main_class=cls.int_enum,
-            base_ei=None,
         )
+
         cls.enum_id1 = cls.int_enum.pk
         cls.enum_id2 = cls.string_enum.pk
 
-        cls.enum1 = Enums.objects.create(
+        cls.enum1 = EnumsFactory(
             enum=cls.int_enum_subclass,
             num=1,
-            name=None,
-            short_name=None,
-            double_value=None,
-            int_value=randint(1, 100),
-            image=None
+            int_value=42,
         )
-        cls.enum2 = Enums.objects.create(
+        cls.enum2 = EnumsFactory(
             enum=cls.int_enum_subclass,
             num=2,
-            name=None,
-            short_name=None,
-            double_value=None,
-            int_value=randint(1, 100),
-            image=None
+            int_value=7,
         )
 
-        code = RoleCodes.HANDBOOK_EXECUTIVE
-        cls.allowed_role = Role.objects.get(code=code)
+        cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.login_url = reverse("accounts:login")
         cls.url1 = reverse("enums:list", kwargs={"class_id": cls.enum_id1})
@@ -149,60 +106,22 @@ class EnumsListViewTest(BaseUnitTestCase):
 class EnumsDetailViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
         cls.int_enum = ClassStruct.objects.get(pk=EnumsIds.INT)
-        cls.int_enum_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.int_enum_subclass = ClassStructFactory(
             main_class=cls.int_enum,
-            base_ei=None,
         )
-        cls.enum = Enums.objects.create(
+        cls.enum = EnumsFactory(
             enum=cls.int_enum_subclass,
             num=1,
-            name=None,
-            short_name=None,
-            double_value=None,
-            int_value=randint(1, 100),
-            image=None
+            int_value=42,
         )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.login_url = reverse("accounts:login")
         cls.url = reverse("enums:detail", args=[cls.int_enum_subclass.pk, cls.enum.pk])
@@ -243,163 +162,122 @@ class EnumsDetailViewTest(BaseUnitTestCase):
 class EnumsCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
         cls.int_enum = ClassStruct.objects.get(pk=EnumsIds.INT)
         cls.string_enum = ClassStruct.objects.get(pk=EnumsIds.STRING)
         cls.image_enum = ClassStruct.objects.get(pk=EnumsIds.IMAGE)
         cls.double_enum = ClassStruct.objects.get(pk=EnumsIds.DOUBLE)
 
-        cls.int_enum_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.int_enum,
-            base_ei=None,
+        cls.int_enum_subclass = ClassStructFactory(main_class=cls.int_enum)
+        cls.string_enum_subclass = ClassStructFactory(main_class=cls.string_enum)
+        cls.image_enum_subclass = ClassStructFactory(main_class=cls.image_enum)
+        cls.double_enum_subclass = ClassStructFactory(main_class=cls.double_enum)
+
+        cls.int_enum_valid_data = EnumsFormData(
+            enum=cls.int_enum_subclass.pk,
+            name="",
+            short_name="",
+            int_value=42,
+            double_value="",
+            image="",
         )
-        cls.string_enum_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.string_enum,
-            base_ei=None,
+        cls.int_enum_empty_enum_data = EnumsFormData(
+            enum="",
+            name="",
+            short_name="",
+            int_value=42,
+            double_value="",
+            image="",
         )
-        cls.image_enum_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.image_enum,
-            base_ei=None,
+        cls.int_enum_empty_int_value_data = EnumsFormData(
+            enum=cls.int_enum_subclass.pk,
+            name="",
+            short_name="",
+            int_value="",
+            double_value="",
+            image="",
         )
-        cls.double_enum_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.double_enum,
-            base_ei=None,
+        cls.int_enum_negative_value_field_data = EnumsFormData(
+            enum=cls.int_enum_subclass.pk,
+            name="",
+            short_name="",
+            int_value=-42,
+            double_value="",
+            image="",
+        )
+        cls.int_enum_invalid_data = EnumsFormData(
+            enum=cls.int_enum_subclass.pk,
+            name="Test name",
+            short_name="",
+            int_value=42,
+            double_value="",
+            image="",
         )
 
-        cls.int_enum_valid_data = {
-            "enum": cls.int_enum_subclass.pk,
-            "name": "",
-            "short_name": "",
-            "int_value": randint(1, 100),
-            "double_value": "",
-        }
-        cls.int_enum_empty_enum_data = {
-            "enum": "",
-            "name": "",
-            "short_name": "",
-            "int_value": randint(1, 100),
-            "double_value": "",
-        }
-        cls.int_enum_empty_int_value_data = {
-            "enum": cls.int_enum_subclass.pk,
-            "name": "",
-            "short_name": "",
-            "int_value": "",
-            "double_value": "",     
-        }
-        cls.int_enum_negative_value_field_data = {
-            "enum": cls.int_enum_subclass.pk,
-            "name": "",
-            "short_name": "",
-            "int_value": -randint(1, 100),
-            "double_value": "",
-        }
-        cls.int_enum_invalid_data = {
-            "enum": cls.int_enum_subclass.pk,
-            "name": cls.faker.name()[:EnumsConsts.NAME_MAX_LENGTH],
-            "short_name": "",
-            "int_value": randint(1, 100),
-            "double_value": "",
-        }
-
-        cls.string_enum_empty_fields_data = {
-            "enum": cls.string_enum_subclass.pk,
-            "name": cls.faker.name()[:EnumsConsts.SHORT_NAME_MAX_LENGTH],
-            "short_name": "",
-            "int_value": "",
-            "double_value": "",
-        }
-        cls.string_enum_invalid_data = {
-            "enum": cls.string_enum_subclass.pk,
-            "name": cls.faker.name()[:EnumsConsts.NAME_MAX_LENGTH],
-            "short_name": cls.faker.name()[:EnumsConsts.SHORT_NAME_MAX_LENGTH],
-            "int_value": randint(1, 100),
-            "double_value": "",
-        }
+        cls.string_enum_empty_fields_data = EnumsFormData(
+            enum=cls.string_enum_subclass.pk,
+            name="Test short",
+            short_name="",
+            int_value="",
+            double_value="",
+            image="",
+        )
+        cls.string_enum_invalid_data = EnumsFormData(
+            enum=cls.string_enum_subclass.pk,
+            name="Test name",
+            short_name="Test short",
+            int_value=42,
+            double_value="",
+            image="",
+        )
 
         cls.image = cls._create_test_image()
-        cls.image_enum_empty_fields_data = {
-            "enum": cls.image_enum_subclass.pk,
-            "name": "",
-            "short_name": "",
-            "int_value": "",
-            "double_value": "",
-        }
-        cls.image_enum_invalid_data = {
-            "enum": cls.image_enum_subclass.pk,
-            "name": "",
-            "short_name": "",
-            "int_value": randint(1, 100),
-            "double_value": "",
-            "image": cls.image,
-        }
+        cls.image_enum_empty_fields_data = EnumsFormData(
+            enum=cls.image_enum_subclass.pk,
+            name="",
+            short_name="",
+            int_value="",
+            double_value="",
+            image="",
+        )
+        cls.image_enum_invalid_data = EnumsFormData(
+            enum=cls.image_enum_subclass.pk,
+            name="",
+            short_name="",
+            int_value=42,
+            double_value="",
+            image=cls.image,
+        )
 
-        cls.double_enum_empty_fields_data = {
-            "enum": cls.double_enum_subclass.pk,
-            "name": "",
-            "short_name": "",
-            "int_value": "",
-            "double_value": "",
-        }
-        cls.double_enum_negative_value_data = {
-            "enum": cls.double_enum_subclass.pk,
-            "name": "",
-            "short_name": "",
-            "int_value": "",
-            "double_value": -randint(1, 100),
-        }
-        cls.double_enum_invalid_data = {
-            "enum": cls.double_enum_subclass.pk,
-            "name": cls.faker.name()[:EnumsConsts.NAME_MAX_LENGTH],
-            "short_name": "",
-            "int_value": "",
-            "double_value": randint(1, 100),
-        }
+        cls.double_enum_empty_fields_data = EnumsFormData(
+            enum=cls.double_enum_subclass.pk,
+            name="",
+            short_name="",
+            int_value="",
+            image="",
+            double_value="",
+        )
+        cls.double_enum_negative_value_data = EnumsFormData(
+            enum=cls.double_enum_subclass.pk,
+            name="",
+            short_name="",
+            int_value="",
+            double_value=-42.0,
+            image="",
+        )
+        cls.double_enum_invalid_data = EnumsFormData(
+            enum=cls.double_enum_subclass.pk,
+            name="Test name",
+            short_name="",
+            int_value="",
+            double_value=42.0,
+            image="",
+        )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
-        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("enums:add")
         cls.login_url = reverse("accounts:login")
@@ -553,66 +431,30 @@ class EnumsCreateViewTest(BaseUnitTestCase):
 class EnumsDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.int_enum = ClassStruct.objects.get(pk=EnumsIds.INT)
 
-        cls.int_enum_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.int_enum,
-            base_ei=None,
-        )
+        cls.int_enum_subclass = ClassStructFactory(main_class=cls.int_enum)
 
-        cls.int_enum_instance = Enums.objects.create(
-            name=None,
-            num=1,
-            short_name=None,
+        cls.int_enum_instance = EnumsFactory(
             enum=cls.int_enum,
-            int_value=randint(1, 100),
-            double_value=None,
-            image=None,
+            num=1,
+            int_value=42,
         )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
-        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.login_url = reverse("accounts:login")
-        cls.url = reverse("enums:delete", kwargs={"enum_id": cls.int_enum_instance.pk, "class_id": cls.int_enum_subclass.pk})
+        cls.url = reverse(
+            "enums:delete",
+            kwargs={
+                "enum_id": cls.int_enum_instance.pk,
+                "class_id": cls.int_enum_subclass.pk,
+            },
+        )
         cls.redirect_url = reverse("enums:list", kwargs={"class_id": cls.int_enum.pk})
 
     def test_returns_403_for_anonymous_user(self):
@@ -662,75 +504,34 @@ class EnumsDeleteViewTest(BaseUnitTestCase):
 class EnumsUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.int_enum = ClassStruct.objects.get(pk=EnumsIds.INT)
-        cls.int_enum_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.int_enum,
-            base_ei=None,
-        )
 
-        cls.instance = Enums.objects.create(
-            name=None,
-            num=1,
-            short_name=None,
+        cls.int_enum_subclass = ClassStructFactory(main_class=cls.int_enum)
+
+        cls.instance = EnumsFactory(
             enum=cls.int_enum_subclass,
-            int_value=randint(1, 100),
-            double_value=None,
-            image=None,
+            num=1,
+            int_value=42,
         )
 
-        cls.update_data = {
-            "name": "",
-            "short_name": "",
-            "enum": cls.int_enum_subclass.pk,
-            "int_value": randint(1, 100),
-            "double_value": "",
-            "image": "",
-        }
+        cls.update_data = EnumsFormData(
+            name="",
+            short_name="",
+            enum=cls.int_enum_subclass.pk,
+            int_value=99,
+            double_value="",
+            image="",
+        )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
-        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("enums:edit", kwargs={
             "class_id": cls.instance.enum.pk,
-            "enum_id": cls.instance.pk
+            "enum_id": cls.instance.pk,
         })
         cls.redirect_url = reverse("enums:detail", kwargs={
             "class_id": cls.instance.enum.pk,
@@ -782,108 +583,54 @@ class EnumsUpdateViewTest(BaseUnitTestCase):
 class ChangeNumViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.int_enum = ClassStruct.objects.get(pk=EnumsIds.INT)
         cls.string_enum = ClassStruct.objects.get(pk=EnumsIds.STRING)
-        cls.int_enum_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.int_enum,
-            base_ei=None,
-        )
-        cls.string_enum_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.string_enum,
-            base_ei=None,
-        )
 
-        cls.instance1 = Enums.objects.create(
-            name=None,
-            num=1,
-            short_name=None,
+        cls.int_enum_subclass = ClassStructFactory(main_class=cls.int_enum)
+        cls.string_enum_subclass = ClassStructFactory(main_class=cls.string_enum)
+
+        cls.instance1 = EnumsFactory(
             enum=cls.int_enum_subclass,
-            int_value=randint(1, 100),
-            double_value=None,
-            image=None,
+            num=1,
+            int_value=42,
         )
-        cls.instance2 = Enums.objects.create(
-            name=None,
+        cls.instance2 = EnumsFactory(
+            enum=cls.int_enum_subclass,
             num=2,
-            short_name=None,
-            enum=cls.int_enum_subclass,
-            int_value=randint(1, 100),
-            double_value=None,
-            image=None,
+            int_value=7,
         )
-        cls.instance3 = Enums.objects.create(
-            name=cls.faker.name()[:EnumsConsts.NAME_MAX_LENGTH],
-            num=1,
-            short_name=cls.faker.name()[:EnumsConsts.SHORT_NAME_MAX_LENGTH],
+        cls.instance3 = EnumsFactory(
             enum=cls.string_enum_subclass,
-            int_value=None,
-            double_value=None,
-            image=None,
+            num=1,
+            name="String value",
+            short_name="StrVal",
         )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
-        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
+        cls.valid_data = ChangeNumFormData(
+            enum_1=cls.instance1.pk,
+            enum_2=cls.instance2.pk,
         )
-
-        cls.valid_data = {
-            "enum_1": cls.instance1.pk,
-            "enum_2": cls.instance2.pk,
-        }
-
-        cls.empty_first_num_data = {
-            "enum_1": "",
-            "enum_2": cls.instance2.pk
-        }
-        cls.empty_second_num_data = {
-            "enum_1": cls.instance1.pk,
-            "enum_2": ""
-        }
-        cls.equal_nums_data = {
-            "enum_1": cls.instance1.pk,
-            "enum_2": cls.instance1.pk
-        }
-        cls.non_same_class_data = {
-            "enum_1": cls.instance1.pk,
-            "enum_2": cls.instance3.pk
-        }
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
+        cls.empty_first_num_data = ChangeNumFormData(
+            enum_1="",
+            enum_2=cls.instance2.pk,
+        )
+        cls.empty_second_num_data = ChangeNumFormData(
+            enum_1=cls.instance1.pk,
+            enum_2="",
+        )
+        cls.equal_nums_data = ChangeNumFormData(
+            enum_1=cls.instance1.pk,
+            enum_2=cls.instance1.pk,
+        )
+        cls.non_same_class_data = ChangeNumFormData(
+            enum_1=cls.instance1.pk,
+            enum_2=cls.instance3.pk,
         )
 
         cls.url = reverse("enums:change_num")
