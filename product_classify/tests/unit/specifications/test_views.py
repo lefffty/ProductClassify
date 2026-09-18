@@ -1,23 +1,23 @@
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from django.core.files.uploadedfile import SimpleUploadedFile
 
 from urllib.parse import quote
 from http import HTTPStatus
-from faker import Faker
 
+from tests.unit.accounts.factories.user import UserFactory
+from tests.unit.classes.factories.class_struct import ClassStructFactory
+from tests.unit.products.factories.product import ProdFactory
+from tests.unit.specifications.factories.prod_component import ProdComponentFactory
+from tests.unit.specifications.factories.specification_logs import SpecificationLogsFactory
 from tests.unit.base import BaseUnitTestCase
 
 from classes.models import ClassStruct
-from classes.constants import ProductsConsts, ProdClassConsts
+from classes.constants import ProductsConsts
 
 from accounts.models import Role
-from accounts.constants import UserConsts, RoleCodes
+from accounts.constants import RoleCodes
 
 from ei.models import Ei
-
-from products.models import Prod
-from products.constants import ProdConsts
 
 from specifications.views import ProdComponentFormSet
 from specifications.models import ProdComponent, SpecificationLogs
@@ -28,41 +28,27 @@ User = get_user_model()
 class GetTotalCostRatioViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
-        cls.image = SimpleUploadedFile(
-            "test.jpg",
-            b"content",
-            content_type="image/jpeg",
-        )
-
         cls.base_ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ProdClassConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.nuts_subclass = ClassStructFactory(
             main_class=cls.nuts_class,
-            base_ei=cls.base_ei
+            base_ei=cls.base_ei,
         )
-        cls.parent_prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.parent_prod = ProdFactory(
             class_field=cls.nuts_subclass,
-            image=cls.image,
+            image=None,
             cost=400,
-            modification=None,
             ei=cls.base_ei,
         )
-        cls.component_prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+        cls.component_prod = ProdFactory(
             class_field=cls.nuts_subclass,
-            image=cls.image,
+            image=None,
             cost=400,
-            modification=None,
             ei=cls.base_ei,
         )
-        cls.prodcomponent = ProdComponent.objects.create(
+        cls.prodcomponent = ProdComponentFactory(
             parent_prod=cls.parent_prod,
             component=cls.component_prod,
             num=1,
@@ -72,39 +58,8 @@ class GetTotalCostRatioViewTest(BaseUnitTestCase):
         cls.allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_USER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("specifications:total_cost_ratio", args=[cls.parent_prod.pk])
 
@@ -144,47 +99,33 @@ class GetTotalCostRatioViewTest(BaseUnitTestCase):
 class GetProductChangelogViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
-        cls.image = SimpleUploadedFile(
-            "test.jpg",
-            b"content",
-            content_type="image/jpeg",
-        )
-
         cls.base_ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ProdClassConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.nuts_subclass = ClassStructFactory(
             main_class=cls.nuts_class,
-            base_ei=cls.base_ei
+            base_ei=cls.base_ei,
         )
-        cls.parent_prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.parent_prod = ProdFactory(
             class_field=cls.nuts_subclass,
-            image=cls.image,
+            image=None,
             cost=400,
-            modification=None,
             ei=cls.base_ei,
         )
-        cls.component_prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+        cls.component_prod = ProdFactory(
             class_field=cls.nuts_subclass,
-            image=cls.image,
+            image=None,
             cost=400,
-            modification=None,
             ei=cls.base_ei,
         )
-        cls.prodcomponent = ProdComponent.objects.create(
+        cls.prodcomponent = ProdComponentFactory(
             parent_prod=cls.parent_prod,
             component=cls.component_prod,
             num=1,
             quantity=200,
         )
-        cls.log = SpecificationLogs.objects.create(
+        cls.log = SpecificationLogsFactory(
             pair=cls.prodcomponent,
             old_quantity=100,
             new_quantity=200,
@@ -193,39 +134,8 @@ class GetProductChangelogViewTest(BaseUnitTestCase):
         cls.allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_USER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("specifications:changelog", args=[cls.parent_prod.pk])
 
@@ -265,50 +175,33 @@ class GetProductChangelogViewTest(BaseUnitTestCase):
 class EditSpecificationViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
-        cls.image = SimpleUploadedFile(
-            "test.jpg",
-            b"content",
-            content_type="image/jpeg",
-        )
-
         cls.base_ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ProdClassConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.nuts_subclass = ClassStructFactory(
             main_class=cls.nuts_class,
-            base_ei=cls.base_ei
+            base_ei=cls.base_ei,
         )
-        cls.parent_prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.parent_prod = ProdFactory(
             class_field=cls.nuts_subclass,
-            image=cls.image,
+            image=None,
             cost=400,
-            modification=None,
             ei=cls.base_ei,
         )
-        cls.component_prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+        cls.component_prod = ProdFactory(
             class_field=cls.nuts_subclass,
-            image=cls.image,
+            image=None,
             cost=400,
-            modification=None,
             ei=cls.base_ei,
         )
-        cls.another_component = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+        cls.another_component = ProdFactory(
             class_field=cls.nuts_subclass,
-            image=cls.image,
+            image=None,
             cost=400,
-            modification=None,
             ei=cls.base_ei,
         )
-        cls.prodcomponent = ProdComponent.objects.create(
+        cls.prodcomponent = ProdComponentFactory(
             parent_prod=cls.parent_prod,
             component=cls.component_prod,
             num=1,
@@ -320,39 +213,8 @@ class EditSpecificationViewTest(BaseUnitTestCase):
         cls.allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_USER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("specifications:edit", args=[cls.parent_prod.pk])
         cls.invalid_url = reverse("specifications:edit", args=[9999])
