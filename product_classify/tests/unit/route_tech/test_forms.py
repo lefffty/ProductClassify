@@ -1,7 +1,6 @@
 from django.db.models import QuerySet
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from faker import Faker
 from PIL import Image
 from io import BytesIO
 from decimal import Decimal
@@ -10,12 +9,14 @@ from classes.models import ClassStruct
 from classes.constants import MetaConsts, ProfessionConsts, QualificationConsts, OperationConsts
 from classes.constants import ProductsConsts
 
-from products.models import Prod
-from products.constants import ProdConsts
+from tests.unit.classes.factories.class_struct import ClassStructFactory
+from tests.unit.products.factories.product import ProdFactory
+from tests.unit.route_tech.factories.eas import EASFactory, EASFormData
+from tests.unit.route_tech.factories.gwc import GWCFactory, GWCFormData
+from tests.unit.route_tech.factories.prod_oper import ProdOperationFactory, ProdOperationFormData
+from tests.unit.route_tech.factories.prod_oper_pos import ProdOperationPosFormData
 
-from route_tech.constants import EASConsts, GWCConsts, ProdOperationPosConsts
 from route_tech.errors import EASErrors, GWCErrors, ProdOperErrors, ProdOperationPosErrors
-from route_tech.models import EconomicActivitySubject, GroupWorkingCenter, ProdOperation
 from route_tech.forms import EconomicActivitySubjectForm, GroupWorkingCenterForm, ProdOperationForm, ProdOperationPosForm
 
 from tests.unit.base import BaseUnitTestCase
@@ -37,60 +38,37 @@ def create_image(extension: str = "jpg"):
 class EconomicActivitySubjectFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
-        cls.name = cls.faker.name()[:EASConsts.NAME_MAX_LENGTH]
-        cls.short_name = cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH]
-        cls.new_name = cls.faker.name()[:EASConsts.NAME_MAX_LENGTH]
-        cls.new_short_name = cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH]
-        cls.main_subject = EconomicActivitySubject.objects.create(
-            name=cls.name,
-            short_name=cls.short_name,
-            main_class=cls.enterprise,
-            main_subject=None
+
+        cls.main_subject = EASFactory(main_class=cls.enterprise)
+
+        cls.valid_data = EASFormData(
+            main_class=cls.enterprise.pk,
+            main_subject=None,
         )
-        cls.valid_data = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": cls.enterprise.pk,
-            "main_subject": None
-        }
-        cls.update_data = {
-            "name": cls.new_name,
-            "short_name": cls.new_short_name,
-            "main_class": cls.enterprise.pk,
-            "main_subject": cls.main_subject.pk
-        }
-        cls.empty_name_data = {
-            "name": None,
-            "short_name": cls.short_name,
-            "main_class": cls.enterprise.pk,
-            "main_subject": None
-        }
-        cls.empty_short_name_data = {
-            "name": cls.name,
-            "short_name": None,
-            "main_class": cls.enterprise.pk,
-            "main_subject": None
-        }
-        cls.empty_main_class_data = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": None,
-            "main_subject": None            
-        }
-        cls.empty_main_subject_data = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": cls.enterprise.pk,
-            "main_subject": None            
-        }
-        cls.valid_data_with_main_subject = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": cls.enterprise.pk,
-            "main_subject": cls.main_subject.pk
-        }
+        cls.update_data = EASFormData(
+            main_class=cls.enterprise.pk,
+            main_subject=cls.main_subject.pk,
+        )
+        cls.empty_name_data = EASFormData(
+            name=None,
+            main_class=cls.enterprise.pk,
+        )
+        cls.empty_short_name_data = EASFormData(
+            short_name=None,
+            main_class=cls.enterprise.pk,
+        )
+        cls.empty_main_class_data = EASFormData(
+            main_class=None,
+        )
+        cls.empty_main_subject_data = EASFormData(
+            main_class=cls.enterprise.pk,
+            main_subject=None,
+        )
+        cls.valid_data_with_main_subject = EASFormData(
+            main_class=cls.enterprise.pk,
+            main_subject=cls.main_subject.pk,
+        )
 
     def test_main_class_queryset(self):
         form = EconomicActivitySubjectForm()
@@ -107,26 +85,17 @@ class EconomicActivitySubjectFormTest(BaseUnitTestCase):
     def test_name_field_is_required(self):
         form = EconomicActivitySubjectForm(self.empty_name_data)
         self.assertFalse(form.is_valid())
-        self.assertEqual(
-            form.errors["name"][0],
-            EASErrors.EMPTY_NAME,
-        )
+        self.assertEqual(form.errors["name"][0], EASErrors.EMPTY_NAME)
 
     def test_short_name_field_is_required(self):
         form = EconomicActivitySubjectForm(self.empty_short_name_data)
         self.assertFalse(form.is_valid())
-        self.assertEqual(
-            form.errors["short_name"][0],
-            EASErrors.EMPTY_SHORT_NAME
-        )
+        self.assertEqual(form.errors["short_name"][0], EASErrors.EMPTY_SHORT_NAME)
 
     def test_main_class_field_is_required(self):
         form = EconomicActivitySubjectForm(self.empty_main_class_data)
         self.assertFalse(form.is_valid())
-        self.assertEqual(
-            form.errors["main_class"][0],
-            EASErrors.EMPTY_MAIN_CLASS
-        )
+        self.assertEqual(form.errors["main_class"][0], EASErrors.EMPTY_MAIN_CLASS)
 
     def test_main_subject_field_is_optional(self):
         form = EconomicActivitySubjectForm(self.empty_main_subject_data)
@@ -148,7 +117,6 @@ class EconomicActivitySubjectFormTest(BaseUnitTestCase):
     def test_economic_activity_subject_is_updated_successfully(self):
         form = EconomicActivitySubjectForm(self.valid_data)
         self.assertTrue(form.is_valid())
-
         instance = form.save()
 
         form = EconomicActivitySubjectForm(self.update_data, instance=instance)
@@ -165,99 +133,66 @@ class EconomicActivitySubjectFormTest(BaseUnitTestCase):
 class GroupWorkingCenterFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
-        cls.enterprise = ClassStruct.objects.create(
+
+        cls.enterprise = ClassStructFactory(
             name="Means of labor 1",
             short_name="MeansL1",
-            main_class=cls.means_of_labor
+            main_class=cls.means_of_labor,
         )
-        cls.department = ClassStruct.objects.create(
+        cls.department = ClassStructFactory(
             name="Department 1",
             short_name="Dept1",
             main_class=cls.means_of_labor,
         )
-        cls.another_department = ClassStruct.objects.create(
+        cls.another_department = ClassStructFactory(
             name="Department 2",
             short_name="Dept2",
             main_class=cls.means_of_labor,
         )
 
-        cls.eas1 = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterprise,
-            main_subject=None,
+        cls.eas1 = EASFactory(main_class=cls.enterprise)
+        cls.eas2 = EASFactory(main_class=cls.enterprise, main_subject=cls.eas1)
+
+        cls.place = 42
+
+        cls.valid_data = GWCFormData(
+            main_class=cls.enterprise.pk,
+            eas=cls.eas1.pk,
+            place=cls.place,
         )
-        cls.eas2 = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterprise,
-            main_subject=cls.eas1,
+        cls.update_data = GWCFormData(
+            main_class=cls.department.pk,
+            eas=cls.eas2.pk,
+            place=cls.place + 10,
         )
-
-        cls.name = cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH]
-        cls.short_name = cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH]
-        cls.new_name = cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH]
-        cls.new_short_name = cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH]
-        cls.place = cls.faker.random_int(min=1, max=100)
-
-        cls.valid_data = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": cls.enterprise.pk,
-            "eas": cls.eas1.pk,
-            "place": cls.place,
-        }
-
-        cls.update_data = {
-            "name": cls.new_name,
-            "short_name": cls.new_short_name,
-            "main_class": cls.department.pk,
-            "eas": cls.eas2.pk,
-            "place": cls.place + 10,
-        }
-
-        cls.empty_name_data = {
-            "name": "",
-            "short_name": cls.short_name,
-            "main_class": cls.enterprise.pk,
-            "eas": cls.eas1.pk,
-            "place": cls.place,
-        }
-
-        cls.empty_short_name_data = {
-            "name": cls.name,
-            "short_name": "",
-            "main_class": cls.enterprise.pk,
-            "eas": cls.eas1.pk,
-            "place": cls.place,
-        }
-
-        cls.empty_main_class_data = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": None,
-            "eas": cls.eas1.pk,
-            "place": cls.place,
-        }
-
-        cls.empty_eas_data = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": cls.enterprise.pk,
-            "eas": None,
-            "place": cls.place,
-        }
-
-        cls.empty_place_data = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": cls.enterprise.pk,
-            "eas": cls.eas1.pk,
-            "place": None,
-        }
+        cls.empty_name_data = GWCFormData(
+            name="",
+            main_class=cls.enterprise.pk,
+            eas=cls.eas1.pk,
+            place=cls.place,
+        )
+        cls.empty_short_name_data = GWCFormData(
+            short_name="",
+            main_class=cls.enterprise.pk,
+            eas=cls.eas1.pk,
+            place=cls.place,
+        )
+        cls.empty_main_class_data = GWCFormData(
+            main_class=None,
+            eas=cls.eas1.pk,
+            place=cls.place,
+        )
+        cls.empty_eas_data = GWCFormData(
+            main_class=cls.enterprise.pk,
+            eas=None,
+            place=cls.place,
+        )
+        cls.empty_place_data = GWCFormData(
+            main_class=cls.enterprise.pk,
+            eas=cls.eas1.pk,
+            place=None,
+        )
 
     def test_main_class_queryset(self):
         form = GroupWorkingCenterForm()
@@ -274,42 +209,27 @@ class GroupWorkingCenterFormTest(BaseUnitTestCase):
     def test_name_field_is_required(self):
         form = GroupWorkingCenterForm(self.empty_name_data)
         self.assertFalse(form.is_valid())
-        self.assertEqual(
-            form.errors["name"][0],
-            GWCErrors.EMPTY_NAME,
-        )
+        self.assertEqual(form.errors["name"][0], GWCErrors.EMPTY_NAME)
 
     def test_short_name_field_is_required(self):
         form = GroupWorkingCenterForm(self.empty_short_name_data)
         self.assertFalse(form.is_valid())
-        self.assertEqual(
-            form.errors["short_name"][0],
-            GWCErrors.EMPTY_SHORT_NAME,
-        )
+        self.assertEqual(form.errors["short_name"][0], GWCErrors.EMPTY_SHORT_NAME)
 
     def test_main_class_field_is_required(self):
         form = GroupWorkingCenterForm(self.empty_main_class_data)
         self.assertFalse(form.is_valid())
-        self.assertEqual(
-            form.errors["main_class"][0],
-            GWCErrors.EMPTY_MAIN_CLASS,
-        )
+        self.assertEqual(form.errors["main_class"][0], GWCErrors.EMPTY_MAIN_CLASS)
 
     def test_eas_field_is_required(self):
         form = GroupWorkingCenterForm(self.empty_eas_data)
         self.assertFalse(form.is_valid())
-        self.assertEqual(
-            form.errors["eas"][0],
-            GWCErrors.EMPTY_EAS,
-        )
+        self.assertEqual(form.errors["eas"][0], GWCErrors.EMPTY_EAS)
 
     def test_place_field_is_required(self):
         form = GroupWorkingCenterForm(self.empty_place_data)
         self.assertFalse(form.is_valid())
-        self.assertEqual(
-            form.errors["place"][0],
-            GWCErrors.EMPTY_PLACE,
-        )
+        self.assertEqual(form.errors["place"][0], GWCErrors.EMPTY_PLACE)
 
     def test_valid_form_data(self):
         form = GroupWorkingCenterForm(self.valid_data)
@@ -346,168 +266,106 @@ class GroupWorkingCenterFormTest(BaseUnitTestCase):
 class ProdOperationFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
         cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.nuts_subclass = ClassStruct.objects.create(
+
+        cls.nuts_subclass = ClassStructFactory(
             name="Nuts subclass",
             short_name="nuts subcls",
-            base_ei=None,
             main_class=cls.nuts_class,
         )
-        cls.stand = ClassStruct.objects.create(
+        cls.stand = ClassStructFactory(
             name="Assembly stand",
             short_name="stand",
             main_class=cls.means_of_labor,
-            base_ei=None,
         )
-        
+
         cls.tech_oper = ClassStruct.objects.get(pk=OperationConsts.WELDING)
         cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
         cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
-        
-        cls.eas = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterprise,
-            main_subject=None,
-        )
-        
-        cls.center = GroupWorkingCenter.objects.create(
-            name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.eas = EASFactory(main_class=cls.enterprise)
+        cls.center = GWCFactory(
             main_class=cls.stand,
             eas=cls.eas,
-            place=cls.faker.random_int(min=1, max=20),
+            place=10,
         )
-        
-        cls.prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+        cls.prod = ProdFactory(
             class_field=cls.nuts_subclass,
-            image=create_image(),
+            image=None,
         )
-        
-        cls.num_of_workers = cls.faker.random_int(min=1, max=5)
-        cls.t_pz = round(cls.faker.random_number(digits=2, fix_len=False) + 0.1, 2)
-        cls.t_sht = round(cls.faker.random_number(digits=2, fix_len=False) + 0.1, 2)
-        
-        cls.valid_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": cls.tech_oper.pk,
-            "profession": cls.profession.pk,
-            "center": cls.center.pk,
-            "qualification": cls.qualification.pk,
-            "num_of_workers": cls.num_of_workers,
-            "t_pz": cls.t_pz,
-            "t_sht": cls.t_sht,
-        }
-        
-        cls.update_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": cls.tech_oper.pk,
-            "profession": cls.profession.pk,
-            "center": cls.center.pk,
-            "qualification": cls.qualification.pk,
-            "num_of_workers": cls.num_of_workers + 1,
-            "t_pz": cls.t_pz + 0.5,
-            "t_sht": cls.t_sht + 0.5,
-        }
-        
-        cls.empty_prod_data = {
-            "prod": None,
-            "tech_oper": cls.tech_oper.pk,
-            "profession": cls.profession.pk,
-            "center": cls.center.pk,
-            "qualification": cls.qualification.pk,
-            "num_of_workers": cls.num_of_workers,
-            "t_pz": cls.t_pz,
-            "t_sht": cls.t_sht,
-        }
-        
-        cls.empty_tech_oper_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": None,
-            "profession": cls.profession.pk,
-            "center": cls.center.pk,
-            "qualification": cls.qualification.pk,
-            "num_of_workers": cls.num_of_workers,
-            "t_pz": cls.t_pz,
-            "t_sht": cls.t_sht,
-        }
-        
-        cls.empty_profession_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": cls.tech_oper.pk,
-            "profession": None,
-            "center": cls.center.pk,
-            "qualification": cls.qualification.pk,
-            "num_of_workers": cls.num_of_workers,
-            "t_pz": cls.t_pz,
-            "t_sht": cls.t_sht,
-        }
-        
-        cls.empty_center_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": cls.tech_oper.pk,
-            "profession": cls.profession.pk,
-            "center": None,
-            "qualification": cls.qualification.pk,
-            "num_of_workers": cls.num_of_workers,
-            "t_pz": cls.t_pz,
-            "t_sht": cls.t_sht,
-        }
-        
-        cls.empty_qualification_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": cls.tech_oper.pk,
-            "profession": cls.profession.pk,
-            "center": cls.center.pk,
-            "qualification": None,
-            "num_of_workers": cls.num_of_workers,
-            "t_pz": cls.t_pz,
-            "t_sht": cls.t_sht,
-        }
-        
-        cls.empty_num_of_workers_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": cls.tech_oper.pk,
-            "profession": cls.profession.pk,
-            "center": cls.center.pk,
-            "qualification": cls.qualification.pk,
-            "num_of_workers": None,
-            "t_pz": cls.t_pz,
-            "t_sht": cls.t_sht,
-        }
-        
-        cls.empty_t_pz_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": cls.tech_oper.pk,
-            "profession": cls.profession.pk,
-            "center": cls.center.pk,
-            "qualification": cls.qualification.pk,
-            "num_of_workers": cls.num_of_workers,
-            "t_pz": None,
-            "t_sht": cls.t_sht,
-        }
-        
-        cls.empty_t_sht_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": cls.tech_oper.pk,
-            "profession": cls.profession.pk,
-            "center": cls.center.pk,
-            "qualification": cls.qualification.pk,
-            "num_of_workers": cls.num_of_workers,
-            "t_pz": cls.t_pz,
-            "t_sht": None,
-        }
+
+        cls.num_of_workers = 3
+        cls.t_pz = 1.5
+        cls.t_sht = 2.5
+
+        cls.valid_data = ProdOperationFormData(
+            prod=cls.prod.pk,
+            tech_oper=cls.tech_oper.pk,
+            profession=cls.profession.pk,
+            center=cls.center.pk,
+            qualification=cls.qualification.pk,
+            num_of_workers=cls.num_of_workers,
+            t_pz=cls.t_pz,
+            t_sht=cls.t_sht,
+        )
+        cls.update_data = ProdOperationFormData(
+            prod=cls.prod.pk,
+            tech_oper=cls.tech_oper.pk,
+            profession=cls.profession.pk,
+            center=cls.center.pk,
+            qualification=cls.qualification.pk,
+            num_of_workers=cls.num_of_workers + 1,
+            t_pz=cls.t_pz + 0.5,
+            t_sht=cls.t_sht + 0.5,
+        )
+        cls.empty_prod_data = ProdOperationFormData(
+            prod=None, tech_oper=cls.tech_oper.pk, profession=cls.profession.pk,
+            center=cls.center.pk, qualification=cls.qualification.pk,
+            num_of_workers=cls.num_of_workers, t_pz=cls.t_pz, t_sht=cls.t_sht,
+        )
+        cls.empty_tech_oper_data = ProdOperationFormData(
+            prod=cls.prod.pk, tech_oper=None, profession=cls.profession.pk,
+            center=cls.center.pk, qualification=cls.qualification.pk,
+            num_of_workers=cls.num_of_workers, t_pz=cls.t_pz, t_sht=cls.t_sht,
+        )
+        cls.empty_profession_data = ProdOperationFormData(
+            prod=cls.prod.pk, tech_oper=cls.tech_oper.pk, profession=None,
+            center=cls.center.pk, qualification=cls.qualification.pk,
+            num_of_workers=cls.num_of_workers, t_pz=cls.t_pz, t_sht=cls.t_sht,
+        )
+        cls.empty_center_data = ProdOperationFormData(
+            prod=cls.prod.pk, tech_oper=cls.tech_oper.pk, profession=cls.profession.pk,
+            center=None, qualification=cls.qualification.pk,
+            num_of_workers=cls.num_of_workers, t_pz=cls.t_pz, t_sht=cls.t_sht,
+        )
+        cls.empty_qualification_data = ProdOperationFormData(
+            prod=cls.prod.pk, tech_oper=cls.tech_oper.pk, profession=cls.profession.pk,
+            center=cls.center.pk, qualification=None,
+            num_of_workers=cls.num_of_workers, t_pz=cls.t_pz, t_sht=cls.t_sht,
+        )
+        cls.empty_num_of_workers_data = ProdOperationFormData(
+            prod=cls.prod.pk, tech_oper=cls.tech_oper.pk, profession=cls.profession.pk,
+            center=cls.center.pk, qualification=cls.qualification.pk,
+            num_of_workers=None, t_pz=cls.t_pz, t_sht=cls.t_sht,
+        )
+        cls.empty_t_pz_data = ProdOperationFormData(
+            prod=cls.prod.pk, tech_oper=cls.tech_oper.pk, profession=cls.profession.pk,
+            center=cls.center.pk, qualification=cls.qualification.pk,
+            num_of_workers=cls.num_of_workers, t_pz=None, t_sht=cls.t_sht,
+        )
+        cls.empty_t_sht_data = ProdOperationFormData(
+            prod=cls.prod.pk, tech_oper=cls.tech_oper.pk, profession=cls.profession.pk,
+            center=cls.center.pk, qualification=cls.qualification.pk,
+            num_of_workers=cls.num_of_workers, t_pz=cls.t_pz, t_sht=None,
+        )
 
     def test_prod_queryset(self):
         form = ProdOperationForm()
         queryset = form.fields["prod"].queryset
         self.assertIsInstance(queryset, QuerySet)
-        self.assertEqual(queryset.count(), 1) 
+        self.assertEqual(queryset.count(), 1)
 
     def test_tech_oper_queryset(self):
         form = ProdOperationForm()
@@ -638,140 +496,107 @@ class ProdOperationFormTest(BaseUnitTestCase):
 class ProdOperationPosFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
         cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.nuts_subclass = ClassStruct.objects.create(
+
+        cls.nuts_subclass = ClassStructFactory(
             name="Nuts subclass",
             short_name="nuts subcls",
-            base_ei=None,
             main_class=cls.nuts_class,
         )
-        cls.stand = ClassStruct.objects.create(
+        cls.stand = ClassStructFactory(
             name="Assembly stand",
             short_name="stand",
             main_class=cls.means_of_labor,
-            base_ei=None,
         )
 
         cls.tech_oper = ClassStruct.objects.get(pk=OperationConsts.WELDING)
         cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
         cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
 
-        cls.eas = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterprise,
-            main_subject=None,
-        )
-
-        cls.center = GroupWorkingCenter.objects.create(
-            name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
+        cls.eas = EASFactory(main_class=cls.enterprise)
+        cls.center = GWCFactory(
             main_class=cls.stand,
             eas=cls.eas,
-            place=cls.faker.random_int(min=1, max=20),
+            place=10,
         )
 
-        cls.prod_input = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
-            class_field=cls.nuts_subclass,
-            image=create_image(),
-        )
-        cls.prod_output = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
-            class_field=cls.nuts_subclass,
-            image=create_image(),
-        )
+        cls.prod_input = ProdFactory(class_field=cls.nuts_subclass, image=None)
+        cls.prod_output = ProdFactory(class_field=cls.nuts_subclass, image=None)
 
-        cls.input_prod_oper = ProdOperation.objects.create(
+        cls.input_prod_oper = ProdOperationFactory(
             prod=cls.prod_input,
             tech_oper=cls.tech_oper,
             profession=cls.profession,
             center=cls.center,
             qualification=cls.qualification,
-            num_of_workers=cls.faker.random_int(min=1, max=5),
-            t_pz=round(cls.faker.random_number(digits=2, fix_len=False) + 0.1, 2),
-            t_sht=round(cls.faker.random_number(digits=2, fix_len=False) + 0.1, 2),
+            num_of_workers=3,
+            t_pz=1.0,
+            t_sht=1.0,
         )
-        cls.output_prod_oper = ProdOperation.objects.create(
+        cls.output_prod_oper = ProdOperationFactory(
             prod=cls.prod_output,
             tech_oper=cls.tech_oper,
             profession=cls.profession,
             center=cls.center,
             qualification=cls.qualification,
-            num_of_workers=cls.faker.random_int(min=1, max=5),
-            t_pz=round(cls.faker.random_number(digits=2, fix_len=False) + 0.1, 2),
-            t_sht=round(cls.faker.random_number(digits=2, fix_len=False) + 0.1, 2),
+            num_of_workers=3,
+            t_pz=1.0,
+            t_sht=1.0,
         )
 
-        cls.input_quantity = Decimal(
-            cls.faker.random_number(digits=2, fix_len=False) + 0.1
-        ).quantize(Decimal('0.01'))
-        cls.output_quantity = Decimal(
-            cls.faker.random_number(digits=2, fix_len=False) + 0.1
-        ).quantize(Decimal('0.01'))
+        cls.input_quantity = Decimal("5.50")
+        cls.output_quantity = Decimal("7.50")
 
-        min_val = ProdOperationPosConsts.MIN_VALUE
-        if cls.input_quantity < min_val:
-            cls.input_quantity += min_val
-        if cls.output_quantity < min_val:
-            cls.output_quantity += min_val
-
-        cls.valid_data = {
-            "input_prod_oper": cls.input_prod_oper.pk,
-            "output_prod_oper": cls.output_prod_oper.pk,
-            "input_quantity": cls.input_quantity,
-            "output_quantity": cls.output_quantity,
-        }
-
-        cls.update_data = {
-            "input_prod_oper": cls.input_prod_oper.pk,
-            "output_prod_oper": cls.output_prod_oper.pk,
-            "input_quantity": cls.input_quantity + Decimal('0.5'),
-            "output_quantity": cls.output_quantity + Decimal('0.5'),
-        }
-
-        cls.empty_input_prod_oper_data = {
-            "input_prod_oper": None,
-            "output_prod_oper": cls.output_prod_oper.pk,
-            "input_quantity": cls.input_quantity,
-            "output_quantity": cls.output_quantity,
-        }
-        cls.empty_output_prod_oper_data = {
-            "input_prod_oper": cls.input_prod_oper.pk,
-            "output_prod_oper": None,
-            "input_quantity": cls.input_quantity,
-            "output_quantity": cls.output_quantity,
-        }
-        cls.empty_input_quantity_data = {
-            "input_prod_oper": cls.input_prod_oper.pk,
-            "output_prod_oper": cls.output_prod_oper.pk,
-            "input_quantity": None,
-            "output_quantity": cls.output_quantity,
-        }
-        cls.empty_output_quantity_data = {
-            "input_prod_oper": cls.input_prod_oper.pk,
-            "output_prod_oper": cls.output_prod_oper.pk,
-            "input_quantity": cls.input_quantity,
-            "output_quantity": None,
-        }
-
-        cls.invalid_input_quantity_data = {
-            "input_prod_oper": cls.input_prod_oper.pk,
-            "output_prod_oper": cls.output_prod_oper.pk,
-            "input_quantity": Decimal('-0.1'),
-            "output_quantity": cls.output_quantity,
-        }
-        cls.invalid_output_quantity_data = {
-            "input_prod_oper": cls.input_prod_oper.pk,
-            "output_prod_oper": cls.output_prod_oper.pk,
-            "input_quantity": cls.input_quantity,
-            "output_quantity": Decimal('-0.1'),
-        }
+        cls.valid_data = ProdOperationPosFormData(
+            input_prod_oper=cls.input_prod_oper.pk,
+            output_prod_oper=cls.output_prod_oper.pk,
+            input_quantity=cls.input_quantity,
+            output_quantity=cls.output_quantity,
+        )
+        cls.update_data = ProdOperationPosFormData(
+            input_prod_oper=cls.input_prod_oper.pk,
+            output_prod_oper=cls.output_prod_oper.pk,
+            input_quantity=cls.input_quantity + Decimal("0.5"),
+            output_quantity=cls.output_quantity + Decimal("0.5"),
+        )
+        cls.empty_input_prod_oper_data = ProdOperationPosFormData(
+            input_prod_oper=None,
+            output_prod_oper=cls.output_prod_oper.pk,
+            input_quantity=cls.input_quantity,
+            output_quantity=cls.output_quantity,
+        )
+        cls.empty_output_prod_oper_data = ProdOperationPosFormData(
+            input_prod_oper=cls.input_prod_oper.pk,
+            output_prod_oper=None,
+            input_quantity=cls.input_quantity,
+            output_quantity=cls.output_quantity,
+        )
+        cls.empty_input_quantity_data = ProdOperationPosFormData(
+            input_prod_oper=cls.input_prod_oper.pk,
+            output_prod_oper=cls.output_prod_oper.pk,
+            input_quantity=None,
+            output_quantity=cls.output_quantity,
+        )
+        cls.empty_output_quantity_data = ProdOperationPosFormData(
+            input_prod_oper=cls.input_prod_oper.pk,
+            output_prod_oper=cls.output_prod_oper.pk,
+            input_quantity=cls.input_quantity,
+            output_quantity=None,
+        )
+        cls.invalid_input_quantity_data = ProdOperationPosFormData(
+            input_prod_oper=cls.input_prod_oper.pk,
+            output_prod_oper=cls.output_prod_oper.pk,
+            input_quantity=Decimal("-0.1"),
+            output_quantity=cls.output_quantity,
+        )
+        cls.invalid_output_quantity_data = ProdOperationPosFormData(
+            input_prod_oper=cls.input_prod_oper.pk,
+            output_prod_oper=cls.output_prod_oper.pk,
+            input_quantity=cls.input_quantity,
+            output_quantity=Decimal("-0.1"),
+        )
 
     def test_input_prod_oper_queryset(self):
         form = ProdOperationPosForm()

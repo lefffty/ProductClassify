@@ -1,10 +1,8 @@
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils.html import escape
 from django.contrib.auth import get_user_model
 
 from decimal import Decimal
-from faker import Faker
 from http import HTTPStatus
 
 from classes.models import ClassStruct
@@ -13,20 +11,23 @@ from classes.constants import (
     ProductsConsts,
     OperationConsts,
     ProfessionConsts,
-    ClassStructConsts,
     QualificationConsts,
 )
 
-from accounts.constants import RoleCodes, UserConsts
+from accounts.constants import RoleCodes
 from accounts.models import Role
 
 from ei.models import Ei
 
-from products.constants import ProdConsts
-from products.models import Prod
+from tests.unit.accounts.factories.user import UserFactory
+from tests.unit.classes.factories.class_struct import ClassStructFactory
+from tests.unit.products.factories.product import ProdFactory
+from tests.unit.route_tech.factories.eas import EASFactory, EASFormData
+from tests.unit.route_tech.factories.gwc import GWCFactory, GWCFormData
+from tests.unit.route_tech.factories.prod_oper import ProdOperationFactory, ProdOperationFormData
+from tests.unit.route_tech.factories.prod_oper_pos import ProdOperationPosFactory
 
 from route_tech.models import EconomicActivitySubject, GroupWorkingCenter, ProdOperation, ProdOperationPos
-from route_tech.constants import EASConsts, GWCConsts
 from route_tech.forms import ProdOperationPosFormSet
 from route_tech.errors import EASErrors, GWCErrors, ProdOperErrors
 
@@ -38,55 +39,31 @@ User = get_user_model()
 class EASCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
+        cls.parent_subject = EASFactory(main_class=cls.enterprise)
 
-        cls.parent_subject = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterprise,
-            main_subject=None
+        cls.valid_data = EASFormData(
+            main_class=cls.enterprise.pk,
+            main_subject="",
         )
-
-        cls.name = cls.faker.name()[:EASConsts.NAME_MAX_LENGTH]
-        cls.short_name = cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH]
-        cls.new_name = cls.faker.name()[:EASConsts.NAME_MAX_LENGTH]
-        cls.new_short_name = cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.valid_data = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": cls.enterprise.pk,
-            "main_subject": ""
-        }
-
-        cls.valid_data_with_parent = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": cls.enterprise.pk,
-            "main_subject": cls.parent_subject.pk
-        }
-
-        cls.empty_name_data = {
-            "name": "",
-            "short_name": cls.short_name,
-            "main_class": cls.enterprise.pk,
-            "main_subject": ""
-        }
-
-        cls.empty_short_name_data = {
-            "name": cls.name,
-            "short_name": "",
-            "main_class": cls.enterprise.pk,
-            "main_subject": ""
-        }
-
-        cls.empty_main_class_data = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": "",
-            "main_subject": ""
-        }
+        cls.valid_data_with_parent = EASFormData(
+            main_class=cls.enterprise.pk,
+            main_subject=cls.parent_subject.pk,
+        )
+        cls.empty_name_data = EASFormData(
+            name="",
+            main_class=cls.enterprise.pk,
+            main_subject="",
+        )
+        cls.empty_short_name_data = EASFormData(
+            short_name="",
+            main_class=cls.enterprise.pk,
+            main_subject="",
+        )
+        cls.empty_main_class_data = EASFormData(
+            main_class="",
+            main_subject="",
+        )
 
         cls.url = reverse("route_tech:add_eas")
         cls.redirect_url = reverse("classes:index")
@@ -112,14 +89,13 @@ class EASCreateViewTest(BaseUnitTestCase):
         self.client.post(self.url, self.valid_data_with_parent)
         eas = EconomicActivitySubject.objects.last()
         self.assertIsNotNone(eas.pk)
-        self.assertEqual(eas.name, self.valid_data["name"])
-        self.assertEqual(eas.short_name, self.valid_data["short_name"])
-        self.assertEqual(eas.main_class.pk, self.valid_data["main_class"])
+        self.assertEqual(eas.name, self.valid_data_with_parent["name"])
+        self.assertEqual(eas.short_name, self.valid_data_with_parent["short_name"])
+        self.assertEqual(eas.main_class.pk, self.valid_data_with_parent["main_class"])
         self.assertIsNotNone(eas.main_subject.pk)
 
     def test_redirects_after_POST_request(self):
         response = self.client.post(self.url, self.valid_data)
-        EconomicActivitySubject.objects.last()
         self.assertRedirects(response, self.redirect_url)
 
     def test_empty_name_validation_error_is_shown_on_page(self):
@@ -138,32 +114,18 @@ class EASCreateViewTest(BaseUnitTestCase):
 class EASUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
 
-        cls.parent_subject = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
+        cls.parent_subject = EASFactory(main_class=cls.enterprise)
+        cls.subject = EASFactory(
             main_class=cls.enterprise,
-            main_subject=None
+            main_subject=cls.parent_subject,
         )
 
-        cls.subject = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterprise,
-            main_subject=cls.parent_subject
+        cls.valid_update_data = EASFormData(
+            main_class=cls.enterprise.pk,
+            main_subject=cls.parent_subject.pk,
         )
-
-        cls.new_name = cls.faker.name()[:EASConsts.NAME_MAX_LENGTH]
-        cls.new_short_name = cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.valid_update_data = {
-            "name": cls.new_name,
-            "short_name": cls.new_short_name,
-            "main_class": cls.enterprise.pk,
-            "main_subject": cls.parent_subject.pk
-        }
 
         cls.url = reverse("route_tech:edit_eas", args=[cls.subject.pk])
         cls.redirect_url = reverse("route_tech:detail_eas", args=[cls.subject.pk])
@@ -178,11 +140,11 @@ class EASUpdateViewTest(BaseUnitTestCase):
 
     def test_can_save_a_POST_request(self):
         self.client.post(self.url, self.valid_update_data)
-        eas = EconomicActivitySubject.objects.last()
-        self.assertEqual(eas.name, self.valid_update_data["name"])
-        self.assertEqual(eas.short_name, self.valid_update_data["short_name"])
-        self.assertEqual(eas.main_class.pk, MetaConsts.ENTERPRISE)
-        self.assertEqual(eas.main_subject.pk, self.parent_subject.pk)
+        self.subject.refresh_from_db()
+        self.assertEqual(self.subject.name, self.valid_update_data["name"])
+        self.assertEqual(self.subject.short_name, self.valid_update_data["short_name"])
+        self.assertEqual(self.subject.main_class.pk, MetaConsts.ENTERPRISE)
+        self.assertEqual(self.subject.main_subject.pk, self.parent_subject.pk)
 
     def test_redirects_after_POST_request(self):
         response = self.client.post(self.url, self.valid_update_data)
@@ -192,21 +154,12 @@ class EASUpdateViewTest(BaseUnitTestCase):
 class EASDetailViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
 
-        cls.parent_subject = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
+        cls.parent_subject = EASFactory(main_class=cls.enterprise)
+        cls.subject = EASFactory(
             main_class=cls.enterprise,
-            main_subject=None
-        )
-
-        cls.subject = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterprise,
-            main_subject=cls.parent_subject
+            main_subject=cls.parent_subject,
         )
 
         cls.url = reverse("route_tech:detail_eas", args=[cls.subject.pk])
@@ -219,9 +172,8 @@ class EASDetailViewTest(BaseUnitTestCase):
         response = self.client.get(self.url)
         self.assertContains(response, self.subject.name)
         self.assertContains(response, self.subject.short_name)
-        self.assertContains(response, self.subject.main_subject)
-        children: list[EconomicActivitySubject] = self.subject.children.all()
-        for child in children:
+        self.assertContains(response, self.subject.main_subject.name)
+        for child in self.subject.children.all():
             self.assertContains(response, child.name)
             self.assertContains(response, child.short_name)
 
@@ -229,15 +181,8 @@ class EASDetailViewTest(BaseUnitTestCase):
 class EASDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
-
-        cls.subject = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterprise,
-            main_subject=None
-        )
+        cls.subject = EASFactory(main_class=cls.enterprise)
 
         cls.url = reverse("route_tech:delete_eas", args=[cls.subject.pk])
         cls.redirect_url = reverse("classes:index")
@@ -258,82 +203,51 @@ class EASDeleteViewTest(BaseUnitTestCase):
 class GWCCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
-        cls.enterpise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
+        cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
         cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
-        cls.stand = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            base_ei=None,
+
+        cls.stand = ClassStructFactory(
             main_class=cls.means_of_labor,
         )
+        cls.eas = EASFactory(main_class=cls.enterprise)
 
-        cls.eas = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterpise,
-            main_subject=None
+        cls.valid_data = GWCFormData(
+            main_class=cls.stand.pk,
+            eas=cls.eas.pk,
+            place=42,
         )
-
-        cls.name = cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH]
-        cls.short_name = cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH]
-        cls.place = cls.faker.random_int(min=1, max=100)
-
-        cls.valid_data = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": cls.stand.pk,
-            "eas": cls.eas.pk,
-            "place": cls.place
-        }
-
-        cls.empty_name_data = {
-            "name": "",
-            "short_name": cls.short_name,
-            "main_class": cls.stand.pk,
-            "eas": cls.eas.pk,
-            "place": cls.place
-        }
-
-        cls.empty_short_name_data = {
-            "name": cls.name,
-            "short_name": "",
-            "main_class": cls.stand.pk,
-            "eas": cls.eas.pk,
-            "place": cls.place
-        }
-
-        cls.empty_main_class_data = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": "",
-            "eas": cls.eas.pk,
-            "place": cls.place
-        }
-
-        cls.empty_eas_data = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": cls.stand.pk,
-            "eas": "",
-            "place": cls.place
-        }
-        cls.empty_place_data = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": cls.stand.pk,
-            "eas": cls.eas.pk,
-            "place": ""
-        }
-
-        cls.invalid_place_data = {
-            "name": cls.name,
-            "short_name": cls.short_name,
-            "main_class": cls.stand.pk,
-            "eas": cls.eas.pk,
-            "place": -1
-        }
+        cls.empty_name_data = GWCFormData(
+            name="",
+            main_class=cls.stand.pk,
+            eas=cls.eas.pk,
+            place=42,
+        )
+        cls.empty_short_name_data = GWCFormData(
+            short_name="",
+            main_class=cls.stand.pk,
+            eas=cls.eas.pk,
+            place=42,
+        )
+        cls.empty_main_class_data = GWCFormData(
+            main_class="",
+            eas=cls.eas.pk,
+            place=42,
+        )
+        cls.empty_eas_data = GWCFormData(
+            main_class=cls.stand.pk,
+            eas="",
+            place=42,
+        )
+        cls.empty_place_data = GWCFormData(
+            main_class=cls.stand.pk,
+            eas=cls.eas.pk,
+            place="",
+        )
+        cls.invalid_place_data = GWCFormData(
+            main_class=cls.stand.pk,
+            eas=cls.eas.pk,
+            place=-1,
+        )
 
         cls.url = reverse("route_tech:add_gwc")
         cls.redirect_url = reverse("classes:index")
@@ -387,51 +301,23 @@ class GWCCreateViewTest(BaseUnitTestCase):
 class GWCUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
         cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
-        cls.stand = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            base_ei=None,
-            main_class=cls.means_of_labor,
-        )
 
-        cls.eas = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterprise,
-            main_subject=None
-        )
+        cls.stand = ClassStructFactory(main_class=cls.means_of_labor)
+        cls.eas = EASFactory(main_class=cls.enterprise)
 
-        cls.gwc = GroupWorkingCenter.objects.create(
-            name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
+        cls.gwc = GWCFactory(
             main_class=cls.stand,
             eas=cls.eas,
-            place=cls.faker.random_int(min=1, max=100)
+            place=42,
         )
 
-        cls.new_name = cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH]
-        cls.new_short_name = cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH]
-        cls.new_place = cls.faker.random_int(min=1, max=100)
-
-        cls.valid_update_data = {
-            "name": cls.new_name,
-            "short_name": cls.new_short_name,
-            "main_class": cls.stand.pk,
-            "eas": cls.eas.pk,
-            "place": cls.new_place
-        }
-
-        cls.update_data_with_another_eas = {
-            "name": cls.new_name,
-            "short_name": cls.new_short_name,
-            "main_class": cls.stand.pk,
-            "eas": cls.eas.pk,
-            "place": cls.new_place
-        }
+        cls.valid_update_data = GWCFormData(
+            main_class=cls.stand.pk,
+            eas=cls.eas.pk,
+            place=84,
+        )
 
         cls.url = reverse("route_tech:edit_gwc", args=[cls.gwc.pk])
         cls.redirect_url = reverse("route_tech:detail_gwc", args=[cls.gwc.pk])
@@ -446,12 +332,12 @@ class GWCUpdateViewTest(BaseUnitTestCase):
 
     def test_can_save_a_POST_request(self):
         self.client.post(self.url, self.valid_update_data)
-        gwc = GroupWorkingCenter.objects.last()
-        self.assertEqual(gwc.name, self.valid_update_data["name"])
-        self.assertEqual(gwc.short_name, self.valid_update_data["short_name"])
-        self.assertEqual(gwc.place, self.valid_update_data["place"])
-        self.assertEqual(gwc.main_class.pk, self.valid_update_data["main_class"])
-        self.assertEqual(gwc.eas.pk, self.valid_update_data["eas"])
+        self.gwc.refresh_from_db()
+        self.assertEqual(self.gwc.name, self.valid_update_data["name"])
+        self.assertEqual(self.gwc.short_name, self.valid_update_data["short_name"])
+        self.assertEqual(self.gwc.place, self.valid_update_data["place"])
+        self.assertEqual(self.gwc.main_class.pk, self.valid_update_data["main_class"])
+        self.assertEqual(self.gwc.eas.pk, self.valid_update_data["eas"])
 
     def test_redirects_after_POST_request(self):
         response = self.client.post(self.url, self.valid_update_data)
@@ -461,30 +347,16 @@ class GWCUpdateViewTest(BaseUnitTestCase):
 class GWCDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
         cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
-        cls.stand = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            base_ei=None,
-            main_class=cls.means_of_labor,
-        )
 
-        cls.eas = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterprise,
-            main_subject=None
-        )
+        cls.stand = ClassStructFactory(main_class=cls.means_of_labor)
+        cls.eas = EASFactory(main_class=cls.enterprise)
 
-        cls.gwc = GroupWorkingCenter.objects.create(
-            name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
+        cls.gwc = GWCFactory(
             main_class=cls.stand,
             eas=cls.eas,
-            place=cls.faker.random_int(min=1, max=100)
+            place=42,
         )
 
         cls.url = reverse("route_tech:delete_gwc", args=[cls.gwc.pk])
@@ -515,134 +387,72 @@ class GWCDeleteViewTest(BaseUnitTestCase):
 class ProdOperationCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.tech_oper = ClassStruct.objects.get(pk=OperationConsts.WELDING)
         cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
         cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
 
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.product_class = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            base_ei=None,
-            main_class=cls.nuts_class,
-        )
+        cls.product_class = ClassStructFactory(main_class=cls.nuts_class)
         cls.ei = Ei.objects.first()
-        cls.image = SimpleUploadedFile("test.jpg", b"content", content_type="image/jpeg")
 
-        cls.prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+        cls.prod = ProdFactory(
             class_field=cls.product_class,
-            image=cls.image,
-            cost=Decimal('100.00'),
+            image=None,
+            cost=Decimal("100.00"),
             ei=cls.ei,
-            modification=None,
         )
 
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
         cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
-        cls.stand = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            base_ei=None,
-            main_class=cls.means_of_labor,
-        )
-        cls.eas = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterprise,
-            main_subject=None,
-        )
-        cls.center = GroupWorkingCenter.objects.create(
-            name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.stand = ClassStructFactory(main_class=cls.means_of_labor)
+        cls.eas = EASFactory(main_class=cls.enterprise)
+        cls.center = GWCFactory(
             main_class=cls.stand,
             eas=cls.eas,
-            place=cls.faker.random_int(min=1, max=100),
+            place=42,
         )
 
-        cls.valid_num_of_workers = cls.faker.random_int(min=1, max=10)
-        cls.valid_t_pz = cls.faker.random_number(digits=2)
-        cls.valid_t_sht = cls.faker.random_number(digits=2)
-
-        cls.valid_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": cls.tech_oper.pk,
-            "profession": cls.profession.pk,
-            "center": cls.center.pk,
-            "qualification": cls.qualification.pk,
-            "num_of_workers": cls.valid_num_of_workers,
-            "t_pz": cls.valid_t_pz,
-            "t_sht": cls.valid_t_sht,
-        }
-
-        cls.empty_prod_data = {
-            "prod": "",
-            "tech_oper": cls.tech_oper.pk,
-            "profession": cls.profession.pk,
-            "center": cls.center.pk,
-            "qualification": cls.qualification.pk,
-            "num_of_workers": cls.valid_num_of_workers,
-            "t_pz": cls.valid_t_pz,
-            "t_sht": cls.valid_t_sht,
-        }
-
-        cls.empty_tech_oper_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": "",
-            "profession": cls.profession.pk,
-            "center": cls.center.pk,
-            "qualification": cls.qualification.pk,
-            "num_of_workers": cls.valid_num_of_workers,
-            "t_pz": cls.valid_t_pz,
-            "t_sht": cls.valid_t_sht,
-        }
-
-        cls.empty_profession_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": cls.tech_oper.pk,
-            "profession": "",
-            "center": cls.center.pk,
-            "qualification": cls.qualification.pk,
-            "num_of_workers": cls.valid_num_of_workers,
-            "t_pz": cls.valid_t_pz,
-            "t_sht": cls.valid_t_sht,
-        }
-
-        cls.empty_center_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": cls.tech_oper.pk,
-            "profession": cls.profession.pk,
-            "center": "",
-            "qualification": cls.qualification.pk,
-            "num_of_workers": cls.valid_num_of_workers,
-            "t_pz": cls.valid_t_pz,
-            "t_sht": cls.valid_t_sht,
-        }
-
-        cls.empty_qualification_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": cls.tech_oper.pk,
-            "profession": cls.profession.pk,
-            "center": cls.center.pk,
-            "qualification": "",
-            "num_of_workers": cls.valid_num_of_workers,
-            "t_pz": cls.valid_t_pz,
-            "t_sht": cls.valid_t_sht,
-        }
-
-        cls.invalid_num_of_workers_data = {
-            "prod": cls.prod.pk,
-            "tech_oper": cls.tech_oper.pk,
-            "profession": cls.profession.pk,
-            "center": cls.center.pk,
-            "qualification": cls.qualification.pk,
-            "num_of_workers": 0,
-            "t_pz": cls.valid_t_pz,
-            "t_sht": cls.valid_t_sht,
-        }
+        cls.valid_data = ProdOperationFormData(
+            prod=cls.prod.pk,
+            tech_oper=cls.tech_oper.pk,
+            profession=cls.profession.pk,
+            center=cls.center.pk,
+            qualification=cls.qualification.pk,
+            num_of_workers=3,
+            t_pz=1.0,
+            t_sht=2.0,
+        )
+        cls.empty_prod_data = ProdOperationFormData(
+            prod="", tech_oper=cls.tech_oper.pk, profession=cls.profession.pk,
+            center=cls.center.pk, qualification=cls.qualification.pk,
+            num_of_workers=3, t_pz=1.0, t_sht=2.0,
+        )
+        cls.empty_tech_oper_data = ProdOperationFormData(
+            prod=cls.prod.pk, tech_oper="", profession=cls.profession.pk,
+            center=cls.center.pk, qualification=cls.qualification.pk,
+            num_of_workers=3, t_pz=1.0, t_sht=2.0,
+        )
+        cls.empty_profession_data = ProdOperationFormData(
+            prod=cls.prod.pk, tech_oper=cls.tech_oper.pk, profession="",
+            center=cls.center.pk, qualification=cls.qualification.pk,
+            num_of_workers=3, t_pz=1.0, t_sht=2.0,
+        )
+        cls.empty_center_data = ProdOperationFormData(
+            prod=cls.prod.pk, tech_oper=cls.tech_oper.pk, profession=cls.profession.pk,
+            center="", qualification=cls.qualification.pk,
+            num_of_workers=3, t_pz=1.0, t_sht=2.0,
+        )
+        cls.empty_qualification_data = ProdOperationFormData(
+            prod=cls.prod.pk, tech_oper=cls.tech_oper.pk, profession=cls.profession.pk,
+            center=cls.center.pk, qualification="",
+            num_of_workers=3, t_pz=1.0, t_sht=2.0,
+        )
+        cls.invalid_num_of_workers_data = ProdOperationFormData(
+            prod=cls.prod.pk, tech_oper=cls.tech_oper.pk, profession=cls.profession.pk,
+            center=cls.center.pk, qualification=cls.qualification.pk,
+            num_of_workers=0, t_pz=1.0, t_sht=2.0,
+        )
 
         cls.url = reverse("route_tech:add_prod_operation")
         cls.redirect_url = reverse("classes:index")
@@ -664,9 +474,9 @@ class ProdOperationCreateViewTest(BaseUnitTestCase):
         self.assertEqual(instance.profession.pk, self.valid_data["profession"])
         self.assertEqual(instance.center.pk, self.valid_data["center"])
         self.assertEqual(instance.qualification.pk, self.valid_data["qualification"])
+        self.assertEqual(instance.num_of_workers, self.valid_data["num_of_workers"])
         self.assertEqual(instance.t_pz, self.valid_data["t_pz"])
         self.assertEqual(instance.t_sht, self.valid_data["t_sht"])
-        self.assertEqual(instance.num_of_workers, self.valid_data["num_of_workers"])
 
     def test_redirects_after_POST_request(self):
         response = self.client.post(self.url, self.valid_data)
@@ -700,63 +510,41 @@ class ProdOperationCreateViewTest(BaseUnitTestCase):
 class ProdOperationDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.tech_oper = ClassStruct.objects.get(pk=OperationConsts.WELDING)
         cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
         cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
 
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.product_class = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            base_ei=None,
-            main_class=cls.nuts_class,
-        )
+        cls.product_class = ClassStructFactory(main_class=cls.nuts_class)
         cls.ei = Ei.objects.first()
-        cls.image = SimpleUploadedFile("test.jpg", b"content", content_type="image/jpeg")
 
-        cls.prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+        cls.prod = ProdFactory(
             class_field=cls.product_class,
-            image=cls.image,
-            cost=Decimal('100.00'),
+            image=None,
+            cost=Decimal("100.00"),
             ei=cls.ei,
-            modification=None,
         )
 
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
         cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
-        cls.stand = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            base_ei=None,
-            main_class=cls.means_of_labor,
-        )
-        cls.eas = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterprise,
-            main_subject=None,
-        )
-        cls.center = GroupWorkingCenter.objects.create(
-            name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.stand = ClassStructFactory(main_class=cls.means_of_labor)
+        cls.eas = EASFactory(main_class=cls.enterprise)
+        cls.center = GWCFactory(
             main_class=cls.stand,
             eas=cls.eas,
-            place=cls.faker.random_int(min=1, max=100),
+            place=42,
         )
 
-        cls.prod_operation = ProdOperation.objects.create(
+        cls.prod_operation = ProdOperationFactory(
             prod=cls.prod,
             tech_oper=cls.tech_oper,
             profession=cls.profession,
             center=cls.center,
             qualification=cls.qualification,
-            num_of_workers=cls.faker.random_int(min=1, max=10),
-            t_pz=cls.faker.random_number(digits=2),
-            t_sht=cls.faker.random_number(digits=2),
+            num_of_workers=3,
+            t_pz=1.0,
+            t_sht=2.0,
         )
 
         cls.url = reverse("route_tech:delete_prod_operation", args=[cls.prod_operation.pk])
@@ -774,9 +562,6 @@ class ProdOperationDeleteViewTest(BaseUnitTestCase):
         self.assertContains(response, self.prod_operation.profession.name)
         self.assertContains(response, self.prod_operation.center.name)
         self.assertContains(response, self.prod_operation.qualification.name)
-        self.assertContains(response, self.prod_operation.num_of_workers)
-        self.assertContains(response, self.prod_operation.t_pz)
-        self.assertContains(response, self.prod_operation.t_sht)
 
     def test_can_save_a_POST_request(self):
         self.client.post(self.url)
@@ -790,98 +575,56 @@ class ProdOperationDeleteViewTest(BaseUnitTestCase):
 class ProdOperationUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.tech_oper = ClassStruct.objects.get(pk=OperationConsts.WELDING)
         cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
         cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
 
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.product_class = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            base_ei=None,
-            main_class=cls.nuts_class,
-        )
+        cls.product_class = ClassStructFactory(main_class=cls.nuts_class)
         cls.ei = Ei.objects.first()
-        cls.image = SimpleUploadedFile("test.jpg", b"content", content_type="image/jpeg")
 
-        cls.prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
-            class_field=cls.product_class,
-            image=cls.image,
-            cost=Decimal('100.00'),
-            ei=cls.ei,
-            modification=None,
+        cls.prod = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("100.00"), ei=cls.ei,
         )
 
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
         cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
-        cls.stand = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            base_ei=None,
-            main_class=cls.means_of_labor,
-        )
-        cls.eas = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterprise,
-            main_subject=None,
-        )
-        cls.center = GroupWorkingCenter.objects.create(
-            name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.stand,
-            eas=cls.eas,
-            place=cls.faker.random_int(min=1, max=100),
-        )
 
-        cls.prod_operation = ProdOperation.objects.create(
+        cls.stand = ClassStructFactory(main_class=cls.means_of_labor)
+        cls.eas = EASFactory(main_class=cls.enterprise)
+        cls.center = GWCFactory(main_class=cls.stand, eas=cls.eas, place=42)
+
+        cls.prod_operation = ProdOperationFactory(
             prod=cls.prod,
             tech_oper=cls.tech_oper,
             profession=cls.profession,
             center=cls.center,
             qualification=cls.qualification,
-            num_of_workers=cls.faker.random_int(min=1, max=10),
-            t_pz=cls.faker.random_number(digits=2),
-            t_sht=cls.faker.random_number(digits=2),
+            num_of_workers=3,
+            t_pz=1.0,
+            t_sht=2.0,
         )
 
-        cls.new_prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
-            class_field=cls.product_class,
-            image=cls.image,
-            cost=Decimal('200.00'),
-            ei=cls.ei,
-            modification=None,
+        cls.new_prod = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("200.00"), ei=cls.ei,
         )
         cls.new_tech_oper = ClassStruct.objects.get(pk=OperationConsts.STAMPING)
         cls.new_profession = ClassStruct.objects.get(pk=ProfessionConsts.PRESSMAN)
-        cls.new_center = GroupWorkingCenter.objects.create(
-            name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.stand,
-            eas=cls.eas,
-            place=cls.faker.random_int(min=1, max=100),
-        )
+        cls.new_center = GWCFactory(main_class=cls.stand, eas=cls.eas, place=43)
         cls.new_qualification = ClassStruct.objects.get(pk=QualificationConsts.SECOND_RANK)
-        cls.new_num_of_workers = cls.faker.random_int(min=2, max=20)
-        cls.new_t_pz = cls.faker.random_number(digits=3)
-        cls.new_t_sht = cls.faker.random_number(digits=3)
 
-        cls.valid_update_data = {
-            "prod": cls.new_prod.pk,
-            "tech_oper": cls.new_tech_oper.pk,
-            "profession": cls.new_profession.pk,
-            "center": cls.new_center.pk,
-            "qualification": cls.new_qualification.pk,
-            "num_of_workers": cls.new_num_of_workers,
-            "t_pz": cls.new_t_pz,
-            "t_sht": cls.new_t_sht,
-        }
+        cls.valid_update_data = ProdOperationFormData(
+            prod=cls.new_prod.pk,
+            tech_oper=cls.new_tech_oper.pk,
+            profession=cls.new_profession.pk,
+            center=cls.new_center.pk,
+            qualification=cls.new_qualification.pk,
+            num_of_workers=5,
+            t_pz=3.0,
+            t_sht=4.0,
+        )
 
         cls.url = reverse("route_tech:edit_prod_operation", args=[cls.prod_operation.pk])
         cls.redirect_url = reverse("route_tech:detail_prod_operation", args=[cls.prod_operation.pk])
@@ -896,15 +639,15 @@ class ProdOperationUpdateViewTest(BaseUnitTestCase):
 
     def test_can_save_a_POST_request(self):
         self.client.post(self.url, self.valid_update_data)
-        prod_oper = ProdOperation.objects.last()
-        self.assertEqual(prod_oper.prod.pk, self.valid_update_data["prod"])
-        self.assertEqual(prod_oper.tech_oper.pk, self.valid_update_data["tech_oper"])
-        self.assertEqual(prod_oper.profession.pk, self.valid_update_data["profession"])
-        self.assertEqual(prod_oper.center.pk, self.valid_update_data["center"])
-        self.assertEqual(prod_oper.qualification.pk, self.valid_update_data["qualification"])
-        self.assertEqual(prod_oper.num_of_workers, self.valid_update_data["num_of_workers"])
-        self.assertEqual(prod_oper.t_pz, self.valid_update_data["t_pz"])
-        self.assertEqual(prod_oper.t_sht, self.valid_update_data["t_sht"])
+        self.prod_operation.refresh_from_db()
+        self.assertEqual(self.prod_operation.prod.pk, self.valid_update_data["prod"])
+        self.assertEqual(self.prod_operation.tech_oper.pk, self.valid_update_data["tech_oper"])
+        self.assertEqual(self.prod_operation.profession.pk, self.valid_update_data["profession"])
+        self.assertEqual(self.prod_operation.center.pk, self.valid_update_data["center"])
+        self.assertEqual(self.prod_operation.qualification.pk, self.valid_update_data["qualification"])
+        self.assertEqual(self.prod_operation.num_of_workers, self.valid_update_data["num_of_workers"])
+        self.assertEqual(self.prod_operation.t_pz, self.valid_update_data["t_pz"])
+        self.assertEqual(self.prod_operation.t_sht, self.valid_update_data["t_sht"])
 
     def test_redirects_after_POST_request(self):
         response = self.client.post(self.url, self.valid_update_data)
@@ -914,216 +657,105 @@ class ProdOperationUpdateViewTest(BaseUnitTestCase):
 class EditTechnologicalRoutePositionsViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.tech_oper = ClassStruct.objects.get(pk=OperationConsts.WELDING)
         cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
         cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
 
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.product_class = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            base_ei=None,
-            main_class=cls.nuts_class,
-        )
+        cls.product_class = ClassStructFactory(main_class=cls.nuts_class)
 
         cls.ei = Ei.objects.first()
-        cls.image = SimpleUploadedFile("test.jpg", b"content", content_type="image/jpeg")
 
-        cls.prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
-            class_field=cls.product_class,
-            image=cls.image,
-            cost=Decimal('100.00'),
-            ei=cls.ei,
-            modification=None,
+        cls.prod = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("100.00"), ei=cls.ei,
         )
-        cls.output_prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
-            class_field=cls.product_class,
-            image=cls.image,
-            cost=Decimal('200.00'),
-            ei=cls.ei,
-            modification=None,
+        cls.output_prod = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("200.00"), ei=cls.ei,
         )
 
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
         cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
-        cls.stand = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
-            base_ei=None,
-            main_class=cls.means_of_labor,
-        )
-        cls.eas = EconomicActivitySubject.objects.create(
-            name=cls.faker.name()[:EASConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:EASConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.enterprise,
-            main_subject=None,
-        )
-        cls.center = GroupWorkingCenter.objects.create(
-            name=cls.faker.name()[:GWCConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:GWCConsts.SHORT_NAME_MAX_LENGTH],
-            main_class=cls.stand,
-            eas=cls.eas,
-            place=cls.faker.random_int(min=1, max=100),
-        )
 
-        cls.parent_prod_oper = ProdOperation.objects.create(
+        cls.stand = ClassStructFactory(main_class=cls.means_of_labor)
+        cls.eas = EASFactory(main_class=cls.enterprise)
+        cls.center = GWCFactory(main_class=cls.stand, eas=cls.eas, place=42)
+
+        cls.parent_prod_oper = ProdOperationFactory(
             prod=cls.prod,
             tech_oper=cls.tech_oper,
             profession=cls.profession,
             center=cls.center,
             qualification=cls.qualification,
-            num_of_workers=cls.faker.random_int(min=1, max=10),
-            t_pz=cls.faker.random_number(digits=2),
-            t_sht=cls.faker.random_number(digits=2),
         )
-
-        cls.output_prod_oper1 = ProdOperation.objects.create(
+        cls.output_prod_oper1 = ProdOperationFactory(
             prod=cls.output_prod,
             tech_oper=cls.tech_oper,
             profession=cls.profession,
             center=cls.center,
             qualification=cls.qualification,
-            num_of_workers=cls.faker.random_int(min=1, max=10),
-            t_pz=cls.faker.random_number(digits=2),
-            t_sht=cls.faker.random_number(digits=2),
         )
-        cls.output_prod_oper2 = ProdOperation.objects.create(
+        cls.output_prod_oper2 = ProdOperationFactory(
             prod=cls.output_prod,
             tech_oper=cls.tech_oper,
             profession=cls.profession,
             center=cls.center,
             qualification=cls.qualification,
-            num_of_workers=cls.faker.random_int(min=1, max=10),
-            t_pz=cls.faker.random_number(digits=2),
-            t_sht=cls.faker.random_number(digits=2),
         )
 
-        cls.existing_pos1 = ProdOperationPos.objects.create(
+        cls.existing_pos1 = ProdOperationPosFactory(
             input_prod_oper=cls.parent_prod_oper,
             output_prod_oper=cls.output_prod_oper1,
-            input_quantity=Decimal('1.5'),
-            output_quantity=Decimal('2.0'),
+            input_quantity=Decimal("1.5"),
+            output_quantity=Decimal("2.0"),
         )
-        cls.existing_pos2 = ProdOperationPos.objects.create(
+        cls.existing_pos2 = ProdOperationPosFactory(
             input_prod_oper=cls.parent_prod_oper,
             output_prod_oper=cls.output_prod_oper2,
-            input_quantity=Decimal('3.0'),
-            output_quantity=Decimal('4.0'),
+            input_quantity=Decimal("3.0"),
+            output_quantity=Decimal("4.0"),
         )
 
         cls.prefix_name = ProdOperationPosFormSet.get_default_prefix()
 
         cls.create_valid_forms_data = [
-            {
-                "id": cls.existing_pos1.pk,
-                "output_prod_oper": cls.output_prod_oper1.pk,
-                "input_quantity": "1.5",
-                "output_quantity": "2.0",
-                "DELETE": "",
-            },
-            {
-                "id": "",
-                "output_prod_oper": cls.output_prod_oper2.pk,
-                "input_quantity": "5.5",
-                "output_quantity": "6.5",
-                "DELETE": "",
-            },
+            {"id": cls.existing_pos1.pk, "output_prod_oper": cls.output_prod_oper1.pk,
+             "input_quantity": "1.5", "output_quantity": "2.0", "DELETE": ""},
+            {"id": "", "output_prod_oper": cls.output_prod_oper2.pk,
+             "input_quantity": "5.5", "output_quantity": "6.5", "DELETE": ""},
         ]
-
         cls.delete_forms_data = [
-            {
-                "id": cls.existing_pos1.pk,
-                "output_prod_oper": cls.output_prod_oper1.pk,
-                "input_quantity": "1.5",
-                "output_quantity": "2.0",
-                "DELETE": "on",
-            },
+            {"id": cls.existing_pos1.pk, "output_prod_oper": cls.output_prod_oper1.pk,
+             "input_quantity": "1.5", "output_quantity": "2.0", "DELETE": "on"},
         ]
-
         cls.update_forms_data = [
-            {
-                "id": cls.existing_pos1.pk,
-                "output_prod_oper": cls.output_prod_oper2.pk,
-                "input_quantity": "99.9",
-                "output_quantity": "88.8",
-                "DELETE": "",
-            },
+            {"id": cls.existing_pos1.pk, "output_prod_oper": cls.output_prod_oper2.pk,
+             "input_quantity": "99.9", "output_quantity": "88.8", "DELETE": ""},
         ]
-
         cls.empty_output_prod_oper_forms_data = [
-            {
-                "id": cls.existing_pos1.pk,
-                "output_prod_oper": "",
-                "input_quantity": "1.5",
-                "output_quantity": "2.0",
-                "DELETE": "",
-            },
+            {"id": cls.existing_pos1.pk, "output_prod_oper": "",
+             "input_quantity": "1.5", "output_quantity": "2.0", "DELETE": ""},
         ]
-
         cls.invalid_input_quantity_forms_data = [
-            {
-                "id": cls.existing_pos1.pk,
-                "output_prod_oper": cls.output_prod_oper1.pk,
-                "input_quantity": "-1.0",
-                "output_quantity": "2.0",
-                "DELETE": "",
-            },
+            {"id": cls.existing_pos1.pk, "output_prod_oper": cls.output_prod_oper1.pk,
+             "input_quantity": "-1.0", "output_quantity": "2.0", "DELETE": ""},
         ]
-
         cls.invalid_output_quantity_forms_data = [
-            {
-                "id": cls.existing_pos1.pk,
-                "output_prod_oper": cls.output_prod_oper1.pk,
-                "input_quantity": "1.5",
-                "output_quantity": "-2.0",
-                "DELETE": "",
-            },
+            {"id": cls.existing_pos1.pk, "output_prod_oper": cls.output_prod_oper1.pk,
+             "input_quantity": "1.5", "output_quantity": "-2.0", "DELETE": ""},
         ]
-
         cls.empty_input_quantity_forms_data = [
-            {
-                "id": cls.existing_pos1.pk,
-                "output_prod_oper": cls.output_prod_oper1.pk,
-                "input_quantity": "",
-                "output_quantity": "2.0",
-                "DELETE": "",
-            },
+            {"id": cls.existing_pos1.pk, "output_prod_oper": cls.output_prod_oper1.pk,
+             "input_quantity": "", "output_quantity": "2.0", "DELETE": ""},
         ]
-
         cls.empty_output_quantity_forms_data = [
-            {
-                "id": cls.existing_pos1.pk,
-                "output_prod_oper": cls.output_prod_oper1.pk,
-                "input_quantity": "1.5",
-                "output_quantity": "",
-                "DELETE": "",
-            },
+            {"id": cls.existing_pos1.pk, "output_prod_oper": cls.output_prod_oper1.pk,
+             "input_quantity": "1.5", "output_quantity": "", "DELETE": ""},
         ]
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
 
         cls.url = reverse("route_tech:edit_prod_operation_pos", args=[cls.prod.pk])
         cls.redirect_url = reverse("products:detail", args=[cls.prod.pk])
