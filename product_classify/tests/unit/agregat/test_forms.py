@@ -1,12 +1,12 @@
 from django.db.models import QuerySet
 
+from tests.unit.agregat.factories.agregat import AgregatFactory
+from tests.unit.parametr.factories.parametr import ParametrFactory
 from tests.unit.base import BaseUnitTestCase
 
 from ei.models import Ei
 from classes.models import ClassStruct
 from classes.constants import ParamIds
-from parametr.models import Parametr
-from agregat.models import Agregat
 from agregat.forms import AgregatForm, ChangeAgregatNumForm
 
 
@@ -17,19 +17,19 @@ class AgregatFormTest(BaseUnitTestCase):
         cls.agregat_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
         cls.double_parametr_type = ClassStruct.objects.get(pk=ParamIds.DOUBLE)
 
-        cls.agregat = Parametr.objects.create(
+        cls.agregat = ParametrFactory(
             name="Габариты",
             short_name="",
-            par_ei=None,
             parametr_type=cls.agregat_type,
+            par_ei=None,
         )
-        cls.par1 = Parametr.objects.create(
+        cls.par1 = ParametrFactory(
             name="Ширина",
             short_name="Ш",
             parametr_type=cls.double_parametr_type,
             par_ei=cls.par_ei,
         )
-        cls.par2 = Parametr.objects.create(
+        cls.par2 = ParametrFactory(
             name="Длина",
             short_name="Дл",
             parametr_type=cls.double_parametr_type,
@@ -151,7 +151,7 @@ class AgregatFormTest(BaseUnitTestCase):
 
     def test_unique_together_constraint_prevents_duplicate(self):
         """Проверяет, что попытка создать дублирующую пару (agr, par) вызывает ошибку валидации или IntegrityError."""
-        Agregat.objects.create(
+        AgregatFactory(
             agr=self.agregat,
             par=self.par1,
             num=1,
@@ -165,7 +165,7 @@ class AgregatFormTest(BaseUnitTestCase):
 
     def test_edit_par_does_not_change_num(self):
         """Проверяет, что при редактировании пары (изменении par) num остаётся прежним."""
-        instance = Agregat.objects.create(
+        instance = AgregatFactory(
             agr=self.agregat,
             par=self.par1,
             num=1,
@@ -187,54 +187,54 @@ class ChangeAgregatNumFormTest(BaseUnitTestCase):
         cls.agregat_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
         cls.double_parametr_type = ClassStruct.objects.get(pk=ParamIds.DOUBLE)
 
-        cls.agregat = Parametr.objects.create(
+        cls.agregat = ParametrFactory(
             name="Габариты",
             short_name="",
-            par_ei=None,
             parametr_type=cls.agregat_type,
+            par_ei=None,
         )
-        cls.other_agregat = Parametr.objects.create(
+        cls.other_agregat = ParametrFactory(
             name="Другой агрегат",
             short_name="",
-            par_ei=None,
             parametr_type=cls.agregat_type,
+            par_ei=None,
         )
-        cls.par1 = Parametr.objects.create(
+        cls.par1 = ParametrFactory(
             name="Ширина",
             short_name="Ш",
             parametr_type=cls.double_parametr_type,
             par_ei=cls.par_ei,
         )
-        cls.par2 = Parametr.objects.create(
+        cls.par2 = ParametrFactory(
             name="Длина",
             short_name="Дл",
             parametr_type=cls.double_parametr_type,
             par_ei=cls.par_ei,
         )
-        cls.other_agregat_par = Parametr.objects.create(
+        cls.other_agregat_par = ParametrFactory(
             name="Test parametr",
             short_name="Test parametr",
             parametr_type=cls.double_parametr_type,
             par_ei=cls.par_ei,
         )
-        cls.invalid_par = Parametr.objects.create(
+        cls.invalid_par = ParametrFactory(
             name="Test parametr",
             short_name="Test parametr",
             parametr_type=cls.double_parametr_type,
             par_ei=cls.par_ei,
         )
 
-        cls.agr_pair1 = Agregat.objects.create(
+        cls.agr_pair1 = AgregatFactory(
             agr=cls.agregat,
             par=cls.par1,
             num=1,
         )
-        cls.agr_pair2 = Agregat.objects.create(
+        cls.agr_pair2 = AgregatFactory(
             agr=cls.agregat,
             par=cls.par2,
             num=2,
         )
-        cls.agr_pair3 = Agregat.objects.create(
+        cls.agr_pair3 = AgregatFactory(
             agr=cls.other_agregat,
             par=cls.other_agregat_par,
             num=1,

@@ -1,21 +1,20 @@
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
-from faker import Faker
 from urllib.parse import urlencode
 from http import HTTPStatus
 
+from tests.unit.agregat.factories.agregat import AgregatFactory
+from tests.unit.parametr.factories.parametr import ParametrFactory
 from tests.unit.base import BaseUnitTestCase
+from tests.unit.accounts.factories.user import UserFactory
 
 from classes.constants import ParamIds
 from classes.models import ClassStruct
 
-from parametr.models import Parametr
-from parametr.constants import ParametrConsts
-
 from ei.models import Ei
 
-from accounts.constants import UserConsts, RoleCodes
+from accounts.constants import RoleCodes
 from accounts.models import Role
 
 from agregat.errors import AgregatErrors
@@ -27,27 +26,19 @@ User = get_user_model()
 class AgregatListViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.agr_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
         cls.par_ei = Ei.objects.first()
 
-        cls.par1 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par1 = ParametrFactory(
             parametr_type=cls.int_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
-        cls.par2 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par2 = ParametrFactory(
             parametr_type=cls.int_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
-        cls.agr = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.agr = ParametrFactory(
             parametr_type=cls.agr_type,
             par_ei=cls.par_ei,
         )
@@ -55,39 +46,8 @@ class AgregatListViewTest(BaseUnitTestCase):
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.login_url = reverse("accounts:login")
         cls.url = reverse("agregat:list")
@@ -95,7 +55,7 @@ class AgregatListViewTest(BaseUnitTestCase):
     def test_returns_302_for_anonymous_user(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
-        expected_url = f"{self.login_url}?{urlencode({"next": self.url})}"
+        expected_url = f"{self.login_url}?{urlencode({'next': self.url})}"
         self.assertRedirects(response, expected_url)
 
     def test_returns_403_for_authenticated_user(self):
@@ -127,29 +87,21 @@ class AgregatListViewTest(BaseUnitTestCase):
 class AgregatParametrCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.agr_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
         cls.par_ei = Ei.objects.first()
 
-        cls.par1 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par1 = ParametrFactory(
             parametr_type=cls.int_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
-        cls.par2 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par2 = ParametrFactory(
             parametr_type=cls.int_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
-        cls.agr = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.agr = ParametrFactory(
             parametr_type=cls.agr_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
 
         cls.valid_data = {
@@ -160,39 +112,8 @@ class AgregatParametrCreateViewTest(BaseUnitTestCase):
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("agregat:add", args=[cls.agr.pk])
         cls.redirect_url = reverse("agregat:detail", args=[cls.agr.pk])
@@ -223,11 +144,11 @@ class AgregatParametrCreateViewTest(BaseUnitTestCase):
 
     def test_can_save_a_POST_request(self):
         self.client.force_login(self.allowed_user)
-        count_before = Agregat.objects.filter(pk=self.agr.pk).count()
+        count_before = Agregat.objects.filter(agr=self.agr).count()
         self.client.post(self.url, data=self.valid_data)
         self.assertEqual(
             Agregat.objects.filter(agr=self.agr).count(),
-            count_before + 1
+            count_before + 1,
         )
         instance = Agregat.objects.last()
         self.assertEqual(instance.agr.pk, self.valid_data["agr"])
@@ -243,72 +164,31 @@ class AgregatParametrCreateViewTest(BaseUnitTestCase):
 class AgregatParametrDetailViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.agr_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
         cls.par_ei = Ei.objects.first()
 
-        cls.par1 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par1 = ParametrFactory(
             parametr_type=cls.int_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
-        cls.par2 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par2 = ParametrFactory(
             parametr_type=cls.int_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
-        cls.agr = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.agr = ParametrFactory(
             parametr_type=cls.agr_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
 
-        Agregat.objects.bulk_create((
-            Agregat(agr=cls.agr, par=cls.par1, num=1),
-            Agregat(agr=cls.agr, par=cls.par2, num=2)
-        ))
+        cls.agregat1 = AgregatFactory(agr=cls.agr, par=cls.par1, num=1)
+        cls.agregat2 = AgregatFactory(agr=cls.agr, par=cls.par2, num=2)
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("agregat:detail", kwargs={"agregat_id": cls.agr.pk})
 
@@ -352,89 +232,48 @@ class AgregatParametrDetailViewTest(BaseUnitTestCase):
 class ChangeNumViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.agr_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
         cls.par_ei = Ei.objects.first()
 
-        cls.par1 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par1 = ParametrFactory(
             parametr_type=cls.int_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
-        cls.par2 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par2 = ParametrFactory(
             parametr_type=cls.int_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
-        cls.agr = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.agr = ParametrFactory(
             parametr_type=cls.agr_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
 
-        cls.pairs = Agregat.objects.bulk_create((
-            Agregat(agr=cls.agr, par=cls.par1, num=1),
-            Agregat(agr=cls.agr, par=cls.par2, num=2)
-        ))
+        cls.pair1 = AgregatFactory(agr=cls.agr, par=cls.par1, num=1)
+        cls.pair2 = AgregatFactory(agr=cls.agr, par=cls.par2, num=2)
 
         cls.valid_data = {
-            "par_1": cls.pairs[0].pk,
-            "par_2": cls.pairs[1].pk
+            "par_1": cls.pair1.pk,
+            "par_2": cls.pair2.pk,
         }
         cls.empty_p1_data = {
             "par_1": "",
-            "par_2": cls.pairs[1].pk
+            "par_2": cls.pair2.pk,
         }
         cls.empty_p2_data = {
-            "par_1": cls.pairs[0].pk,
-            "par_2": ""
+            "par_1": cls.pair1.pk,
+            "par_2": "",
         }
         cls.same_params_data = {
-            "par_1": cls.pairs[0].pk,
-            "par_2": cls.pairs[0].pk
+            "par_1": cls.pair1.pk,
+            "par_2": cls.pair1.pk,
         }
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("agregat:change_num", kwargs={"agregat_id": cls.agr.pk})
         cls.redirect_url = reverse("agregat:detail", kwargs={"agregat_id": cls.agr.pk})
@@ -476,10 +315,10 @@ class ChangeNumViewTest(BaseUnitTestCase):
     def test_can_save_POST_request(self):
         self.client.force_login(self.allowed_user)
         self.client.post(self.url, data=self.valid_data)
-        self.pairs[0].refresh_from_db()
-        self.pairs[1].refresh_from_db()
-        self.assertEqual(self.pairs[0].num, 2)
-        self.assertEqual(self.pairs[1].num, 1)
+        self.pair1.refresh_from_db()
+        self.pair2.refresh_from_db()
+        self.assertEqual(self.pair1.num, 2)
+        self.assertEqual(self.pair2.num, 1)
 
     def test_redirects_after_POST_request(self):
         self.client.force_login(self.allowed_user)
@@ -505,88 +344,45 @@ class ChangeNumViewTest(BaseUnitTestCase):
 class AgregatParametrDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.agr_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
         cls.par_ei = Ei.objects.first()
 
-        cls.par1 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par1 = ParametrFactory(
             parametr_type=cls.int_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
-        cls.par2 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par2 = ParametrFactory(
             parametr_type=cls.int_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
-        cls.par3 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par3 = ParametrFactory(
             parametr_type=cls.int_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
-        cls.agr = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.agr = ParametrFactory(
             parametr_type=cls.agr_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
 
-        cls.pairs = Agregat.objects.bulk_create((
-            Agregat(agr=cls.agr, par=cls.par1, num=1),
-            Agregat(agr=cls.agr, par=cls.par2, num=2),
-            Agregat(agr=cls.agr, par=cls.par3, num=3),
-        ))
+        cls.pair1 = AgregatFactory(agr=cls.agr, par=cls.par1, num=1)
+        cls.pair2 = AgregatFactory(agr=cls.agr, par=cls.par2, num=2)
+        cls.pair3 = AgregatFactory(agr=cls.agr, par=cls.par3, num=3)
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.redirect_url = reverse("agregat:detail", kwargs={
-            "agregat_id": cls.agr.pk
+            "agregat_id": cls.agr.pk,
         })
 
     def _get_url(self, agr_pk: int, par_pk: int):
         return reverse("agregat:delete", kwargs={
             "agregat_id": agr_pk,
-            "param_id": par_pk
+            "param_id": par_pk,
         })
 
     def test_returns_403_for_anonymous_user(self):
