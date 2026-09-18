@@ -2,22 +2,22 @@ from django.urls import reverse
 from django.utils.html import escape
 from django.contrib.auth import get_user_model
 
-from faker import Faker
 from http import HTTPStatus
 from urllib.parse import urlencode
 
+from tests.unit.accounts.factories.user import UserFactory
+from tests.unit.parametr.factories.parametr import ParametrFactory, ParametrFormData
 from tests.unit.base import BaseUnitTestCase
 
 from classes.models import ClassStruct
 from classes.constants import ParamIds, EnumsIds
 
-from accounts.constants import UserConsts, RoleCodes
+from accounts.constants import RoleCodes
 from accounts.models import Role
 
 from ei.models import Ei
 
 from parametr.models import Parametr
-from parametr.constants import ParametrConsts
 from parametr.errors import ParametrErrors
 
 User = get_user_model()
@@ -26,61 +26,18 @@ User = get_user_model()
 class ParametrListViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.agregat_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
         cls.ei = Ei.objects.first()
 
-        cls.int_par = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
-            parametr_type=cls.int_type,
-            par_ei=cls.ei,
-        )
-        cls.agregat_par = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
-            parametr_type=cls.agregat_type,
-            par_ei=None,
-        )
+        cls.int_par = ParametrFactory(parametr_type=cls.int_type)
+        cls.agregat_par = ParametrFactory(parametr_type=cls.agregat_type)
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.login_url = reverse("accounts:login")
         cls.url = reverse("parametr:list")
@@ -88,7 +45,7 @@ class ParametrListViewTest(BaseUnitTestCase):
     def test_returns_302_for_anonymous_user(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
-        expected_url = f"{self.login_url}?{urlencode({"next": self.url})}"
+        expected_url = f"{self.login_url}?{urlencode({'next': self.url})}"
         self.assertRedirects(response, expected_url)
 
     def test_returns_403_for_authenticated_user(self):
@@ -121,54 +78,19 @@ class ParametrListViewTest(BaseUnitTestCase):
 class ParametrDetailViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.ei = Ei.objects.first()
 
-        cls.int_par = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.int_par = ParametrFactory(
             parametr_type=cls.int_type,
-            par_ei=cls.ei
+            par_ei=cls.ei,
         )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.login_url = reverse("accounts:login")
         cls.url = reverse("parametr:detail", args=[cls.int_par.pk])
@@ -176,7 +98,7 @@ class ParametrDetailViewTest(BaseUnitTestCase):
     def test_returns_302_for_anonymous_user(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
-        expected_url = f"{self.login_url}?{urlencode({"next": self.url})}"
+        expected_url = f"{self.login_url}?{urlencode({'next': self.url})}"
         self.assertRedirects(response, expected_url)
 
     def test_returns_403_for_authenticated_user(self):
@@ -206,102 +128,54 @@ class ParametrDetailViewTest(BaseUnitTestCase):
         self.assertContains(response, self.int_par.name)
         self.assertContains(response, self.int_par.short_name)
         self.assertContains(response, self.int_par.parametr_type.name)
-        self.assertContains(response, self.int_par.par_ei)
+        self.assertContains(response, self.int_par.par_ei.short_name)
 
 
 class ParametrCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.agr_type = ClassStruct.objects.get(pk=ParamIds.AGREGAT)
         cls.str_enum_type = ClassStruct.objects.get(pk=EnumsIds.STRING)
         cls.img_enum_type = ClassStruct.objects.get(pk=EnumsIds.IMAGE)
         cls.par_ei = Ei.objects.first()
 
-        name = cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH]
-        short_name = cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.data = {
-            "name": name,
-            "short_name": short_name,
-            "parametr_type": cls.int_type.pk,
-            "par_ei": cls.par_ei.pk,
-        }
-        cls.empty_name_data = {
-            "name": "",
-            "short_name": short_name,
-            "parametr_type": cls.int_type.pk,
-            "par_ei": cls.par_ei.pk,
-        }
-        cls.empty_short_name_data = {
-            "name": name,
-            "short_name": "",
-            "parametr_type": cls.int_type.pk,
-            "par_ei": cls.par_ei.pk,
-        }
-        cls.empty_parametr_type_data = {
-            "name": name,
-            "short_name": short_name,
-            "parametr_type": "",
-            "par_ei": cls.par_ei.pk,
-        }
-        cls.invalid_str_data = {
-            "name": name,
-            "short_name": short_name,
-            "parametr_type": cls.str_enum_type.pk,
-            "par_ei": cls.par_ei.pk,
-        }
-        cls.invalid_img_data = {
-            "name": name,
-            "short_name": short_name,
-            "parametr_type": cls.img_enum_type.pk,
-            "par_ei": cls.par_ei.pk,
-        }
-        cls.invalid_agr_data = {
-            "name": name,
-            "short_name": short_name,
-            "parametr_type": cls.agr_type.pk,
-            "par_ei": cls.par_ei.pk,
-        }
+        cls.data = ParametrFormData(
+            parametr_type=cls.int_type.pk,
+            par_ei=cls.par_ei.pk,
+        )
+        cls.empty_name_data = ParametrFormData(
+            name="",
+            parametr_type=cls.int_type.pk,
+            par_ei=cls.par_ei.pk,
+        )
+        cls.empty_short_name_data = ParametrFormData(
+            short_name="",
+            parametr_type=cls.int_type.pk,
+            par_ei=cls.par_ei.pk,
+        )
+        cls.empty_parametr_type_data = ParametrFormData(
+            parametr_type="",
+            par_ei=cls.par_ei.pk,
+        )
+        cls.invalid_str_data = ParametrFormData(
+            parametr_type=cls.str_enum_type.pk,
+            par_ei=cls.par_ei.pk,
+        )
+        cls.invalid_img_data = ParametrFormData(
+            parametr_type=cls.img_enum_type.pk,
+            par_ei=cls.par_ei.pk,
+        )
+        cls.invalid_agr_data = ParametrFormData(
+            parametr_type=cls.agr_type.pk,
+            par_ei=cls.par_ei.pk,
+        )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("parametr:add")
         cls.redirect_url = reverse("parametr:list")
@@ -375,67 +249,24 @@ class ParametrCreateViewTest(BaseUnitTestCase):
 class ParametrUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.par_ei = Ei.objects.first()
 
-        old_name = cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH]
-        old_short_name = cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.instance = Parametr.objects.create(
-            name=old_name,
-            short_name=old_short_name,
+        cls.instance = ParametrFactory(
             parametr_type=cls.int_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
 
-        new_name = cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH]
-        short_new_name = cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.update_data = {
-            "name": new_name,
-            "short_name": short_new_name,
-            "parametr_type": cls.int_type.pk,
-            "par_ei": cls.par_ei.pk
-        }
+        cls.update_data = ParametrFormData(
+            parametr_type=cls.int_type.pk,
+            par_ei=cls.par_ei.pk,
+        )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("parametr:edit", args=[cls.instance.pk])
         cls.redirect_url = reverse("parametr:detail", args=[cls.instance.pk])
@@ -467,11 +298,11 @@ class ParametrUpdateViewTest(BaseUnitTestCase):
     def test_can_save_a_POST_request(self):
         self.client.force_login(self.allowed_user)
         self.client.post(self.url, data=self.update_data)
-        parametr = Parametr.objects.last()
-        self.assertEqual(parametr.name, self.update_data["name"])
-        self.assertEqual(parametr.short_name, self.update_data["short_name"])
-        self.assertEqual(parametr.par_ei.pk, self.update_data["par_ei"])
-        self.assertEqual(parametr.parametr_type.pk, self.update_data["parametr_type"])
+        self.instance.refresh_from_db()
+        self.assertEqual(self.instance.name, self.update_data["name"])
+        self.assertEqual(self.instance.short_name, self.update_data["short_name"])
+        self.assertEqual(self.instance.par_ei.pk, self.update_data["par_ei"])
+        self.assertEqual(self.instance.parametr_type.pk, self.update_data["parametr_type"])
 
     def test_redirects_after_POST_request(self):
         self.client.force_login(self.allowed_user)
@@ -482,57 +313,19 @@ class ParametrUpdateViewTest(BaseUnitTestCase):
 class ParametrDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.int_type = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.par_ei = Ei.objects.first()
 
-        name = cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH]
-        short_name = cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.instance = Parametr.objects.create(
-            name=name,
-            short_name=short_name,
+        cls.instance = ParametrFactory(
             parametr_type=cls.int_type,
-            par_ei=cls.par_ei
+            par_ei=cls.par_ei,
         )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("parametr:delete", args=[cls.instance.pk])
         cls.redirect_url = reverse("parametr:list")
