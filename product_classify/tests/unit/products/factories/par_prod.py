@@ -14,3 +14,11 @@ class ParProdFactory(factory.django.DjangoModelFactory):
     int_value = None
     double_value = None
     enum_val = None
+
+
+class ParProdFormData(factory.DictFactory):
+    prod = None
+    par = None
+    int_value = None
+    double_value = None
+    enum_val = None

@@ -3,29 +3,28 @@ from tests.unit.base import BaseUnitTestCase
 from django.db import IntegrityError
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from faker import Faker
 from decimal import Decimal
 
+from tests.unit.classes.factories.class_struct import ClassStructFactory
+from tests.unit.products.factories.product import ProdFactory
+from tests.unit.products.factories.par_prod import ParProdFactory
+from tests.unit.parametr.factories.parametr import ParametrFactory
+from tests.unit.enums.factories.enums import EnumsFactory
+from tests.unit.classes.factories.parclass import ParClassFactory
+
 from ei.models import Ei
-from enums.models import Enums
-from parametr.models import Parametr
-from classes.models import ClassStruct, ParClass
 from classes.constants import ParamIds, ProductsConsts, EnumsIds
-
+from classes.models import ClassStruct
 from specifications.models import ProdComponent
-
-from products.constants import ProdConsts
-from products.models import Prod, ParProd
+from products.models import Prod
 
 
 class ProdModelTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.main_class = ClassStruct.objects.create(
+        cls.main_class = ClassStructFactory(
             name="main_class",
             short_name="main_cl",
-            base_ei=None,
-            main_class=None,
         )
         cls.image = SimpleUploadedFile(
             "test.jpg",
@@ -35,7 +34,7 @@ class ProdModelTest(BaseUnitTestCase):
         cls.ei = Ei.objects.first()
 
     def test_create_with_minimal_requirements(self):
-        prod = Prod.objects.create(
+        prod = ProdFactory(
             name="test",
             short_name="test",
             class_field=self.main_class,
@@ -44,7 +43,7 @@ class ProdModelTest(BaseUnitTestCase):
         self.assertIsNotNone(prod.pk)
 
     def test_string_representation(self):
-        prod = Prod(
+        prod = ProdFactory.build(
             name="test",
             short_name="test",
             class_field=self.main_class,
@@ -53,7 +52,7 @@ class ProdModelTest(BaseUnitTestCase):
         self.assertEqual(str(prod), "test")
 
     def test_image_field_path(self):
-        prod = Prod.objects.create(
+        prod = ProdFactory(
             name="test",
             short_name="test",
             class_field=self.main_class,
@@ -62,7 +61,7 @@ class ProdModelTest(BaseUnitTestCase):
         self.assertTrue(prod.image.name.startswith("product_images/"))
 
     def test_class_field_relation(self):
-        prod = Prod.objects.create(
+        prod = ProdFactory(
             name="test",
             short_name="test",
             class_field=self.main_class,
@@ -72,17 +71,17 @@ class ProdModelTest(BaseUnitTestCase):
         self.assertIn(prod, self.main_class.class_products.all())
 
     def test_ei_relationship(self):
-        prod = Prod.objects.create(
+        prod = ProdFactory(
             name="test",
             short_name="test",
             class_field=self.main_class,
             image=self.image,
-            ei=self.ei
+            ei=self.ei,
         )
         self.assertIn(prod, self.ei.prod_set.all())
 
     def test_negative_cost_value_raises_intergity_error(self):
-        prod = Prod(
+        prod = ProdFactory.build(
             name="test",
             short_name="test",
             class_field=self.main_class,
@@ -94,27 +93,21 @@ class ProdModelTest(BaseUnitTestCase):
             prod.full_clean()
 
     def test_create_modification(self):
-        fake = Faker()
-        ei = Ei.objects.first()
-        prod_name = fake.name()[:ProdConsts.NAME_MAX_LENGTH]
-        prod_short_name = fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
-        prod = Prod.objects.create(
-            name=prod_name,
-            short_name=prod_short_name,
+        prod = ProdFactory(
+            name="Test prod",
+            short_name="Test short",
             class_field=self.main_class,
             image=self.image,
             cost=800,
-            ei=ei,
-            modification=None
+            ei=self.ei,
         )
-        component_prod = Prod.objects.create(
-            name=fake.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+        component_prod = ProdFactory(
+            name="Component prod",
+            short_name="Comp short",
             class_field=self.main_class,
             image=self.image,
             cost=800,
-            ei=ei,
-            modification=None
+            ei=self.ei,
         )
         ProdComponent.objects.create(
             parent_prod=prod,
@@ -122,8 +115,8 @@ class ProdModelTest(BaseUnitTestCase):
             num=1,
             quantity=400,
         )
-        mod_name = fake.name()[:ProdConsts.NAME_MAX_LENGTH]
-        mod_short_name = fake.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
+        mod_name = "Mod name"
+        mod_short_name = "Mod short"
         data = Prod.create_modification(prod.pk, mod_name, mod_short_name)
         modification = Prod.objects.get(pk=data.modification_id)
         self.assertEqual(modification.modification.pk, prod.pk)
@@ -132,7 +125,9 @@ class ProdModelTest(BaseUnitTestCase):
         self.assertEqual(modification.ei, prod.ei)
         self.assertEqual(modification.name, mod_name)
         self.assertEqual(modification.short_name, mod_short_name)
-        self.assertEqual(ProdComponent.objects.filter(parent_prod=modification.pk).count(), 1)
+        self.assertEqual(
+            ProdComponent.objects.filter(parent_prod=modification.pk).count(), 1
+        )
 
 
 class ParProdModelTest(BaseUnitTestCase):
@@ -141,14 +136,15 @@ class ParProdModelTest(BaseUnitTestCase):
         par_ei = Ei.objects.first()
         base_ei = Ei.objects.order_by("id")[1]
         fastener_class = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
-        class_field = ClassStruct.objects.create(
+
+        class_field = ClassStructFactory(
             name="products_class",
             short_name="prod_cls",
             base_ei=base_ei,
             main_class=fastener_class,
         )
 
-        # типы параметров, EnumsIds
+        # типы параметров
         cls.int_parametr_type = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.double_parametr_type = ClassStruct.objects.get(pk=ParamIds.DOUBLE)
         cls.string_enum_type = ClassStruct.objects.get(pk=EnumsIds.STRING)
@@ -157,83 +153,82 @@ class ParProdModelTest(BaseUnitTestCase):
         cls.int_enum_type = ClassStruct.objects.get(pk=EnumsIds.INT)
 
         # классы перечислений
-        cls.int_enum_class = ClassStruct.objects.create(
+        cls.int_enum_class = ClassStructFactory(
             name="int_enum_class",
             short_name="int_enum",
             base_ei=base_ei,
             main_class=cls.int_enum_type,
         )
-        cls.double_enum_class = ClassStruct.objects.create(
+        cls.double_enum_class = ClassStructFactory(
             name="double_enum_class",
             short_name="double_enum",
             base_ei=base_ei,
             main_class=cls.double_enum_type,
         )
-        cls.string_enum_class = ClassStruct.objects.create(
+        cls.string_enum_class = ClassStructFactory(
             name="string_enum_class",
             short_name="string_enum",
             base_ei=base_ei,
             main_class=cls.string_enum_type,
         )
-        cls.image_enum_class = ClassStruct.objects.create(
+        cls.image_enum_class = ClassStructFactory(
             name="image_enum_class",
             short_name="image_enum",
             base_ei=base_ei,
             main_class=cls.image_enum_type,
         )
 
-        # дополнительные переменные
         cls.image = SimpleUploadedFile(
             "test.jpg",
             b"content",
             content_type="image/jpeg",
         )
 
-        cls.prod = Prod.objects.create(
+        cls.prod = ProdFactory(
             name="test_prod",
             short_name="test",
             class_field=class_field,
             image=cls.image,
         )
 
-        # экземпляры параметров различных типов
-        cls.int_parametr = Parametr.objects.create(
+        # параметры
+        cls.int_parametr = ParametrFactory(
             name="int_parametr",
             short_name="int_par",
             parametr_type=cls.int_parametr_type,
             par_ei=par_ei,
         )
-        cls.double_parametr = Parametr.objects.create(
+        cls.double_parametr = ParametrFactory(
             name="double_parametr",
             short_name="double_par",
             parametr_type=cls.double_parametr_type,
             par_ei=par_ei,
         )
-        cls.string_enum_parametr = Parametr.objects.create(
+        cls.string_enum_parametr = ParametrFactory(
             name="string_enum_parametr",
             short_name="str_enum_par",
             parametr_type=cls.string_enum_type,
             par_ei=par_ei,
         )
-        cls.image_enum_parametr = Parametr.objects.create(
+        cls.image_enum_parametr = ParametrFactory(
             name="image_enum_parametr",
             short_name="image_enum_par",
             parametr_type=cls.image_enum_type,
             par_ei=None,
         )
-        cls.double_enum_parametr = Parametr.objects.create(
+        cls.double_enum_parametr = ParametrFactory(
             name="double_enum_parametr",
             short_name="double_enum_par",
             parametr_type=cls.double_enum_type,
             par_ei=par_ei,
         )
-        cls.int_enum_parametr = Parametr.objects.create(
+        cls.int_enum_parametr = ParametrFactory(
             name="int_enum_parametr",
             short_name="int_enum_par",
             parametr_type=cls.int_enum_type,
             par_ei=par_ei,
         )
-        cls.invalid_parametr = Parametr.objects.create(
+        cls.invalid_parametr = ParametrFactory(
             name="invalid_parametr",
             short_name="invalid_par",
             parametr_type=cls.int_parametr_type,
@@ -241,104 +236,77 @@ class ParProdModelTest(BaseUnitTestCase):
         )
 
         # значения перечислений
-        cls.string_enum_value = Enums.objects.create(
+        cls.string_enum_value = EnumsFactory(
             enum=cls.string_enum_class,
             num=1,
             name="string_enum_value",
             short_name="string_enum",
-            double_value=None,
-            int_value=None,
-            image=None,
         )
-        cls.image_enum_value = Enums.objects.create(
+        cls.image_enum_value = EnumsFactory(
             enum=cls.image_enum_class,
             num=1,
             name="image_enum_value",
             short_name="string_enum",
-            double_value=None,
-            int_value=None,
             image=cls.image,
         )
-        cls.int_enum_value = Enums.objects.create(
+        cls.int_enum_value = EnumsFactory(
             enum=cls.int_enum_class,
             num=1,
             name="int_enum_value",
             short_name="int_enum",
-            double_value=None,
             int_value=1,
-            image=None,
         )
-        cls.double_enum_value = Enums.objects.create(
+        cls.double_enum_value = EnumsFactory(
             enum=cls.double_enum_class,
             num=1,
             name="double_enum_value",
             short_name="double_enum",
             double_value=1.0,
-            int_value=None,
-            image=None,
         )
 
-        num = 1
-        double_parametr_parclass = ParClass.objects.create(
+        # ParClass для каждого типа параметра
+        cls.double_parametr_parclass = ParClassFactory(
             class_field=class_field,
             parametr=cls.double_parametr,
-            num=num,
+            num=1,
             min_value=1.0,
             max_value=5.0,
         )
-        num += 1
-        int_parametr_parclass = ParClass.objects.create(
+        cls.int_parametr_parclass = ParClassFactory(
             class_field=class_field,
             parametr=cls.int_parametr,
-            num=num,
+            num=2,
             min_value=1,
             max_value=5,
         )
-        num += 1
-        string_enum_parametr_parclass = ParClass.objects.create(
+        cls.string_enum_parametr_parclass = ParClassFactory(
             class_field=class_field,
             parametr=cls.string_enum_parametr,
-            num=num,
-            min_value=None,
-            max_value=None,
+            num=3,
         )
-        num += 1
-        image_enum_parametr_parclass = ParClass.objects.create(
+        cls.image_enum_parametr_parclass = ParClassFactory(
             class_field=class_field,
             parametr=cls.image_enum_parametr,
-            num=num,
-            min_value=None,
-            max_value=None,
+            num=4,
         )
-        num += 1
-        double_enum_parametr_parclass = ParClass.objects.create(
+        cls.double_enum_parametr_parclass = ParClassFactory(
             class_field=class_field,
             parametr=cls.double_enum_parametr,
-            num=num,
-            min_value=None,
-            max_value=None,
+            num=5,
         )
-        num += 1
-        int_enum_parametr_parclass = ParClass.objects.create(
+        cls.int_enum_parametr_parclass = ParClassFactory(
             class_field=class_field,
             parametr=cls.int_enum_parametr,
-            num=num,
-            min_value=None,
-            max_value=None,
+            num=6,
         )
+
         cls.double_val = 3.14
 
-    def test_clean_raises_validation_error_if_parametr_does_not_belong_to_product_class(
-        self,
-    ):
-        """Проверяет, что при попытке добавить параметр, не принадлежащий классу изделия,
-        выбрасывается ValidationError с соответствующим сообщением."""
-        parprod = ParProd(
+    def test_clean_raises_validation_error_if_parametr_does_not_belong_to_product_class(self):
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.invalid_parametr,
             int_value=1,
-            double_value=None,
-            enum_val=None,
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
@@ -346,31 +314,19 @@ class ParProdModelTest(BaseUnitTestCase):
         self.assertEqual(ve.exception.messages[0], expected_error_msg)
 
     def test_clean_raises_validation_error_if_string_enum_value_is_absent(self):
-        """Проверяет, что для параметра типа 'Строковое перечисление' обязательно
-        наличие выбранного значения перечисления (enum_val не должен быть None)."""
-        parprod = ParProd(
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.string_enum_parametr,
-            int_value=None,
-            double_value=None,
-            enum_val=None,
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
         expected_error_msg = "Для параметра типа 'Строковое перечисление' необходимо выбрать значение из списка строковых перечислений."
         self.assertEqual(ve.exception.messages[0], expected_error_msg)
 
-    def test_clean_raises_validation_error_if_string_enum_value_does_not_belong_to_string_enum_class(
-        self,
-    ):
-        """Проверяет, что для параметра типа 'Строковое перечисление' выбранное
-        значение перечисления должно принадлежать именно строковому перечислению,
-        а не другому типу (например, изображениям)."""
-        parprod = ParProd(
+    def test_clean_raises_validation_error_if_string_enum_value_does_not_belong_to_string_enum_class(self):
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.string_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.image_enum_value,
         )
         with self.assertRaises(ValidationError) as ve:
@@ -379,31 +335,19 @@ class ParProdModelTest(BaseUnitTestCase):
         self.assertEqual(ve.exception.messages[0], expected_error_msg)
 
     def test_clean_raises_validation_error_if_image_enum_value_is_absent(self):
-        """Проверяет, что для параметра типа 'Перечисление изображений' обязательно
-        наличие выбранного значения перечисления (enum_val не должен быть None)."""
-        parprod = ParProd(
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.image_enum_parametr,
-            int_value=None,
-            double_value=None,
-            enum_val=None,
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
         expected_error_msg = "Для параметра типа 'Перечисление изображений' необходимо выбрать значение из списка перечислений изображений."
         self.assertEqual(ve.exception.messages[0], expected_error_msg)
 
-    def test_clean_raises_validation_error_if_image_enum_value_does_not_belong_to_image_enum_class(
-        self,
-    ):
-        """Проверяет, что для параметра типа 'Перечисление изображений' выбранное
-        значение перечисления должно принадлежать именно перечислению изображений,
-        а не другому типу (например, строковому)."""
-        parprod = ParProd(
+    def test_clean_raises_validation_error_if_image_enum_value_does_not_belong_to_image_enum_class(self):
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.image_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.string_enum_value,
         )
         with self.assertRaises(ValidationError) as ve:
@@ -412,31 +356,19 @@ class ParProdModelTest(BaseUnitTestCase):
         self.assertEqual(ve.exception.messages[0], expected_error_msg)
 
     def test_clean_raises_validation_error_if_int_enum_value_is_absent(self):
-        """Проверяет, что для параметра типа 'Целочисленное перечисление' обязательно
-        наличие выбранного значения перечисления (enum_val не должен быть None)."""
-        parprod = ParProd(
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.int_enum_parametr,
-            int_value=None,
-            double_value=None,
-            enum_val=None,
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
         expected_error_msg = "Для параметра типа 'Целочисленное перечисление' необходимо выбрать значение из списка целочисленных перечислений."
         self.assertEqual(ve.exception.messages[0], expected_error_msg)
 
-    def test_clean_raises_validation_error_if_int_enum_value_does_not_belong_to_int_enum_class(
-        self,
-    ):
-        """Проверяет, что для параметра типа 'Целочисленное перечисление' выбранное
-        значение перечисления должно принадлежать именно целочисленному перечислению,
-        а не другому типу (например, изображениям)."""
-        parprod = ParProd(
+    def test_clean_raises_validation_error_if_int_enum_value_does_not_belong_to_int_enum_class(self):
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.int_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.image_enum_value,
         )
         with self.assertRaises(ValidationError) as ve:
@@ -445,31 +377,19 @@ class ParProdModelTest(BaseUnitTestCase):
         self.assertEqual(ve.exception.messages[0], expected_error_msg)
 
     def test_clean_raises_validation_error_if_double_enum_value_is_absent(self):
-        """Проверяет, что для параметра типа 'Вещественное перечисление' обязательно
-        наличие выбранного значения перечисления (enum_val не должен быть None)."""
-        parprod = ParProd(
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.double_enum_parametr,
-            int_value=None,
-            double_value=None,
-            enum_val=None,
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
         expected_error_msg = "Для параметра типа 'Вещественное перечисление' необходимо выбрать значение из списка вещественных перечислений."
         self.assertEqual(ve.exception.messages[0], expected_error_msg)
 
-    def test_clean_raises_validation_error_if_double_enum_value_does_not_belong_to_double_enum_class(
-        self,
-    ):
-        """Проверяет, что для параметра типа 'Вещественное перечисление' выбранное
-        значение перечисления должно принадлежать именно вещественному перечислению,
-        а не другому типу (например, строковому)."""
-        parprod = ParProd(
+    def test_clean_raises_validation_error_if_double_enum_value_does_not_belong_to_double_enum_class(self):
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.double_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.string_enum_value,
         )
         with self.assertRaises(ValidationError) as ve:
@@ -478,14 +398,9 @@ class ParProdModelTest(BaseUnitTestCase):
         self.assertEqual(ve.exception.messages[0], expected_error_msg)
 
     def test_clean_raises_validation_error_if_double_value_is_absent(self):
-        """Проверяет, что для параметра типа 'Вещественное число' обязательно
-        указать вещественное значение (double_value не должен быть None)."""
-        parprod = ParProd(
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.double_parametr,
-            int_value=None,
-            double_value=None,
-            enum_val=None,
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
@@ -493,14 +408,9 @@ class ParProdModelTest(BaseUnitTestCase):
         self.assertEqual(ve.exception.messages[0], expected_error_msg)
 
     def test_clean_raises_validation_error_if_int_value_is_absent(self):
-        """Проверяет, что для параметра типа 'Целое число' обязательно
-        указать целочисленное значение (int_value не должен быть None)."""
-        parprod = ParProd(
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.int_parametr,
-            int_value=None,
-            double_value=None,
-            enum_val=None,
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
@@ -508,287 +418,205 @@ class ParProdModelTest(BaseUnitTestCase):
         self.assertEqual(ve.exception.messages[0], expected_error_msg)
 
     def test_create_object_with_minimum_requirements(self):
-        """Проверяет возможность создания объекта ParProd с минимально необходимыми
-        полями (только для целочисленного параметра, остальные поля не обязательны)."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.int_parametr,
             int_value=1,
-            double_value=None,
-            enum_val=None,
         )
         self.assertIsNotNone(parprod.pk)
 
     def test_product_relationship(self):
-        """Проверяет связь с моделью Prod: объект ParProd должен появляться
-        в обратной связи product_params у соответствующего изделия."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.int_parametr,
             int_value=1,
-            double_value=None,
-            enum_val=None,
         )
         self.assertIn(parprod, self.prod.product_params.all())
 
     def test_parametr_relationship(self):
-        """Проверяет связь с моделью Parametr: объект ParProd должен появляться
-        в обратной связи parprod_set у соответствующего параметра."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.int_parametr,
             int_value=1,
-            double_value=None,
-            enum_val=None,
         )
         self.assertIn(parprod, self.int_parametr.parprod_set.all())
 
     def test_enum_val_relationship(self):
-        """Проверяет связь с моделью Enums: объект ParProd должен корректно
-        ссылаться на выбранное значение перечисления (enum_val)."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.int_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.int_enum_value,
         )
         self.assertIsNotNone(parprod.pk)
 
     def test_unique_constraint(self):
-        """Проверяет, что ограничение уникальности (prod, par) работает:
-        попытка создать второй объект с той же парой изделие-параметр вызывает IntegrityError.
-        """
-        ParProd.objects.create(
+        ParProdFactory(
             prod=self.prod,
             par=self.int_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.int_enum_value,
         )
         with self.assertRaises(IntegrityError):
-            ParProd.objects.create(
+            ParProdFactory(
                 prod=self.prod,
                 par=self.int_enum_parametr,
-                int_value=None,
-                double_value=None,
                 enum_val=self.int_enum_value,
             )
 
     def test_clean_valid_for_int_parametr(self):
-        """Проверяет, что clean() не выбрасывает ошибку для корректного целочисленного параметра."""
-        parprod = ParProd(
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.int_parametr,
             int_value=5,
-            double_value=None,
-            enum_val=None,
         )
-        # Не должно быть исключений
         parprod.full_clean()
 
     def test_clean_valid_for_double_parametr(self):
-        """Проверяет, что clean() не выбрасывает ошибку для корректного вещественного параметра."""
-        parprod = ParProd(
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.double_parametr,
-            int_value=None,
             double_value=self.double_val,
-            enum_val=None,
         )
         parprod.full_clean()
 
     def test_clean_valid_for_string_enum(self):
-        """Проверяет, что clean() не выбрасывает ошибку для корректного строкового перечисления."""
-        parprod = ParProd(
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.string_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.string_enum_value,
         )
         parprod.full_clean()
 
     def test_clean_valid_for_image_enum(self):
-        """Проверяет, что clean() не выбрасывает ошибку для корректного перечисления изображений."""
-        parprod = ParProd(
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.image_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.image_enum_value,
         )
         parprod.full_clean()
 
     def test_clean_valid_for_int_enum(self):
-        """Проверяет, что clean() не выбрасывает ошибку для корректного целочисленного перечисления."""
-        parprod = ParProd(
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.int_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.int_enum_value,
         )
         parprod.full_clean()
 
     def test_clean_valid_for_double_enum(self):
-        """Проверяет, что clean() не выбрасывает ошибку для корректного вещественного перечисления."""
-        parprod = ParProd(
+        parprod = ParProdFactory.build(
             prod=self.prod,
             par=self.double_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.double_enum_value,
         )
         parprod.full_clean()
 
     def test_create_without_full_clean_does_not_validate(self):
-        """Проверяет, что create() не вызывает clean(), и объект с невалидными данными может быть сохранён."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.string_enum_parametr,
-            int_value=None,
-            double_value=None,
-            enum_val=None,
         )
         self.assertIsNotNone(parprod.pk)
         with self.assertRaises(ValidationError):
             parprod.full_clean()
 
     def test_string_representation_for_int_parametr(self):
-        """Проверяет строковое представление для целочисленного параметра."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.int_parametr,
             int_value=5,
-            double_value=None,
-            enum_val=None,
         )
         expected = f"{self.prod.name} - {self.int_parametr.name} - 5"
         self.assertEqual(str(parprod), expected)
 
     def test_string_representation_for_double_parametr(self):
-        """Проверяет строковое представление для вещественного параметра."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.double_parametr,
-            int_value=None,
             double_value=self.double_val,
-            enum_val=None,
         )
         expected = f"{self.prod.name} - {self.double_parametr.name} - 3.14"
         self.assertEqual(str(parprod), expected)
 
     def test_string_representation_for_int_enum_value(self):
-        """Проверяет строковое представление для целочисленного перечисления."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.int_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.int_enum_value,
         )
         expected = f"{self.prod.name} - {self.int_enum_value.short_name} - {self.int_enum_value.int_value}"
         self.assertEqual(str(parprod), expected)
 
     def test_string_representation_for_double_enum_value(self):
-        """Проверяет строковое представление для вещественного перечисления."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.double_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.double_enum_value,
         )
         expected = f"{self.prod.name} - {self.double_enum_value.short_name} - {self.double_enum_value.double_value}"
         self.assertEqual(str(parprod), expected)
 
     def test_string_representation_for_string_enum_value(self):
-        """Проверяет строковое представление для строкового перечисления."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.string_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.string_enum_value,
         )
         expected = f"{self.prod.name} - {self.string_enum_value.name}"
         self.assertEqual(str(parprod), expected)
 
     def test_string_representation_for_image_enum_value(self):
-        """Проверяет строковое представление для перечисления изображений."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.image_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.image_enum_value,
         )
         expected = f"{self.prod.name} - {self.image_enum_value.short_name}"
         self.assertEqual(str(parprod), expected)
 
     def test_get_value_for_int_parametr(self):
-        """Проверяет, что value возвращает целочисленное значение."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.int_parametr,
             int_value=5,
-            double_value=None,
-            enum_val=None,
         )
         self.assertEqual(parprod.value, 5)
 
     def test_get_value_for_double_parametr(self):
-        """Проверяет, что value возвращает вещественное значение."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.double_parametr,
-            int_value=None,
             double_value=self.double_val,
-            enum_val=None,
         )
         self.assertEqual(parprod.value, self.double_val)
 
     def test_get_value_for_string_enum_value(self):
-        """Проверяет, что value возвращает название для строкового перечисления."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.string_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.string_enum_value,
         )
         self.assertEqual(parprod.value, self.string_enum_value.name)
 
     def test_get_value_for_int_enum_value(self):
-        """Проверяет, что value возвращает целочисленное значение перечисления."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.int_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.int_enum_value,
         )
         self.assertEqual(parprod.value, self.int_enum_value.int_value)
 
     def test_get_value_for_double_enum_value(self):
-        """Проверяет, что value возвращает вещественное значение перечисления."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.double_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.double_enum_value,
         )
         self.assertEqual(parprod.value, self.double_enum_value.double_value)
 
     def test_get_value_for_image_enum_value(self):
-        """Проверяет, что value возвращает объект изображения для перечисления изображений."""
-        parprod = ParProd.objects.create(
+        parprod = ParProdFactory(
             prod=self.prod,
             par=self.image_enum_parametr,
-            int_value=None,
-            double_value=None,
             enum_val=self.image_enum_value,
         )
         self.assertEqual(parprod.value, self.image_enum_value.image)

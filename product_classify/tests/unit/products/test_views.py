@@ -1,33 +1,32 @@
-from urllib.parse import urlencode
-
 from django.urls import reverse
 from django.utils.html import escape
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 
+from urllib.parse import urlencode
 from PIL import Image
 from http import HTTPStatus
-from faker import Faker
 from io import BytesIO
 
+from tests.unit.classes.factories.class_struct import ClassStructFactory
+from tests.unit.classes.factories.parclass import ParClassFactory
+from tests.unit.enums.factories.enums import EnumsFactory
+from tests.unit.products.factories.par_prod import ParProdFactory, ParProdFormData
+from tests.unit.products.factories.product import ModificationFormData, ProdFactory, ProdFormData
+from tests.unit.accounts.factories.user import UserFactory
+from tests.unit.parametr.factories.parametr import ParametrFactory
 from tests.unit.base import BaseUnitTestCase
 
-from classes.models import ClassStruct, ParClass
-from classes.constants import ProductsConsts, ClassStructConsts, ParamIds, EnumsIds, ProdClassConsts
+from classes.models import ClassStruct
+from classes.constants import ProductsConsts, ParamIds, EnumsIds
 
 from accounts.models import Role
-from accounts.constants import RoleCodes, UserConsts
-
-from parametr.models import Parametr
-from parametr.constants import ParametrConsts
-
-from enums.models import Enums
+from accounts.constants import RoleCodes
 
 from ei.models import Ei
 
 from specifications.models import ProdComponent
 
-from products.constants import ProdConsts
 from products.models import Prod, ParProd
 from products.errors import ProdErrors, CommonParProdErrors, EnumsParErrors, IntParErrors, DoubleParErrors
 
@@ -37,87 +36,45 @@ User = get_user_model()
 class ProductDetailViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ProdClassConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.nuts_subclass = ClassStructFactory(
             main_class=cls.nuts_class,
-            base_ei=cls.ei
+            base_ei=cls.ei,
         )
         cls.int_params = ClassStruct.objects.get(pk=ParamIds.INT)
-        cls.prod_class = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.prod_class = ClassStructFactory(
             base_ei=None,
-            main_class=cls.nuts_class
+            main_class=cls.nuts_class,
         )
-        cls.parametr = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.parametr = ParametrFactory(
             parametr_type=cls.int_params,
-            par_ei=cls.ei
+            par_ei=cls.ei,
         )
-        cls.parclass = ParClass.objects.create(
+        cls.parclass = ParClassFactory(
             class_field=cls.prod_class,
             parametr=cls.parametr,
             num=1,
             min_value=10,
             max_value=20,
         )
-
-        cls.prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+        cls.prod = ProdFactory(
             class_field=cls.prod_class,
             image=None,
         )
-        cls.parprod = ParProd.objects.create(
+        cls.parprod = ParProdFactory(
             prod=cls.prod,
             par=cls.parametr,
             int_value=15,
-            double_value=None,
-            enum_val=None,
         )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.SALES_DEPT_EMPLOYEE)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.login_url = reverse("accounts:login")
         cls.url = reverse("products:detail", args=[cls.prod.pk])
@@ -170,75 +127,38 @@ class ProductDetailViewTest(BaseUnitTestCase):
 class ProductCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
-        cls.prod_class = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.prod_class = ClassStructFactory(
             base_ei=None,
-            main_class=cls.nuts_class
+            main_class=cls.nuts_class,
         )
 
-        name = cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH]
-        short_name = cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.data = {
-            "name": name,
-            "short_name": short_name,
-            "class_field": cls.prod_class.pk,
-            "image": "",
-        }
-        cls.empty_class_field_data = {
-            "name": name,
-            "short_name": short_name,
-            "class_field": "",
-            "image": ""
-        }
-        cls.empty_name_field_data = {
-            "name": "",
-            "short_name": short_name,
-            "class_field": cls.prod_class.pk,
-            "image": ""
-        }
-
+        cls.data = ProdFormData(
+            class_field=cls.prod_class.pk,
+            image="",
+            ei="",
+            modification="",
+        )
+        cls.empty_class_field_data = ProdFormData(
+            class_field="",
+            image="",
+            modification="",
+            ei="",
+        )
+        cls.empty_name_field_data = ProdFormData(
+            name="",
+            class_field=cls.prod_class.pk,
+            image="",
+            modification="",
+            ei="",
+        )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("products:add")
         cls.redirect_url = reverse("classes:index")
@@ -295,84 +215,43 @@ class ProductCreateViewTest(BaseUnitTestCase):
 class ProductUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.prod_class = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.prod_class = ClassStructFactory(
             base_ei=None,
-            main_class=cls.nuts_class
+            main_class=cls.nuts_class,
         )
 
-        old_name = cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH]
-        old_short_name = cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.prod = Prod.objects.create(
-            name=old_name,
-            short_name=old_short_name,
+        cls.prod = ProdFactory(
             class_field=cls.prod_class,
             image=None,
         )
 
-        new_name = cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH]
-        new_short_name = cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.data = {
-            "name": new_name,
-            "short_name": new_short_name,
-            "class_field": cls.prod_class.pk,
-            "image": cls._create_test_image(),
-        }
-        cls.empty_class_field_data = {
-            "name": new_name,
-            "short_name": new_short_name,
-            "class_field": "",
-            "image": ""
-        }
-        cls.empty_name_field_data = {
-            "name": "",
-            "short_name": new_short_name,
-            "class_field": cls.prod_class.pk,
-            "image": ""
-        }
+        cls.data = ProdFormData(
+            class_field=cls.prod_class.pk,
+            image=cls._create_test_image(),
+            modification="",
+            ei="",
+        )
+        cls.empty_class_field_data = ProdFormData(
+            class_field="",
+            image="",
+            modification="",
+            ei="",
+        )
+        cls.empty_name_field_data = ProdFormData(
+            name="",
+            class_field=cls.prod_class.pk,
+            image="",
+            modification="",
+            ei="",
+        )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("products:edit", args=[cls.prod.pk])
         cls.redirect_url = reverse("products:detail", args=[cls.prod.pk])
@@ -446,51 +325,18 @@ class ProductUpdateViewTest(BaseUnitTestCase):
 class ProductDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.instance = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.instance = ProdFactory(
             class_field=cls.nuts_class,
+            image=None,
         )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("products:delete", args=[cls.instance.pk])
         cls.redirect_url = reverse("products:class_products", kwargs={
@@ -532,239 +378,183 @@ class ProductDeleteViewTest(BaseUnitTestCase):
 class ProductParamCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.base_ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.int_type_par = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.double_type_par = ClassStruct.objects.get(pk=ParamIds.DOUBLE)
         cls.int_enum_par = ClassStruct.objects.get(pk=EnumsIds.INT)
-        cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.nuts_subclass = ClassStructFactory(
             base_ei=cls.base_ei,
             main_class=cls.nuts_class,
         )
-        cls.int_enum_class = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+        cls.int_enum_class = ClassStructFactory(
             base_ei=cls.base_ei,
-            main_class=cls.int_enum_par
+            main_class=cls.int_enum_par,
         )
-        cls.product = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+        cls.product = ProdFactory(
             class_field=cls.nuts_subclass,
-            image=None
+            image=None,
         )
-        cls.par1 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par1 = ParametrFactory(
             parametr_type=cls.int_enum_par,
             par_ei=cls.base_ei,
         )
-        cls.par2 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par2 = ParametrFactory(
             parametr_type=cls.int_type_par,
             par_ei=cls.base_ei,
         )
-        cls.par3 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par3 = ParametrFactory(
             parametr_type=cls.int_type_par,
-            par_ei=cls.base_ei
+            par_ei=cls.base_ei,
         )
-        cls.par4 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par4 = ParametrFactory(
             parametr_type=cls.double_type_par,
-            par_ei=cls.base_ei
+            par_ei=cls.base_ei,
         )
-        cls.enum1 = Enums.objects.create(
+        cls.enum1 = EnumsFactory(
             enum=cls.int_enum_class,
             num=1,
-            name=None,
-            short_name=None,
             int_value=5,
-            double_value=None,
-            image=None
         )
-        cls.parclass1 = ParClass.objects.create(
+        cls.parclass1 = ParClassFactory(
             class_field=cls.nuts_subclass,
             parametr=cls.par1,
-            min_value=None,
-            max_value=None,
-            num=1
+            num=1,
         )
-        cls.parclass2 = ParClass.objects.create(
+        cls.parclass2 = ParClassFactory(
             class_field=cls.nuts_subclass,
             parametr=cls.par2,
+            num=2,
             min_value=1,
             max_value=10,
-            num=2
         )
-        cls.parclass3 = ParClass.objects.create(
+        cls.parclass3 = ParClassFactory(
             class_field=cls.nuts_subclass,
             parametr=cls.par4,
+            num=3,
             min_value=1,
             max_value=10,
-            num=2
         )
 
-        cls.valid_enum_data = {
-            "par": cls.par1.pk,
-            "prod": cls.product.pk,
-            "int_value": "",
-            "double_value": "",
-            "enum_val": cls.enum1.pk,
-        }
-        cls.valid_numeric_data = {
-            "par": cls.par2.pk,
-            "prod": cls.product.pk,
-            "int_value": 5,
-            "double_value": "",
-            "enum_val": "",
-        }
-
-        cls.empty_parametr_data = {
-            "par": "",
-            "prod": cls.product.pk,
-            "int_value": 5,
-            "double_value": "",
-            "enum_val": "",
-        }
-        cls.empty_prod_data = {
-            "par": cls.par2.pk,
-            "prod": "",
-            "int_value": 5,
-            "double_value": "",
-            "enum_val": "",
-        }
-        cls.invalid_par_data = {
-            "par": cls.par3.pk,
-            "prod": cls.product.pk,
-            "int_value": 5,
-            "double_value": "",
-            "enum_val": "",
-        }
-
-        cls.int_value_specified_data = {
-            "par": cls.par1.pk,
-            "prod": cls.product.pk,
-            "int_value": 1,
-            "double_value": "",
-            "enum_val": cls.enum1.pk,
-        }
-        cls.double_value_specified_data = {
-            "par": cls.par1.pk,
-            "prod": cls.product.pk,
-            "int_value": "",
-            "double_value": 1.0,
-            "enum_val": cls.enum1.pk,
-        }
-        cls.empty_enum_val_data = {
-            "par": cls.par1.pk,
-            "prod": cls.product.pk,
-            "int_value": "",
-            "double_value": "",
-            "enum_val": "",
-        }
-
-        cls.double_val_specified_int_data = {
-            "par": cls.par2.pk,
-            "prod": cls.product.pk,
-            "int_value": 5,
-            "double_value": 3,
-            "enum_val": "",
-        }
-        cls.enum_val_specified_int_data = {
-            "par": cls.par2.pk,
-            "prod": cls.product.pk,
-            "int_value": 5,
-            "double_value": "",
-            "enum_val": cls.enum1.pk,
-        }
-        cls.empty_int_field_int_data = {
-            "par": cls.par2.pk,
-            "prod": cls.product.pk,
-            "int_value": "",
-            "double_value": "",
-            "enum_val": "",
-        }
-        cls.int_field_not_in_range_int_data = {
-            "par": cls.par2.pk,
-            "prod": cls.product.pk,
-            "int_value": 100,
-            "double_value": "",
-            "enum_val": "",
-        }
-
-        cls.int_val_specified_double_data = {
-            "par": cls.par4.pk,
-            "prod": cls.product.pk,
-            "int_value": 100,
-            "double_value": "",
-            "enum_val": "",
-        }
-        cls.enum_val_specified_double_data = {
-            "par": cls.par4.pk,
-            "prod": cls.product.pk,
-            "int_value": "",
-            "double_value": "",
-            "enum_val": cls.enum1.pk,
-        }
-        cls.empty_double_field_double_data = {
-            "par": cls.par4.pk,
-            "prod": cls.product.pk,
-            "int_value": "",
-            "double_value": "",
-            "enum_val": "",
-        }
-        cls.double_field_not_in_range_double_data = {
-            "par": cls.par4.pk,
-            "prod": cls.product.pk,
-            "int_value": "",
-            "double_value": 100,
-            "enum_val": "",
-        }
+        cls.valid_enum_data = ParProdFormData(
+            par=cls.par1.pk,
+            prod=cls.product.pk,
+            int_value="",
+            double_value="",
+            enum_val=cls.enum1.pk,
+        )
+        cls.valid_numeric_data = ParProdFormData(
+            par=cls.par2.pk,
+            prod=cls.product.pk,
+            int_value=5,
+            double_value="",
+            enum_val="",
+        )
+        cls.empty_parametr_data = ParProdFormData(
+            par="",
+            prod=cls.product.pk,
+            int_value=5,
+            double_value="",
+            enum_val="",
+        )
+        cls.empty_prod_data = ParProdFormData(
+            par=cls.par2.pk,
+            prod="",
+            int_value=5,
+            double_value="",
+            enum_val="",
+        )
+        cls.invalid_par_data = ParProdFormData(
+            par=cls.par3.pk,
+            prod=cls.product.pk,
+            int_value=5,
+            double_value="",
+            enum_val="",
+        )
+        cls.int_value_specified_data = ParProdFormData(
+            par=cls.par1.pk,
+            prod=cls.product.pk,
+            int_value=1,
+            double_value="",
+            enum_val=cls.enum1.pk,
+        )
+        cls.double_value_specified_data = ParProdFormData(
+            par=cls.par1.pk,
+            prod=cls.product.pk,
+            int_value="",
+            double_value=1.0,
+            enum_val=cls.enum1.pk,
+        )
+        cls.empty_enum_val_data = ParProdFormData(
+            par=cls.par1.pk,
+            prod=cls.product.pk,
+            int_value="",
+            double_value="",
+            enum_val="",
+        )
+        cls.double_val_specified_int_data = ParProdFormData(
+            par=cls.par2.pk,
+            prod=cls.product.pk,
+            int_value=5,
+            double_value=3,
+            enum_val="",
+        )
+        cls.enum_val_specified_int_data = ParProdFormData(
+            par=cls.par2.pk,
+            prod=cls.product.pk,
+            int_value=5,
+            double_value="",
+            enum_val=cls.enum1.pk,
+        )
+        cls.empty_int_field_int_data = ParProdFormData(
+            par=cls.par2.pk,
+            prod=cls.product.pk,
+            int_value="",
+            double_value="",
+            enum_val="",
+        )
+        cls.int_field_not_in_range_int_data = ParProdFormData(
+            par=cls.par2.pk,
+            prod=cls.product.pk,
+            int_value=100,
+            double_value="",
+            enum_val="",
+        )
+        cls.int_val_specified_double_data = ParProdFormData(
+            par=cls.par4.pk,
+            prod=cls.product.pk,
+            int_value=100,
+            double_value="",
+            enum_val="",
+        )
+        cls.enum_val_specified_double_data = ParProdFormData(
+            par=cls.par4.pk,
+            prod=cls.product.pk,
+            int_value="",
+            double_value="",
+            enum_val=cls.enum1.pk,
+        )
+        cls.empty_double_field_double_data = ParProdFormData(
+            par=cls.par4.pk,
+            prod=cls.product.pk,
+            int_value="",
+            double_value="",
+            enum_val="",
+        )
+        cls.double_field_not_in_range_double_data = ParProdFormData(
+            par=cls.par4.pk,
+            prod=cls.product.pk,
+            int_value="",
+            double_value=100,
+            enum_val="",
+        )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("products:add_param", args=[cls.product.pk])
         cls.redirect_url = reverse("products:detail", args=[cls.product.pk])
@@ -911,88 +701,42 @@ class ProductParamCreateViewTest(BaseUnitTestCase):
 class ProductParamDeleteViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.base_ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.int_enum_par = ClassStruct.objects.get(pk=EnumsIds.INT)
-        cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.nuts_subclass = ClassStructFactory(
             base_ei=cls.base_ei,
             main_class=cls.nuts_class,
         )
-        cls.int_enum_class = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+        cls.int_enum_class = ClassStructFactory(
             base_ei=cls.base_ei,
-            main_class=cls.int_enum_par
+            main_class=cls.int_enum_par,
         )
-        cls.product = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+        cls.product = ProdFactory(
             class_field=cls.nuts_subclass,
-            image=None
+            image=None,
         )
-        cls.par1 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par1 = ParametrFactory(
             parametr_type=cls.int_enum_par,
             par_ei=cls.base_ei,
         )
-        cls.enum1 = Enums.objects.create(
+        cls.enum1 = EnumsFactory(
             enum=cls.int_enum_class,
             num=1,
-            name=None,
-            short_name=None,
             int_value=5,
-            double_value=None,
-            image=None
         )
-        cls.parprod = ParProd.objects.create(
+        cls.parprod = ParProdFactory(
             prod=cls.product,
             par=cls.par1,
-            int_value=None,
-            double_value=None,
-            enum_val=cls.enum1  
+            enum_val=cls.enum1,
         )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("products:delete_param", args=[cls.product.pk, cls.par1.pk])
         cls.redirect_url = reverse("products:detail", args=[cls.product.pk])
@@ -1036,140 +780,84 @@ class ProductParamDeleteViewTest(BaseUnitTestCase):
 class ProductParamUpdateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.base_ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.int_enum_par = ClassStruct.objects.get(pk=EnumsIds.INT)
         cls.int_type_par = ClassStruct.objects.get(pk=ParamIds.INT)
-        cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+
+        cls.nuts_subclass = ClassStructFactory(
             base_ei=cls.base_ei,
             main_class=cls.nuts_class,
         )
-        cls.int_enum_class = ClassStruct.objects.create(
-            name=cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH],
+        cls.int_enum_class = ClassStructFactory(
             base_ei=cls.base_ei,
-            main_class=cls.int_enum_par
+            main_class=cls.int_enum_par,
         )
-        cls.product = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+        cls.product = ProdFactory(
             class_field=cls.nuts_subclass,
-            image=None
+            image=None,
         )
-        cls.par1 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par1 = ParametrFactory(
             parametr_type=cls.int_enum_par,
             par_ei=cls.base_ei,
         )
-        cls.par2 = Parametr.objects.create(
-            name=cls.faker.name()[:ParametrConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ParametrConsts.SHORT_NAME_MAX_LENGTH],
+        cls.par2 = ParametrFactory(
             parametr_type=cls.int_type_par,
             par_ei=cls.base_ei,
         )
-        cls.enum1 = Enums.objects.create(
+        cls.enum1 = EnumsFactory(
             enum=cls.int_enum_class,
             num=1,
-            name=None,
-            short_name=None,
             int_value=5,
-            double_value=None,
-            image=None
         )
-        cls.enum2 = Enums.objects.create(
+        cls.enum2 = EnumsFactory(
             enum=cls.int_enum_class,
             num=2,
-            name=None,
-            short_name=None,
             int_value=10,
-            double_value=None,
-            image=None
         )
-        cls.parclass1 = ParClass.objects.create(
+        cls.parclass1 = ParClassFactory(
             class_field=cls.nuts_subclass,
             parametr=cls.par1,
-            min_value=None,
-            max_value=None,
-            num=1
+            num=1,
         )
-        cls.parclass2 = ParClass.objects.create(
+        cls.parclass2 = ParClassFactory(
             class_field=cls.nuts_subclass,
             parametr=cls.par2,
+            num=2,
             min_value=1,
             max_value=100,
-            num=1
         )
-        cls.parprod1 = ParProd.objects.create(
+        cls.parprod1 = ParProdFactory(
             prod=cls.product,
             par=cls.par1,
-            int_value=None,
-            double_value=None,
-            enum_val=cls.enum1  
+            enum_val=cls.enum1,
         )
-        cls.parprod2 = ParProd.objects.create(
+        cls.parprod2 = ParProdFactory(
             prod=cls.product,
             par=cls.par2,
             int_value=50,
-            double_value=None,
-            enum_val=None,
         )
 
-        cls.enum_update_data = {
-            "par": cls.par1.pk,
-            "prod": cls.product.pk,
-            "int_value": "",
-            "double_value": "",
-            "enum_val": cls.enum2.pk,
-        }
-        cls.numeric_update_data = {
-            "par": cls.par2.pk,
-            "prod": cls.product.pk,
-            "int_value": 50,
-            "double_value": "",
-            "enum_val": "",
-        }
+        cls.enum_update_data = ParProdFormData(
+            par=cls.par1.pk,
+            prod=cls.product.pk,
+            int_value="",
+            double_value="",
+            enum_val=cls.enum2.pk,
+        )
+        cls.numeric_update_data = ParProdFormData(
+            par=cls.par2.pk,
+            prod=cls.product.pk,
+            int_value=50,
+            double_value="",
+            enum_val="",
+        )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url1 = reverse("products:edit_param", args=[cls.product.pk, cls.par1.pk])
         cls.url2 = reverse("products:edit_param", args=[cls.product.pk, cls.par2.pk])
@@ -1233,15 +921,10 @@ class ProductParamUpdateViewTest(BaseUnitTestCase):
 class ModificationCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
-        nuts_name = cls.faker.name()[:ClassStructConsts.NAME_MAX_LENGTH]
-        nuts_short_name = cls.faker.name()[:ClassStructConsts.SHORT_NAME_MAX_LENGTH]
         cls.ei = Ei.objects.first()
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
-        cls.nuts_subclass = ClassStruct.objects.create(
-            name=nuts_name,
-            short_name=nuts_short_name,
+
+        cls.nuts_subclass = ClassStructFactory(
             main_class=cls.nuts_class,
             base_ei=cls.ei,
         )
@@ -1250,25 +933,17 @@ class ModificationCreateViewTest(BaseUnitTestCase):
             b"content",
             content_type="image/jpeg",
         )
-        prod_name = cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH]
-        prod_short_name = cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
-        cls.prod = Prod.objects.create(
-            name=prod_name,
-            short_name=prod_short_name,
+        cls.prod = ProdFactory(
             class_field=cls.nuts_subclass,
             image=cls.image,
             cost=800,
             ei=cls.ei,
-            modification=None
         )
-        cls.component_prod = Prod.objects.create(
-            name=cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH],
+        cls.component_prod = ProdFactory(
             class_field=cls.nuts_subclass,
             image=cls.image,
             cost=800,
             ei=cls.ei,
-            modification=None
         )
         cls.prodcomponent = ProdComponent.objects.create(
             parent_prod=cls.prod,
@@ -1277,54 +952,14 @@ class ModificationCreateViewTest(BaseUnitTestCase):
             quantity=400,
         )
 
-        mod_name = cls.faker.name()[:ProdConsts.NAME_MAX_LENGTH]
-        mod_short_name = cls.faker.name()[:ProdConsts.SHORT_NAME_MAX_LENGTH]
-
-        cls.valid_data = {
-            "name": mod_name,
-            "short_name": mod_short_name,
-        }
-        cls.invalid_data = {
-            "name": "",
-            "short_name": mod_short_name,
-        }
+        cls.valid_data = ModificationFormData()
+        cls.invalid_data = ModificationFormData(name="")
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("products:create_modification", args=[cls.prod.pk])
 
@@ -1387,159 +1022,103 @@ class ModificationCreateViewTest(BaseUnitTestCase):
 class ClassProductsViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
         cls.base_ei = Ei.objects.first()
 
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
         cls.int_par_type = ClassStruct.objects.get(pk=ParamIds.INT)
         cls.int_enum_type = ClassStruct.objects.get(pk=EnumsIds.INT)
 
-        cls.nuts_subclass = ClassStruct.objects.create(
-            name=cls.faker.name()[:ProdClassConsts.NAME_MAX_LENGTH],
-            short_name=cls.faker.name()[:ProdClassConsts.SHORT_NAME_MAX_LENGTH],
+        cls.nuts_subclass = ClassStructFactory(
             main_class=cls.nuts_class,
-            base_ei=cls.base_ei
+            base_ei=cls.base_ei,
         )
-        cls.enum_subclass = ClassStruct.objects.create(
+        cls.enum_subclass = ClassStructFactory(
             name="enum class",
             short_name="class",
             main_class=cls.int_enum_type,
             base_ei=cls.base_ei,
         )
 
-        cls.prod1 = Prod.objects.create(
+        cls.prod1 = ProdFactory(
             name="test prod1",
             short_name="prod1",
             class_field=cls.nuts_subclass,
             image=None,
             cost=200,
-            modification=None,
-            ei=cls.base_ei
+            ei=cls.base_ei,
         )
-        cls.prod2 = Prod.objects.create(
+        cls.prod2 = ProdFactory(
             name="test prod2",
             short_name="prod2",
             class_field=cls.nuts_subclass,
             image=None,
             cost=200,
-            modification=None,
-            ei=cls.base_ei
+            ei=cls.base_ei,
         )
 
-        cls.par1 = Parametr.objects.create(
+        cls.par1 = ParametrFactory(
             name="test parametr1",
             short_name="parametr1",
             parametr_type=cls.int_par_type,
             par_ei=cls.base_ei,
         )
-        cls.par2 = Parametr.objects.create(
+        cls.par2 = ParametrFactory(
             name="test parametr2",
             short_name="parametr2",
             parametr_type=cls.int_enum_type,
             par_ei=cls.base_ei,
         )
 
-        cls.enum1 = Enums.objects.create(
+        cls.enum1 = EnumsFactory(
             enum=cls.enum_subclass,
             num=1,
-            name=None,
-            short_name=None,
-            double_value=None,
             int_value=2,
-            image=None,
         )
-        cls.enum2 = Enums.objects.create(
+        cls.enum2 = EnumsFactory(
             enum=cls.enum_subclass,
             num=2,
-            name=None,
-            short_name=None,
-            double_value=None,
             int_value=4,
-            image=None,
         )
 
-        cls.parclass1 = ParClass.objects.create(
+        cls.parclass1 = ParClassFactory(
             class_field=cls.nuts_subclass,
             parametr=cls.par1,
             num=1,
             min_value=100,
-            max_value=200
+            max_value=200,
         )
-        cls.parclass2 = ParClass.objects.create(
+        cls.parclass2 = ParClassFactory(
             class_field=cls.nuts_subclass,
             parametr=cls.par2,
             num=2,
-            min_value=None,
-            max_value=None
         )
 
-        cls.parprod1_1 = ParProd.objects.create(
+        cls.parprod1_1 = ParProdFactory(
             prod=cls.prod1,
             par=cls.par1,
             int_value=150,
-            double_value=None,
-            enum_val=None,
         )
-        cls.parprod1_2 = ParProd.objects.create(
+        cls.parprod1_2 = ParProdFactory(
             prod=cls.prod1,
             par=cls.par2,
-            int_value=None,
-            double_value=None,
             enum_val=cls.enum1,
         )
-
-        cls.parprod2_1 = ParProd.objects.create(
+        cls.parprod2_1 = ParProdFactory(
             prod=cls.prod2,
             par=cls.par1,
             int_value=120,
-            double_value=None,
-            enum_val=None,
         )
-        cls.parprod2_2 = ParProd.objects.create(
+        cls.parprod2_2 = ParProdFactory(
             prod=cls.prod2,
             par=cls.par2,
-            int_value=None,
-            double_value=None,
             enum_val=cls.enum2,
         )
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.HANDBOOK_EXECUTIVE)
         cls.not_allowed_role = Role.objects.get(code=RoleCodes.SALES_DEPT_EMPLOYEE)
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.allowed_role,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
-
-        cls.not_allowed_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-            role=cls.not_allowed_role,
-        )
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.login_url = reverse("accounts:login")
         cls.url = reverse("products:class_products", kwargs={
