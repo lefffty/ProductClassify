@@ -1,19 +1,22 @@
 from django.http import HttpRequest
+from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
 
 from urllib.parse import urlencode
-from faker import Faker
 from unittest.mock import patch
 from http import HTTPStatus
 
+from faker import Faker
+
+from tests.unit.accounts.factories.login import LoginFormData
+from tests.unit.accounts.factories.role import RoleFactory
+from tests.unit.accounts.factories.signup import SignUpFormData
+from tests.unit.accounts.factories.user import UserFactory, UserFormData
 from tests.unit.base import BaseUnitTestCase
 
-from accounts.constants import UserConsts, RoleConsts
 from accounts.errors import UserErrors, SignUpErrors
-from accounts.models import Role
 
 User = get_user_model()
 
@@ -21,80 +24,49 @@ User = get_user_model()
 class LoginViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
         cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
+        cls.active_user = UserFactory(password=cls.password)
 
-        cls.active_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-        )
-
-        cls.inactive_email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
         cls.inactive_password = "StrongPass456!"
-        cls.inactive_user = User.objects.create_user(
-            email=cls.inactive_email,
-            first_name=cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH],
-            last_name=cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH],
-            phone_number="+7 (111) 222-33-44",
+        cls.inactive_user = UserFactory(
+            is_active=False,
             password=cls.inactive_password,
         )
-        cls.inactive_user.is_active = False
-        cls.inactive_user.save()
 
-        cls.staff_email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
         cls.staff_password = "StrongPass789!"
-        cls.staff_user = User.objects.create_user(
-            email=cls.staff_email,
-            first_name=cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH],
-            last_name=cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH],
-            phone_number="+7 (222) 333-44-55",
+        cls.staff_user = UserFactory(
+            is_staff=True,
             password=cls.staff_password,
         )
-        cls.staff_user.is_staff = True
-        cls.staff_user.save()
 
-        cls.valid_login_data = {
-            "email": cls.email,
-            "password": cls.password,
-        }
-
-        cls.wrong_password_data = {
-            "email": cls.email,
-            "password": "WrongPassword999!",
-        }
-
-        cls.unknown_email_data = {
-            "email": "nonexistent@example.com",
-            "password": cls.password,
-        }
-
-        cls.inactive_login_data = {
-            "email": cls.inactive_email,
-            "password": cls.inactive_password,
-        }
-
-        cls.empty_email_data = {
-            "email": "",
-            "password": cls.password,
-        }
-
-        cls.empty_password_data = {
-            "email": cls.email,
-            "password": "",
-        }
-
-        cls.invalid_email_data = {
-            "email": "not-an-email",
-            "password": cls.password,
-        }
+        cls.valid_login_data = LoginFormData(
+            email=cls.active_user.email,
+            password=cls.password,
+        )
+        cls.wrong_password_data = LoginFormData(
+            email=cls.active_user.email,
+            password="WrongPassword999!",
+        )
+        cls.unknown_email_data = LoginFormData(
+            email="nonexistent@example.com",
+            password=cls.password,
+        )
+        cls.inactive_login_data = LoginFormData(
+            email=cls.inactive_user.email,
+            password=cls.inactive_password,
+        )
+        cls.empty_email_data = LoginFormData(
+            email="",
+            password=cls.password,
+        )
+        cls.empty_password_data = LoginFormData(
+            email=cls.active_user.email,
+            password="",
+        )
+        cls.invalid_email_data = LoginFormData(
+            email="not-an-email",
+            password=cls.password,
+        )
 
         cls.login_url = reverse("accounts:login")
         cls.index_url = reverse("classes:index")
@@ -119,10 +91,7 @@ class LoginViewTest(BaseUnitTestCase):
             self.assertEqual(args[1], self.active_user)
 
     def test_successful_login_create_user_session(self):
-        self.client.post(self.login_url, data={
-            "email": self.email,
-            "password": self.password,
-        })
+        self.client.post(self.login_url, data=self.valid_login_data)
         self.assertIn("_auth_user_id", self.client.session)
         self.assertEqual(
             int(self.client.session.get("_auth_user_id")),
@@ -130,22 +99,14 @@ class LoginViewTest(BaseUnitTestCase):
         )
 
     def test_redirects_after_successful_login(self):
-        response = self.client.post(self.login_url, data={
-            "email": self.email,
-            "password": self.password,
-        })
+        response = self.client.post(self.login_url, data=self.valid_login_data)
         self.assertRedirects(response, self.index_url)
 
     def test_invalid_credentials_returns_200_status_code(self):
-        response = self.client.post(self.login_url, data={
-            **self.invalid_email_data
-        })
+        response = self.client.post(self.login_url, data=self.invalid_email_data)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertFalse(response.context["form"].is_valid())
-        self.assertNotIn(
-            "_auth_user_id",
-            self.client.session,
-        )
+        self.assertNotIn("_auth_user_id", self.client.session)
 
     def test_inactive_user_is_not_logged_in(self):
         response = self.client.post(self.login_url, data=self.inactive_login_data)
@@ -181,7 +142,7 @@ class LoginViewTest(BaseUnitTestCase):
         response = self.client.post(
             self.login_url,
             data=self.valid_login_data,
-            follow=True
+            follow=True,
         )
         self.assertNotContains(response, self.password)
 
@@ -189,21 +150,7 @@ class LoginViewTest(BaseUnitTestCase):
 class LogoutViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.faker = Faker()
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.active_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-        )
+        cls.active_user = UserFactory()
 
         cls.logout_url = reverse("accounts:logout")
         cls.next_url = reverse("classes:index")
@@ -212,9 +159,7 @@ class LogoutViewTest(BaseUnitTestCase):
 
     def test_returns_OK_status_code(self):
         self.client.force_login(self.active_user)
-        response = self.client.post(self.logout_url, data={
-            "next": self.next_url
-        })
+        response = self.client.post(self.logout_url, data={"next": self.next_url})
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
     def test_uses_logout_template(self):
@@ -224,31 +169,23 @@ class LogoutViewTest(BaseUnitTestCase):
 
     def test_removes_user_id_from_session(self):
         self.client.force_login(self.active_user)
-        self.client.post(self.logout_url, data={
-            "next": self.next_url,
-        })
+        self.client.post(self.logout_url, data={"next": self.next_url})
         self.assertNotIn("_auth_user_id", self.client.session)
 
     def test_redirects_to_next_url_if_next_url_is_correct(self):
         self.client.force_login(self.active_user)
-        response = self.client.post(self.logout_url, data={
-            "next": self.next_url
-        })
-        self.assertRedirects(response, self.next_url)
+        response = self.client.post(self.logout_url, data={"next": self.next_url})
+        self.assertRedirects(response, self.next_url, fetch_redirect_response=False)
 
     def test_redirects_to_main_page_if_next_url_is_incorrect(self):
         self.client.force_login(self.active_user)
-        response = self.client.post(self.logout_url, data={
-            "next": "https://rutube.ru/"
-        })
-        self.assertRedirects(response, self.index_url)
+        response = self.client.post(self.logout_url, data={"next": "https://rutube.ru/"})
+        self.assertRedirects(response, self.index_url, fetch_redirect_response=False)
 
     def test_redirects_to_main_page_if_next_url_was_not_provided(self):
         self.client.force_login(self.active_user)
-        response = self.client.post(self.logout_url, data={
-            "next": "",
-        })
-        self.assertRedirects(response, self.index_url)
+        response = self.client.post(self.logout_url, data={"next": ""})
+        self.assertRedirects(response, self.index_url, fetch_redirect_response=False)
 
     def test_function_was_called(self):
         self.client.force_login(self.active_user)
@@ -268,72 +205,31 @@ class SignUpViewTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.faker = Faker()
 
-        group_self = Group.objects.create(name=cls.faker.name()[:16])
-        cls.self_registerable_role = Role.objects.create(
-            code=cls.faker.slug()[:50],
-            name=cls.faker.name()[:RoleConsts.NAME_MAX_LENGTH],
-            description=cls.faker.text(),
-            group=group_self,
-            is_self_registerable=True,
-        )
+        cls.group1, _ = Group.objects.get_or_create(name=cls.faker.name()[:16])
 
+        cls.self_registerable_role = RoleFactory(is_self_registerable=True, group=cls.group1)
+        cls.active_user = UserFactory()
 
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.active_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-66"
         cls.password1 = "StrongPass123!"
         cls.password2 = "StrongPass123!"
 
-        cls.another_phone_number = "+7 (999) 323-45-66"
-
-        cls.valid_data = {
-            "email": cls.email,
-            "first_name": cls.first_name,
-            "middle_name": cls.middle_name,
-            "last_name": cls.last_name,
-            "phone_number": cls.phone_number,
-            "role": cls.self_registerable_role.pk,
-            "password1": cls.password1,
-            "password2": cls.password2,
-        }
-
-        cls.invalid_email_data = {
-            "email": cls.active_user.email,
-            "first_name": cls.first_name,
-            "middle_name": cls.middle_name,
-            "last_name": cls.last_name,
-            "phone_number": cls.phone_number,
-            "role": cls.self_registerable_role.pk,
-            "password1": cls.password1,
-            "password2": cls.password2,
-        }
-
-        cls.invalid_phone_number_data = {
-            "email": cls.email,
-            "first_name": cls.first_name,
-            "middle_name": cls.middle_name,
-            "last_name": cls.last_name,
-            "phone_number": cls.active_user.phone_number,
-            "role": cls.self_registerable_role.pk,
-            "password1": cls.password1,
-            "password2": cls.password2,
-        }
+        cls.valid_data = SignUpFormData(
+            role=cls.self_registerable_role.pk,
+            password1=cls.password1,
+            password2=cls.password2,
+        )
+        cls.invalid_email_data = SignUpFormData(
+            email=cls.active_user.email,
+            role=cls.self_registerable_role.pk,
+            password1=cls.password1,
+            password2=cls.password2,
+        )
+        cls.invalid_phone_number_data = SignUpFormData(
+            phone_number=cls.active_user.phone_number,
+            role=cls.self_registerable_role.pk,
+            password1=cls.password1,
+            password2=cls.password2,
+        )
 
         cls.signup_url = reverse("accounts:signup")
         cls.index_url = reverse("classes:index")
@@ -391,30 +287,12 @@ class ProfileViewTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.faker = Faker()
 
-        group_self = Group.objects.create(name=cls.faker.name()[:16])
-        cls.self_registerable_role = Role.objects.create(
-            code=cls.faker.slug()[:50],
-            name=cls.faker.name()[:RoleConsts.NAME_MAX_LENGTH],
-            description=cls.faker.text(),
-            group=group_self,
-            is_self_registerable=True,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.active_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
+        cls.group1, _ = Group.objects.get_or_create(name=cls.faker.name()[:16])
+        
+        cls.self_registerable_role = RoleFactory(is_self_registerable=True, group=cls.group1)
+        cls.active_user = UserFactory(
             role=cls.self_registerable_role,
+            middle_name="Иванович",
         )
 
         cls.url = reverse("accounts:profile")
@@ -437,7 +315,7 @@ class ProfileViewTest(BaseUnitTestCase):
 
     def test_redirects_anonymous_user_to_index_page_when_trying_to_access_profile_page(self):
         response = self.client.get(self.url)
-        expected_url = f"{self.login_url}?{urlencode({"next": self.url})}"
+        expected_url = f"{self.login_url}?{urlencode({'next': self.url})}"
         self.assertRedirects(response, expected_url)
 
     def test_correctly_shows_all_information_about_user(self):
@@ -449,7 +327,10 @@ class ProfileViewTest(BaseUnitTestCase):
         self.assertContains(response, self.active_user.last_name)
         self.assertContains(response, self.active_user.phone_number)
         self.assertContains(response, self.active_user.role)
-        self.assertContains(response, "Активен" if self.active_user.is_active else "Не активен")
+        self.assertContains(
+            response,
+            "Активен" if self.active_user.is_active else "Не активен",
+        )
 
 
 class ProfileEditViewTest(BaseUnitTestCase):
@@ -457,40 +338,22 @@ class ProfileEditViewTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.faker = Faker()
 
-        group_self = Group.objects.create(name=cls.faker.name()[:16])
-        cls.self_registerable_role = Role.objects.create(
-            code=cls.faker.slug()[:50],
-            name=cls.faker.name()[:RoleConsts.NAME_MAX_LENGTH],
-            description=cls.faker.text(),
-            group=group_self,
-            is_self_registerable=True,
-        )
-
-        cls.email = cls.faker.email()[:UserConsts.EMAIL_MAX_LENGTH]
-        cls.password = "StrongPass123!"
-        cls.first_name = cls.faker.first_name()[:UserConsts.FIRST_NAME_MAX_LENGTH]
-        cls.middle_name = cls.faker.first_name()[:UserConsts.MIDDLE_NAME_MAX_LENGTH]
-        cls.last_name = cls.faker.last_name()[:UserConsts.LAST_NAME_MAX_LENGTH]
-        cls.phone_number = "+7 (999) 123-45-67"
-
-        cls.active_user = User.objects.create_user(
-            email=cls.email,
-            first_name=cls.first_name,
-            middle_name=cls.middle_name,
-            last_name=cls.last_name,
-            phone_number=cls.phone_number,
-            password=cls.password,
+        cls.group1, _ = Group.objects.get_or_create(name=cls.faker.name()[:16])
+        
+        cls.self_registerable_role = RoleFactory(is_self_registerable=True, group=cls.group1)
+        cls.active_user = UserFactory(
             role=cls.self_registerable_role,
+            middle_name="Иванович",
         )
 
-        cls.new_middle_name = cls.middle_name + "a"
-        cls.data = {
-            "email": cls.email,
-            "first_name": cls.first_name,
-            "middle_name": cls.new_middle_name,
-            "last_name": cls.last_name,
-            "phone_number": cls.phone_number,
-        }
+        cls.new_middle_name = "Петрович"
+        cls.data = UserFormData(
+            email=cls.active_user.email,
+            first_name=cls.active_user.first_name,
+            middle_name=cls.new_middle_name,
+            last_name=cls.active_user.last_name,
+            phone_number=cls.active_user.phone_number,
+        )
 
         cls.url = reverse("accounts:profile_edit")
         cls.profile_url = reverse("accounts:profile")
