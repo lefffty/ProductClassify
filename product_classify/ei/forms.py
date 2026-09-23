@@ -4,10 +4,11 @@ from django.forms import (
     CharField,
     ModelChoiceField,
 )
+from django.db import InternalError, transaction
 from django.core.validators import MinValueValidator
 
 from ei.models import Ei
-from ei.constants import EiConsts
+from ei.constants import EiConsts, Markers
 from ei.errors import EiErrors
 
 
@@ -71,3 +72,21 @@ class EiForm(ModelForm):
             "convert_factor": "Множитель для перевода в другую единицу измерения",
             "main_class": "Родитель единицы измерения",
         }
+
+    def _post_clean(self):
+        super()._post_clean()
+
+        if self.errors:
+            return
+        try:
+            with transaction.atomic():
+                super().save(commit=True)
+                transaction.set_rollback(True)
+        except InternalError as e:
+            if Markers.CYCLE_DETECTED in str(e):
+                self.add_error(
+                    "main_class",
+                    EiErrors.CYCLE_DETECTED,
+                )
+            else:
+                raise

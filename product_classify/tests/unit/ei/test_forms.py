@@ -141,3 +141,15 @@ class EiFormTest(BaseUnitTestCase):
         self.assertTrue(form.is_valid())
         obj = form.save()
         self.assertIsNone(obj.main_class)
+
+    def test_save_with_main_class_causes_cycle_detection_and_raises_exception(self):
+        form_data = EiFormDataFactory(main_class=2)
+        form = EiForm(data=form_data, instance=self.ei)
+        self.assertFalse(form.is_valid())
+        self.assertIn("main_class", form.errors)
+        self.assertEqual(form.errors["main_class"], [EiErrors.CYCLE_DETECTED])
+
+    def test_save_with_main_class_does_not_raise_exception(self):
+        form_data = EiFormDataFactory()
+        form = EiForm(data=form_data, instance=self.ei)
+        self.assertTrue(form.is_valid())

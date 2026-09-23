@@ -1,4 +1,5 @@
 from django.db import models, transaction
+from django.db import InternalError
 
 from ei.constants import EiConsts
 

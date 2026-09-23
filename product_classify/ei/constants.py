@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import IntEnum, StrEnum
 from decimal import Decimal
 
 
@@ -9,6 +9,10 @@ class EiConsts(IntEnum):
     CONVERT_FACTOR_MIN_VALUE =  Decimal("0.0")
     DECIMAL_PLACES =            10
     MAX_DIGITS =                20
+
+
+class Markers(StrEnum):
+    CYCLE_DETECTED = "[EI_CYCLE]"
 
 
 KILOGRAM_ID =                   4

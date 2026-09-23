@@ -2,7 +2,7 @@ class ClassStructQueries:
     FIND_GR_GR = "SELECT * FROM find_gr_gr(%s);"
     GET_TERMINAL_CLASSES = "SELECT * FROM get_terminal_classes(%s);"
     DELETE_CLASS_AND_DESCENDANTS = "SELECT * FROM delete_class_and_descendants(%s);"
-    CHECK_CYCLE = "SELECT * FROM check_class_struct_cycles(%s, %s);"
+    CHECK_CLASSIFICATOR_CYCLE = "SELECT * FROM check_classificator_cycle(%s, %s);"
 
 
 class ProdQueries:
@@ -20,7 +20,7 @@ class SpecificationLogsQueries:
 
 
 class DatabaseFunctions:
-    CHECK_CYCLE = """
+    CHECK_CLASSIFICATOR_CYCLE_OLD = """
         CREATE OR REPLACE FUNCTION check_class_struct_cycles(cls_id integer, main_cls_id integer) RETURNS boolean
             LANGUAGE plpgsql
         AS
@@ -67,6 +67,49 @@ class DatabaseFunctions:
                     END LOOP;
         
                 -- если цикл не найден, возвращаем false
+                RETURN FALSE;
+            END;
+        $$;
+    """
+    CHECK_CLASSIFICATOR_CYCLE = """
+        CREATE OR REPLACE FUNCTION check_classificator_cycle(cls_id integer, main_cls_id integer) RETURNS boolean
+            LANGUAGE plpgsql
+        AS
+        $$
+            DECLARE
+                MAX_DEPTH SMALLINT := 1000;
+                CURR_DEPTH SMALLINT := 0;
+                CURRENT_ID SMALLINT := main_cls_id;
+            BEGIN
+                -- попытка создать отдельную компоненту связности в классификаторе
+                IF main_cls_id IS NULL THEN
+                    RETURN TRUE;
+                END IF;
+
+                -- попытка создать ссылку изменяемого объекта на самого себя
+                IF main_cls_id = cls_id THEN
+                    RETURN TRUE;
+                END IF;
+
+                -- рекурсивно проходим все цепочку от родителя текущего узла до корня
+                WHILE CURRENT_ID IS NOT NULL LOOP
+                    -- если текущий идентификатор равен изменяемому узлу
+                    IF CURRENT_ID = cls_id THEN
+                        RETURN TRUE;
+                    END IF;
+
+                    CURR_DEPTH := CURR_DEPTH + 1;
+                    IF CURR_DEPTH > MAX_DEPTH THEN
+                        RETURN TRUE;
+                    END IF;
+
+                    -- обновляем идентификатор текущего узла
+                    SELECT classificator.main_class_id
+                    INTO CURRENT_ID
+                    FROM classes_classstruct classificator
+                    WHERE classificator.id = CURRENT_ID;
+                END LOOP;
+
                 RETURN FALSE;
             END;
         $$;
@@ -482,11 +525,75 @@ class DatabaseFunctions:
         END;
         $$;
     """
+    CHECK_EI_CYCLE = """
+        CREATE OR REPLACE FUNCTION check_ei_cycle(
+            ei_id BIGINT,
+            main_cls_id BIGINT
+        ) RETURNS BOOLEAN
+        AS
+        $$
+            DECLARE
+                DEPTH SMALLINT := 0;
+                MAX_DEPTH SMALLINT := 1000;
+                CURRENT_ID SMALLINT := main_cls_id;
+            BEGIN
+                IF main_cls_id IS NULL THEN
+                    RETURN FALSE;
+                END IF;
 
-    DROP_CHECK_CYCLE = "DROP FUNCTION check_class_struct_cycles(integer, integer);"
+                IF main_cls_id = ei_id THEN
+                    RETURN  TRUE;
+                END IF;
+
+                WHILE CURRENT_ID IS NOT NULL LOOP
+                    IF CURRENT_ID = ei_id THEN
+                        RETURN TRUE;
+                    END IF;
+
+                    DEPTH := DEPTH + 1;
+                    IF DEPTH > MAX_DEPTH THEN
+                        RETURN TRUE;
+                    END IF;
+
+                    SELECT ei_ei.main_class_id
+                    INTO CURRENT_ID
+                    FROM ei_ei
+                    WHERE ei_ei.id = CURRENT_ID;
+                END LOOP;
+
+                RETURN FALSE;
+            END;
+        $$
+        LANGUAGE plpgsql;
+    """
+    CHECK_EI_CYCLE_WRAPPER_FUNCTION = """
+        CREATE OR REPLACE FUNCTION trg_prevent_ei_cycle()
+        RETURNS TRIGGER
+        AS
+            $$
+                BEGIN
+                    IF check_ei_cycle(new.id, new.main_class_id) THEN
+                        RAISE EXCEPTION '[EI_CYCLE] Cycle was detected';
+                    END IF;
+                    RETURN new;
+                END;
+            $$
+        LANGUAGE plpgsql;
+    """
+    CHECK_EI_CYCLE_TRIGGER = """
+        CREATE TRIGGER trg_ei_prevent_cycle
+        BEFORE UPDATE ON ei_ei
+        FOR EACH ROW
+        EXECUTE FUNCTION trg_prevent_ei_cycle();
+    """
+    DROP_CHECK_CLASSIFICATOR_CYCLE_OLD = "DROP FUNCTION IF EXISTS check_class_struct_cycles(integer, integer);"
+    DROP_CHECK_CLASSIFICATOR_CYCLE = "DROP FUNCTION IF EXISTS check_classificator_cycle(integer, integer);"
     DROP_DELETE_CLASS_AND_DESCENDANTS = (
         "DROP FUNCTION delete_class_and_descendants(integer);"
     )
+    DROP_CHECK_EI_CYCLE = "DROP FUNCTION check_ei_cycle(ei_id BIGINT, main_cls_id BIGINT);"
+    DROP_CHECK_EI_CYLCE_FUNCTION = "DROP FUNCTION trg_prevent_ei_cycle();"
+    DROP_EI_CYCLE_TRIGGER = "DROP TRIGGER trg_ei_prevent_cycle ON ei_ei;"
     DROP_FIND_GR_GR = "DROP FUNCTION find_gr_gr(integer);"
     DROP_GET_TERMINAL_CLASSES = "DROP FUNCTION get_terminal_classes(integer);"
     DROP_ADD_PARAMETR_TO_CLASS = "DROP FUNCTION add_parametr_to_class(integer, integer, double precision, double precision);"
