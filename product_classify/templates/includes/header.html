@@ -1,34 +1,35 @@
 {% load static %}
+
 <nav class="navbar">
   <div class="nav-container">
-    <a href="{% url "classes:index" %}" class="nav-logo">
-      <img src="{% static "images/logo.jpg" %}" width="40" height="40" alt="Логотип">
+    <a href="{% url 'classes:index' %}" class="nav-logo">
+      <img src="{% static 'images/logo.jpg' %}" width="40" height="40" alt="Логотип">
     </a>
     <button class="nav-toggle" aria-label="Меню">
       <span></span><span></span><span></span>
     </button>
     <ul class="nav-menu">
-      <li><a href="{% url "classes:index" %}">Главная</a></li>
+      <li><a href="{% url 'classes:index' %}">Главная</a></li>
       <li class="nav-dropdown">
         <a href="#">Классы</a>
         <ul class="nav-dropdown-list">
           {% for fastener_class in fastener_classes %}
-          <li><a href="{% url "classes:category_classes" fastener_class.id %}">{{ fastener_class.name }}</a></li>
+          <li><a href="{% url 'classes:category_classes' fastener_class.id %}">{{ fastener_class.name }}</a></li>
           {% endfor %}
         </ul>
       </li>
-      <li><a href="{% url "ei:list" %}">Единицы измерения</a></li>
+      <li><a href="{% url 'ei:list' %}">Единицы измерения</a></li>
       <li class="nav-dropdown">
         <a href="#">Перечисления</a>
         <ul class="nav-dropdown-list">
-          <li><a href="{% url "enums:list" 15 %}">Строковые</a></li>
-          <li><a href="{% url "enums:list" 16 %}">Изображений</a></li>
-          <li><a href="{% url "enums:list" 19 %}">Целочисленные</a></li>
-          <li><a href="{% url "enums:list" 18 %}">Вещественные</a></li>
+          <li><a href="{% url 'enums:list' string_enums_id %}">Строковые</a></li>
+          <li><a href="{% url 'enums:list' image_enums_id %}">Изображений</a></li>
+          <li><a href="{% url 'enums:list' int_enums_id %}">Целочисленные</a></li>
+          <li><a href="{% url 'enums:list' double_enums_id %}">Вещественные</a></li>
         </ul>
       </li>
-      <li><a href="{% url "parametr:list" %}">Параметры</a></li>
-      <li><a href="{% url "agregat:list" %}">Агрегаты</a></li>
+      <li><a href="{% url 'parametr:list' %}">Параметры</a></li>
+      <li><a href="{% url 'agregat:list' %}">Агрегаты</a></li>
 
       {% if user.is_authenticated %}
         <li class="nav-dropdown nav-user">
@@ -38,16 +39,16 @@
           </a>
           <ul class="nav-dropdown-list">
             {% if user.is_staff %}
-              <li><a href="{% url "admin:index" %}">Администрирование</a></li>
+              <li><a href="{% url 'admin:index' %}">Администрирование</a></li>
             {% endif %}
-            <li><a href="{% url "accounts:profile" %}">Профиль</a></li>            
-            <li><a href="{% url "accounts:logout" %}">Выйти</a>
+            <li><a href="{% url 'accounts:profile' %}">Профиль</a></li>            
+            <li><a href="{% url 'accounts:logout' %}">Выйти</a>
             </li>
           </ul>
         </li>
       {% else %}
-        <li><a href="{% url "accounts:login" %}">Вход</a></li>
-        <li><a href="{% url "accounts:signup" %}">Регистрация</a></li>
+        <li><a href="{% url 'accounts:login' %}">Вход</a></li>
+        <li><a href="{% url 'accounts:signup' %}">Регистрация</a></li>
       {% endif %}
     </ul>
   </div>

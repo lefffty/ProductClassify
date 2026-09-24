@@ -1,7 +1,7 @@
 from django.db import models
 
 from classes.models import ClassStruct
-from classes.constants import ParamIds
+from classes.constants import ParamIds, NUMERIC_PARAMS
 from ei.models import Ei
 
 from parametr.constants import ParametrConsts
@@ -43,6 +43,10 @@ class Parametr(models.Model):
             return self.name + ", " + self.par_ei.short_name
         else:
             return self.name
+
+    @property
+    def is_numeric(self):
+        return self.parametr_type.pk in NUMERIC_PARAMS
 
     @classmethod
     def parameters(cls):

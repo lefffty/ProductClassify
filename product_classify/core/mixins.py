@@ -3,7 +3,7 @@ from django.db import transaction, InternalError
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from classes.models import ClassStruct
-from classes.constants import ProductsConsts
+from classes.constants import ProductsConsts, EnumsIds
 
 
 class CommonContextMixin(ContextMixin):
@@ -12,6 +12,10 @@ class CommonContextMixin(ContextMixin):
         fastener_classes = ClassStruct.objects.filter(
             main_class__exact=ProductsConsts.FASTENER_ID
         )
+        context["string_enums_id"] = EnumsIds.STRING
+        context["image_enums_id"] = EnumsIds.IMAGE
+        context["int_enums_id"] = EnumsIds.INT
+        context["double_enums_id"] = EnumsIds.DOUBLE
         context["fastener_classes"] = fastener_classes
         return context
 
@@ -39,7 +43,6 @@ class CycleCheckFormMixin:
                 )
             else:
                 raise
-
 
 
 class GroupRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):

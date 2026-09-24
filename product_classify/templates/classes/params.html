@@ -74,15 +74,11 @@
                                     </span>
                                 </td>
                                 <td id="params-list-row-{{ param.id }}-range">
-                                    {% if param.parametr.parametr_type.id == 27 or param.parametr.parametr_type.id == 28 %}
-                                        {{ param.min_value|default:"—" }} — {{ param.max_value|default:"—" }}
-                                    {% else %}
-                                        <span class="text-muted">—</span>
-                                    {% endif %}
+                                    {{ param.boundaries }}
                                 </td>
                                 <td id="params-list-row-{{ param.id }}-actions">
                                     <div class="btn-group btn-group-sm" role="group">
-                                        {% if param.parametr.parametr_type.id == 27 or param.parametr.parametr_type.id == 28 %}
+                                        {% if param.parametr.is_numeric %}
                                             <a id="params-list-row-{{ param.id }}-edit-btn" href="{% url 'classes:edit_param' class.id param.parametr.id %}"
                                                class="btn btn-outline-secondary"
                                                title="Редактировать">

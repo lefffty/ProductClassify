@@ -23,6 +23,7 @@ from core.mixins import (
     BuilderRequiredMixin,
     HandbookExecutiveRequiredMixin,
 )
+from core.views import get_context_data
 
 from products.forms import (
     ProdForm,
@@ -76,8 +77,8 @@ def class_products(request: HttpRequest, main_class_id: int, class_id: int):
         "main_cls": main_cls,
         "cls": class_,
         "prod_count": prod_count,
-        "fastener_classes": fastener_classes,
     }
+    context.update(get_context_data())
     return render(request, "products/list.html", context)
 
 

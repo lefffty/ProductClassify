@@ -43,25 +43,7 @@
 
                         <dt class="col-sm-3 fw-semibold">Значение параметра</dt>
                         <dd class="col-sm-9">
-                            {% with prm_type=instance.par.parametr_type.id %}
-                                {% if prm_type == 27 %}
-                                    {{ instance.double_value }} {{ instance.par.par_ei.short_name|default:"" }}
-                                {% elif prm_type == 28 %}
-                                    {{ instance.int_value }} {{ instance.par.par_ei.short_name|default:"" }}
-                                {% else %}
-                                    {% if prm_type == 15 %}
-                                        {{ instance.enum_val.name|default:"—" }}
-                                    {% elif prm_type == 16 %}
-                                        {{ instance.enum_val.image|default:"—" }}
-                                    {% elif prm_type == 19 %}
-                                        {{ instance.enum_val.int_value }} {{ instance.par.par_ei.short_name|default:"" }}
-                                    {% elif prm_type == 18 %}
-                                        {{ instance.enum_val.double_value }} {{ instance.par.par_ei.short_name|default:"" }}
-                                    {% else %}
-                                        —
-                                    {% endif %}
-                                {% endif %}
-                            {% endwith %}
+                            {{ instance.value }}
                         </dd>
                     </dl>
 

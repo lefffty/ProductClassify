@@ -39,21 +39,7 @@
                                 <td>{{ enum.id }}</td>
                                 <td><strong>{{ enum.enum.name }}</strong></td>
                                 <td>{{ enum.short_name|default:"—" }}</td>
-                                <td>
-                                    {% if enum.enum.main_class.id == 15 %}
-                                        {{ enum.name|default:"—" }}
-                                    {% elif enum.enum.main_class.id == 16 %}
-                                        {% if enum.picture_value %}
-                                            <i class="bi bi-image"></i> Изображение
-                                        {% else %}
-                                            —
-                                        {% endif %}
-                                    {% elif enum.enum.main_class.id == 19 %}
-                                        {{ enum.int_value|default:"—" }}
-                                    {% else %}
-                                        {{ enum.double_value|default:"—" }}
-                                    {% endif %}
-                                </td>
+                                <td>{{ enum.value|default:"—" }}</td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
                                         <a href="{% url 'enums:detail' enum.enum.id enum.id %}"

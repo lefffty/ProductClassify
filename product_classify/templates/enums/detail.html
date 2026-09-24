@@ -58,24 +58,7 @@
 
                 <dt class="col-sm-3 fw-semibold">Значение</dt>
                 <dd class="col-sm-9">
-                    {% if enum.enum.main_class.id == 15 %}
-                        {{ enum.name|default:"—" }}
-                    {% elif enum.enum.main_class.id == 16 %}
-                        {% if enum.image %}
-                            <a href="{{ enum.image.url }}" target="_blank" class="d-inline-block">
-                                <img src="{{ enum.image.url }}"
-                                     alt="Изображение перечисления"
-                                     style="max-height: 150px; max-width: 400px; object-fit: cover;"
-                                     class="rounded border">
-                            </a>
-                        {% else %}
-                            <span class="text-muted">—</span>
-                        {% endif %}
-                    {% elif enum.enum.main_class.id == 19 %}
-                        {{ enum.int_value|default:"—" }}
-                    {% else %}
-                        {{ enum.double_value|default:"—" }}
-                    {% endif %}
+                    {{ enum.value }}
                 </dd>
             </dl>
         </div>

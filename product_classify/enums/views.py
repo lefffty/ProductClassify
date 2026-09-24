@@ -28,7 +28,8 @@ class EnumsListView(
     def get_queryset(self):
         class_id = self.kwargs.get("class_id")
         enums = (
-            Enums.objects.filter(enum__main_class__id=class_id)
+            Enums.objects
+            .filter(enum__main_class__id=class_id)
             .select_related("enum", "enum__main_class")
             .order_by("id")
         )
@@ -47,9 +48,12 @@ class EnumsDetailView(
     pk_url_kwarg = "enum_id"
 
     def get_queryset(self):
-        return Enums.objects.select_related(
-            "enum",
-            "enum__main_class",
+        return (
+            Enums.objects
+            .select_related(
+                "enum",
+                "enum__main_class",
+            )
         )
 
 

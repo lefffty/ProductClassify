@@ -7,10 +7,8 @@ from loguru import logger
 
 from core.mixins import CommonContextMixin
 
+from core.views import get_context_data
 from products.models import Prod
-
-from classes.models import ClassStruct
-from classes.constants import ProductsConsts
 
 from route_tech.forms import (
     EconomicActivitySubjectForm,
@@ -130,11 +128,9 @@ class ProdOperationDetailView(CommonContextMixin, DetailView):
 
 
 def edit_prod_operation_positions_view(request: HttpRequest, product_id: int):
+    context = get_context_data()
     product = Prod.objects.get(pk=product_id)
     edit_mode = request.GET.get("edit") == "1"
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=ProductsConsts.FASTENER_ID
-    )
     prod_operation = get_object_or_404(ProdOperation, prod=product)
 
     if request.method == "POST":
@@ -154,15 +150,16 @@ def edit_prod_operation_positions_view(request: HttpRequest, product_id: int):
             formset.extra = FormSetConsts.EXTRA
             formset.can_delete = False
 
+    context.update({
+        "formset": formset,
+        "product": product,
+        "parent_prod_oper": product,
+        "prod_operation": prod_operation,
+        "edit_mode": edit_mode,
+    })
+
     return render(
         request,
         "products/prodoperation_pos_edit.html",
-        {
-            "fastener_classes": fastener_classes,
-            "formset": formset,
-            "product": product,
-            "parent_prod_oper": product,
-            "prod_operation": prod_operation,
-            "edit_mode": edit_mode,
-        },
+        context=context,
     )

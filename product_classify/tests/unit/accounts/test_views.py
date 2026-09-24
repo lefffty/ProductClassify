@@ -155,6 +155,7 @@ class LogoutViewTest(BaseUnitTestCase):
         cls.logout_url = reverse("accounts:logout")
         cls.next_url = reverse("classes:index")
         cls.index_url = reverse("classes:index")
+        cls.invalid_next_url = "https://rutube.ru/"
         cls.login_url = settings.LOGIN_URL
 
     def test_returns_OK_status_code(self):
@@ -179,7 +180,7 @@ class LogoutViewTest(BaseUnitTestCase):
 
     def test_redirects_to_main_page_if_next_url_is_incorrect(self):
         self.client.force_login(self.active_user)
-        response = self.client.post(self.logout_url, data={"next": "https://rutube.ru/"})
+        response = self.client.post(self.logout_url, data={"next": self.invalid_next_url})
         self.assertRedirects(response, self.index_url, fetch_redirect_response=False)
 
     def test_redirects_to_main_page_if_next_url_was_not_provided(self):

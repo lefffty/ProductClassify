@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.utils.http import url_has_allowed_host_and_scheme
 
+from core.views import get_context_data
+
 from accounts.forms import LoginForm, SignUpForm, ProfileForm
 
 User = get_user_model()
@@ -14,10 +16,12 @@ User = get_user_model()
 def login_view(request: HttpRequest) -> HttpResponse:
     # если пользователь уже вошел в систему,
     # то перенаправляем его на главную страницу
+    context = get_context_data()
     if request.user.is_authenticated:
         return redirect("classes:index")
     # инициализируем форму
     form = LoginForm(request.POST or None, request=request)
+    context["form"] = form
     # если форма валидна и это POST запрос
     if request.method == "POST" and form.is_valid():
         # осуществляем вход пользователя в систему
@@ -28,14 +32,14 @@ def login_view(request: HttpRequest) -> HttpResponse:
     return render(
         request,
         "accounts/login.html",
-        context={
-            "form": form,
-        }
+        context=context,
     )
 
 
 @require_http_methods(["GET", "POST"])
 def logout_view(request: HttpRequest) -> HttpResponse:
+    context = get_context_data()
+    context["next"] = request.GET.get("next", "")
     # если пользователь не аутентифицирован, перенаправляем его на страницу входа в систему
     if not request.user.is_authenticated:
         return redirect(settings.LOGIN_URL)
@@ -45,9 +49,7 @@ def logout_view(request: HttpRequest) -> HttpResponse:
         return render(
             request,
             "accounts/logout.html",
-            context={
-                "next": request.GET.get("next", ""),
-            }
+            context=context,
         )
     # осуществляем выход пользователя из системы
     logout(request)
@@ -66,11 +68,13 @@ def logout_view(request: HttpRequest) -> HttpResponse:
 
 
 def signup_view(request: HttpRequest) -> HttpResponse:
+    context = get_context_data()
     # если пользователь уже вошел в систему, перенаправляем его на главную страницу
     if request.user.is_authenticated:
         return redirect("classes:index")
     # создаем форму
     form = SignUpForm(request.POST or None)
+    context["form"] = form
     # проверяем, что метод запроса POST и форма валидна
     if request.method == "POST" and form.is_valid():
         # если форма валидна, то сохраняем пользователя
@@ -82,30 +86,29 @@ def signup_view(request: HttpRequest) -> HttpResponse:
     return render(
         request,
         "accounts/signup.html",
-        context={
-            "form": form
-        }
+        context=context,
     )
 
 
 @login_required
 def profile_view(request: HttpRequest):
+    context = get_context_data()
     user = get_object_or_404(
         User.objects.select_related("role"),
         pk=request.user.pk
     )
+    context["user"] = user
+    context["edit_mode"] = False
     return render(
         request,
         "accounts/profile.html",
-        context={
-            "user": user,
-            "edit_mode": False,
-        }
+        context=context,
     )
 
 
 @login_required
 def edit_profile_view(request: HttpRequest) -> HttpResponse:
+    context = get_context_data()
     user = get_object_or_404(
         User,
         pk=request.user.pk
@@ -119,11 +122,10 @@ def edit_profile_view(request: HttpRequest) -> HttpResponse:
             )
     else:
         form = ProfileForm(instance=user)
+    context["form"] = form
+    context["edit_mode"] = True
     return render(
         request,
         "accounts/profile.html",
-        context={
-            "form": form,
-            "edit_mode": True,
-        }
+        context=context,
     )

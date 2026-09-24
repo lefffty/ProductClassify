@@ -8,9 +8,7 @@ from core.decorators import roles_required
 
 from accounts.constants import RoleCodes
 
-from classes.models import ClassStruct
-from classes.constants import ProductsConsts
-
+from core.views import get_context_data
 from specifications.forms import ProdComponentFormSet
 from specifications.constants import FormsetConsts
 from specifications.models import ProdComponent, Prod, SpecificationLogs
@@ -64,11 +62,9 @@ def get_product_changelog_view(_: HttpRequest, product_id: int) -> FileResponse:
 
 @roles_required(RoleCodes.BUILDER)
 def edit_specification_view(request: HttpRequest, product_id: int) -> HttpResponse:
+    context = get_context_data()
     product = get_object_or_404(Prod, pk=product_id)
     edit_mode = request.GET.get("edit") == "1"
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=ProductsConsts.FASTENER_ID
-    )
 
     if request.method == "POST":
         formset = ProdComponentFormSet(request.POST, instance=product)
@@ -87,13 +83,14 @@ def edit_specification_view(request: HttpRequest, product_id: int) -> HttpRespon
             formset.extra = FormsetConsts.EXTRA
             formset.can_delete = False
 
+    context.update({
+        "formset": formset,
+        "product": product,
+        "edit_mode": edit_mode,
+    })
+
     return render(
         request,
         "products/prodcomponent_edit.html",
-        {
-            "fastener_classes": fastener_classes,
-            "formset": formset,
-            "product": product,
-            "edit_mode": edit_mode,
-        },
+        context=context,
     )

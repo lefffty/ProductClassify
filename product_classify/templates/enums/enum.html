@@ -50,24 +50,7 @@
 
                         <dt class="col-sm-3 fw-semibold">Значение</dt>
                         <dd class="col-sm-9">
-                            {% if instance.enum.main_class.id == 15 %}
-                                {{ instance.name|default:"—" }}
-                            {% elif instance.enum.main_class.id == 16 %}
-                                {% if instance.image %}
-                                    <a href="{{ instance.image.url }}" target="_blank" class="d-inline-block">
-                                        <img src="{{ instance.image.url }}"
-                                             alt="Изображение"
-                                             style="max-height: 60px; max-width: 150px; object-fit: cover;"
-                                             class="rounded border">
-                                    </a>
-                                {% else %}
-                                    <span class="text-muted">—</span>
-                                {% endif %}
-                            {% elif instance.enum.main_class.id == 19 %}
-                                {{ instance.int_value|default:"—" }}
-                            {% else %}
-                                {{ instance.double_value|default:"—" }}
-                            {% endif %}
+                            {{ instance.value }}
                         </dd>
                     </dl>
 

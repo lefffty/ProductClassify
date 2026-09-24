@@ -78,7 +78,7 @@ class Enums(models.Model):
 
     @property
     def value(self):
-        enum_type = self.enum.main_class.pk
+        enum_type = self.enum.main_class_id
         if enum_type == EnumsIds.STRING:
             return self.name
         elif enum_type == EnumsIds.IMAGE:

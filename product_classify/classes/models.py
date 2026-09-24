@@ -14,6 +14,7 @@ from classes.constants import (
     MetaConsts,
     ParamIds,
     ENUMS_IDS,
+    NUMERIC_PARAMS,
 )
 from classes.errors import ParClassErrors
 
@@ -231,6 +232,13 @@ class ParClass(models.Model):
                 name="%(class)s_max_gte_min",
             ),
         ]
+
+    @property
+    def boundaries(self):
+        parametr_type_id = self.parametr.parametr_type_id 
+        if parametr_type_id in NUMERIC_PARAMS:
+            return f"{self.min_value} - {self.max_value}"
+        return "-"
 
     def clean(self):
         # если параметр не указан

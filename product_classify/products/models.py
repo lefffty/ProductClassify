@@ -235,16 +235,16 @@ class ParProd(models.Model):
     def __str__(self):
         if self.enum_val:
             return f"{self.prod.name} - {self._get_enum_display_value()}"
-        elif self.int_value is not None:
+        elif self.int_value:
             return f"{self.prod.name} - {self.par.name} - {self.int_value}"
         else:
             return f"{self.prod.name} - {self.par.name} - {self.double_value}"
 
     @property
     def value(self):
-        if self.int_value is not None:
+        if self.int_value:
             return self.int_value
-        elif self.double_value is not None:
+        elif self.double_value:
             return self.double_value
         elif self.enum_val:
             return self._get_enum_raw_value()

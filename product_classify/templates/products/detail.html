@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load prodparam_display %}
 
 {% block title %}
     {{ product.name }}
@@ -65,17 +66,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if param.enum_val and param.enum_val.enum.main_class.id == 16 %}
-                                        <a href="{% url 'enums:detail' param.enum_val.enum.main_class.id param.enum_val.id %}"
-                                           class="d-inline-block">
-                                            <img src="{{ param.enum_val.image.url }}"
-                                                 alt="Изображение перечисления"
-                                                 style="max-height: 60px; max-width: 150px; object-fit: cover;"
-                                                 class="rounded">
-                                        </a>
-                                    {% else %}
-                                        {{ param.value|default:"—" }}
-                                    {% endif %}
+                                    {% render_param_value param %}
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
