@@ -20,6 +20,7 @@ from parametr.models import Parametr
 from ei.models import Ei
 from enums.models import Enums
 
+from products.errors import ProdErrors, CommonParProdErrors, IntParErrors, DoubleParErrors, EnumsParErrors
 from products.constants import ProdConsts
 from products.models import Prod, ParProd
 from products.forms import ProdForm, ParProdForm, ModificationForm, SearchForm
@@ -405,11 +406,10 @@ class ParProdFormTest(BaseUnitTestCase):
             int_value=None,
             double_value=None,
         )
-        expected_error_msg = ["Поле для изделия необходимо заполнить"]
         form = ParProdForm(data)
         self.assertFalse(form.is_valid())
         self.assertIn("prod", form.errors)
-        self.assertEqual(form.errors["prod"], expected_error_msg)
+        self.assertEqual(form.errors["prod"][0], CommonParProdErrors.EMPTY_PROD_FIELD)
 
     def test_par_field_is_required(self):
         data = ParProdFormData(
@@ -419,11 +419,10 @@ class ParProdFormTest(BaseUnitTestCase):
             int_value=None,
             double_value=None,
         )
-        expected_error_msg = ["Поле для параметра необходимо заполнить"]
         form = ParProdForm(data)
         self.assertFalse(form.is_valid())
         self.assertIn("par", form.errors)
-        self.assertEqual(form.errors["par"], expected_error_msg)
+        self.assertEqual(form.errors["par"][0], CommonParProdErrors.EMPTY_PAR_FIELD)
 
     def test_form_raises_validation_error_if_double_value_is_not_none_for_int_parametr(self):
         data = ParProdFormData(
@@ -434,10 +433,8 @@ class ParProdFormTest(BaseUnitTestCase):
             enum_val=None,
         )
         form = ParProdForm(data)
-        expected_error_msg = "Для целочисленного параметра нельзя указать значение поля double_value"
-
         self.assertFalse(form.is_valid())
-        self.assertEqual(form.errors["__all__"][0], expected_error_msg)
+        self.assertEqual(form.errors["__all__"][0], IntParErrors.DOUBLE_FIELD_SPECIFIED)
 
     def test_form_raises_validation_error_if_enum_val_is_not_none_for_int_parametr(self):
         data = ParProdFormData(
@@ -448,10 +445,8 @@ class ParProdFormTest(BaseUnitTestCase):
             enum_val=self.ENUM_VAL,
         )
         form = ParProdForm(data)
-        expected_error_msg = "Для целочисленного параметра нельзя указать значение поля enum_val"
-
         self.assertFalse(form.is_valid())
-        self.assertEqual(form.errors["__all__"][0], expected_error_msg)
+        self.assertEqual(form.errors["__all__"][0], IntParErrors.ENUM_FIELD_SPECIFIED)
 
     def test_form_raises_validation_error_if_int_value_is_none_for_int_parametr(self):
         data = ParProdFormData(
@@ -462,10 +457,8 @@ class ParProdFormTest(BaseUnitTestCase):
             enum_val=None,
         )
         form = ParProdForm(data)
-        expected_error_msg = "Для целочисленного параметра изделия необходимо указать значение поля int_value"
-
         self.assertFalse(form.is_valid())
-        self.assertEqual(form.errors["__all__"][0], expected_error_msg)
+        self.assertEqual(form.errors["__all__"][0], IntParErrors.INT_FIELD_EMPTY)
 
     def test_form_does_not_raise_validation_error_if_given_int_value_is_within_the_range_for_int_parametr(self):
         data = ParProdFormData(
@@ -506,10 +499,8 @@ class ParProdFormTest(BaseUnitTestCase):
             enum_val=None,
         )
         form = ParProdForm(data)
-        expected_error_msg = "Для вещественного параметра нельзя указать значение поля int_value"
-
         self.assertFalse(form.is_valid())
-        self.assertEqual(form.errors["__all__"][0], expected_error_msg)
+        self.assertEqual(form.errors["__all__"][0], DoubleParErrors.INT_FIELD_SPECIFIED)
 
     def test_form_raises_validation_error_if_enum_val_is_not_none_for_double_parametr(self):
         data = ParProdFormData(
@@ -520,10 +511,8 @@ class ParProdFormTest(BaseUnitTestCase):
             enum_val=self.ENUM_VAL,
         )
         form = ParProdForm(data)
-        expected_error_msg = "Для вещественного параметра нельзя указать значение поля enum_val"
-
         self.assertFalse(form.is_valid())
-        self.assertEqual(form.errors["__all__"][0], expected_error_msg)
+        self.assertEqual(form.errors["__all__"][0], DoubleParErrors.ENUM_FIELD_SPECIFIED)
 
     def test_form_raises_validation_error_if_double_value_is_none_for_double_parametr(self):
         data = ParProdFormData(
@@ -534,10 +523,8 @@ class ParProdFormTest(BaseUnitTestCase):
             enum_val=None,
         )
         form = ParProdForm(data)
-        expected_error_msg = "Для вещественного параметра изделия необходимо указать значение поля int_value"
-
         self.assertFalse(form.is_valid())
-        self.assertEqual(form.errors["__all__"][0], expected_error_msg)
+        self.assertEqual(form.errors["__all__"][0], DoubleParErrors.DOUBLE_FIELD_EMPTY)
 
     def test_form_does_not_raise_validation_error_if_given_double_value_is_within_the_range_for_double_parametr(self):
         data = ParProdFormData(
@@ -578,10 +565,8 @@ class ParProdFormTest(BaseUnitTestCase):
             enum_val=self.ENUM_VAL,
         )
         form = ParProdForm(data)
-        expected_error_msg = "Для параметра-перечисления изделия нельзя указать значение поля double_value"
-
         self.assertFalse(form.is_valid())
-        self.assertEqual(form.errors["__all__"][0], expected_error_msg)
+        self.assertEqual(form.errors["__all__"][0], EnumsParErrors.DOUBLE_FIELD_SPECIFIED)
 
     def test_form_raises_validation_error_if_int_value_was_specified_for_int_enum_parametr(self):
         data = ParProdFormData(
@@ -592,10 +577,8 @@ class ParProdFormTest(BaseUnitTestCase):
             enum_val=self.ENUM_VAL,
         )
         form = ParProdForm(data)
-        expected_error_msg = "Для параметра-перечисления изделия нельзя указать значение поля int_value"
-
         self.assertFalse(form.is_valid())
-        self.assertEqual(form.errors["__all__"][0], expected_error_msg)
+        self.assertEqual(form.errors["__all__"][0], EnumsParErrors.INT_FIELD_SPECIFIED)
 
     def test_form_raises_validation_error_if_enum_val_is_none_for_int_enum_parametr(self):
         data = ParProdFormData(
@@ -606,10 +589,8 @@ class ParProdFormTest(BaseUnitTestCase):
             enum_val=None,
         )
         form = ParProdForm(data)
-        expected_error_msg = "Для параметра-перечисления изделия необходимо указать значение поля enum_val"
-
         self.assertFalse(form.is_valid())
-        self.assertEqual(form.errors["__all__"][0], expected_error_msg)
+        self.assertEqual(form.errors["__all__"][0], EnumsParErrors.ENUM_FIELD_EMPTY)
 
     def test_form_does_not_raise_validation_error_if_double_and_int_value_are_not_specified_for_int_enum_parametr(self):
         data = ParProdFormData(
@@ -631,8 +612,7 @@ class ParProdFormTest(BaseUnitTestCase):
             enum_val=None,
         )
         form = ParProdForm(data)
-        expected_error_msg = "Параметр 'parameter' не принадлежит классу изделия 'nuts_product_class'"
-
+        expected_error_msg = CommonParProdErrors.INVALID_PAR.format(self.INVALID_INT_PARAMETR.name, self.PRODUCT.class_field.name)
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors["__all__"][0], expected_error_msg)
 
@@ -689,10 +669,8 @@ class ParProdFormTest(BaseUnitTestCase):
             enum_val=None,
         )
         form = ParProdForm(data=update_data, instance=instance)
-        expected_error_msg = ["Поле для изделия необходимо заполнить"]
-
         self.assertFalse(form.is_valid())
-        self.assertEqual(form.errors["prod"], expected_error_msg)
+        self.assertEqual(form.errors["prod"][0], CommonParProdErrors.EMPTY_PROD_FIELD)
 
     def test_update_form_raises_validation_error_if_par_field_is_none(self):
         instance = self._create_par_prod_instance()
@@ -705,10 +683,8 @@ class ParProdFormTest(BaseUnitTestCase):
             enum_val=None,
         )
         form = ParProdForm(data=update_data, instance=instance)
-        expected_error_msg = ["Поле для параметра необходимо заполнить"]
-
         self.assertFalse(form.is_valid())
-        self.assertEqual(form.errors["par"], expected_error_msg)
+        self.assertEqual(form.errors["par"][0], CommonParProdErrors.EMPTY_PAR_FIELD)
 
 
 class ModificationFormTest(BaseUnitTestCase):

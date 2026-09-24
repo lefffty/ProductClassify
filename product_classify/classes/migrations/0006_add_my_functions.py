@@ -13,8 +13,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
-            sql=DatabaseFunctions.CHECK_CYCLE,
-            reverse_sql=DatabaseFunctions.DROP_CHECK_CYCLE
+            sql=DatabaseFunctions.CHECK_CLASSIFICATOR_CYCLE,
+            reverse_sql=DatabaseFunctions.DROP_CHECK_CLASSIFICATOR_CYCLE
         ),
         migrations.RunSQL(
             sql=DatabaseFunctions.DELETE_CLASS_AND_DESCENDANTS,

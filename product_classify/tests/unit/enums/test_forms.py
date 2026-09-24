@@ -14,7 +14,9 @@ from tests.unit.enums.factories.enums import EnumsFormData, ChangeNumFormData, E
 from classes.models import ClassStruct
 from classes.constants import EnumsIds
 
+from enums.errors import CommonEnumErrors, ChangeNumErrors
 from enums.forms import EnumsForm, ChangeNumForm
+
 
 AllowedImageFormats: TypeAlias = Literal["jpg", "png"]
 
@@ -95,12 +97,11 @@ class EnumsFormTest(BaseUnitTestCase):
             int_value=self.INT_VALUE,
         )
         form_files = {"image": self.PNG_IMAGE}
-        expected_error_msg = "Поле перечисления необходимо заполнить"
 
         form = EnumsForm(data=form_data, files=form_files)
         self.assertFalse(form.is_valid())
         self.assertIn("enum", form.errors)
-        self.assertEqual(form.errors["enum"][0], expected_error_msg)
+        self.assertEqual(form.errors["enum"][0], CommonEnumErrors.EMPTY_ENUM_ERROR)
 
     def test_non_terminal_enum_class_raises_validation_error(self):
         """Проверяет, что выбор enum, не входящего в terminal_enum_classes, вызывает ошибку валидации."""
@@ -1155,9 +1156,8 @@ class ChangeNumFormTest(BaseUnitTestCase):
             enum_2=self.double_value_1,
         )
         form = ChangeNumForm(data=form_data)
-        expected_error_msg = "Перечисления должны быть из одного класса"
         self.assertFalse(form.is_valid())
-        self.assertEqual(form.errors["__all__"][0], expected_error_msg)
+        self.assertEqual(form.errors["__all__"][0], ChangeNumErrors.NON_SAME_CLASS)
 
     def test_form_with_non_equal_enums_objects_from_same_class_is_valid(self):
         """Проверяет, что форма валидна при выборе двух разных перечислений из одного класса."""

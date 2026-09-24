@@ -1,4 +1,5 @@
 from django.views.generic.base import ContextMixin
+from django.db import transaction, InternalError
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from classes.models import ClassStruct
@@ -13,6 +14,32 @@ class CommonContextMixin(ContextMixin):
         )
         context["fastener_classes"] = fastener_classes
         return context
+
+
+class CycleCheckFormMixin:
+    cycle_check_field: str = "main_class"
+    cycle_check_marker: str = ""
+    cycle_check_error_msg: str = ""
+
+    def _post_clean(self):
+        super()._post_clean()
+
+        if self.errors:
+            return
+        
+        try:
+            with transaction.atomic():
+                super().save(commit=True)
+                transaction.set_rollback(True)
+        except InternalError as e:
+            if self.cycle_check_marker in str(e):
+                self.add_error(
+                    self.cycle_check_field,
+                    self.cycle_check_error_msg,
+                )
+            else:
+                raise
+
 
 
 class GroupRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):

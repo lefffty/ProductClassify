@@ -8,13 +8,13 @@ from django.forms import (
     DecimalField,
     ModelChoiceField,
 )
-from django.db import transaction, InternalError
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
 
 from classes.models import ClassStruct
 from products.models import Prod
+from core.mixins import CycleCheckFormMixin
 
 from route_tech.models import (
     GroupWorkingCenter,
@@ -35,7 +35,14 @@ from route_tech.constants import (
 )
 
 
-class EconomicActivitySubjectForm(ModelForm):
+class EconomicActivitySubjectForm(
+    CycleCheckFormMixin,
+    ModelForm,
+):
+    cycle_check_field = "main_subject"
+    cycle_check_error_msg = EASErrors.CYCLE_DETECTED
+    cycle_check_marker = Markers.CYCLE_DETECTED
+    
     name = CharField(
         label="Название субъекта экономической деятельности",
         max_length=EASConsts.NAME_MAX_LENGTH,
@@ -79,25 +86,6 @@ class EconomicActivitySubjectForm(ModelForm):
             "main_class",
             "main_subject",
         )
-
-    def _post_clean(self):
-        super()._post_clean()
-
-        if self.errors:
-            return
-
-        try:
-            with transaction.atomic():
-                super().save(commit=True)
-                transaction.set_rollback(True)
-        except InternalError as e: 
-            if Markers.CYCLE_DETECTED in str(e):
-                self.add_error(
-                    "main_subject",
-                    EASErrors.CYCLE_DETECTED,
-                )
-            else:
-                raise
 
 
 class GroupWorkingCenterForm(ModelForm):

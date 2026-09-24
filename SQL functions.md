@@ -156,7 +156,7 @@ $$;
 Код:
 
 ```sql
-CREATE OR REPLACE FUNCTION check_class_struct_cycles(cls_id integer, main_cls_id integer) RETURNS boolean
+CREATE OR REPLACE FUNCTION check_classificator_cycle(cls_id integer, main_cls_id integer) RETURNS boolean
     LANGUAGE plpgsql
 AS
 /*

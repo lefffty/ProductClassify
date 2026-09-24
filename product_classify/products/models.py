@@ -10,6 +10,7 @@ from parametr.models import Parametr
 from core.queries import ProdQueries
 from enums.models import Enums
 from ei.models import Ei
+from products.errors import CommonParProdErrors, IntParErrors, DoubleParErrors, EnumsParErrors
 from products.constants import ProdConsts
 
 ModificationResult = namedtuple("ModificationResult", field_names=["modification_id"])
@@ -139,9 +140,7 @@ class ParProd(models.Model):
 
         if self.par.id not in class_params_ids:
             raise ValidationError(
-                "Параметр '{}' не принадлежит классу изделия '{}'.".format(
-                    self.par.name, self.prod.class_field.name
-                )
+                CommonParProdErrors.INVALID_PAR.format(self.par.name, self.prod.class_field.name)
             )
 
         # параметр является перечислением строк
@@ -153,7 +152,7 @@ class ParProd(models.Model):
             or self.enum_val.enum.main_class.pk != EnumsIds.STRING
         ):
             raise ValidationError(
-                "Для параметра типа 'Строковое перечисление' необходимо выбрать значение из списка строковых перечислений."
+                EnumsParErrors.ENUM_FIELD_EMPTY
             )
         # параметр является перечислением изображений
         elif self.par.parametr_type.pk == EnumsIds.IMAGE and (
@@ -164,7 +163,7 @@ class ParProd(models.Model):
             or self.enum_val.enum.main_class.pk != EnumsIds.IMAGE
         ):
             raise ValidationError(
-                "Для параметра типа 'Перечисление изображений' необходимо выбрать значение из списка перечислений изображений."
+                EnumsParErrors.ENUM_FIELD_EMPTY
             )
         # параметр является целочисленным перечислением
         elif self.par.parametr_type.pk == EnumsIds.DOUBLE and (
@@ -175,18 +174,18 @@ class ParProd(models.Model):
             or self.enum_val.enum.main_class.pk != EnumsIds.DOUBLE
         ):
             raise ValidationError(
-                "Для параметра типа 'Вещественное перечисление' необходимо выбрать значение из списка вещественных перечислений."
+                EnumsParErrors.ENUM_FIELD_EMPTY
             )
         # параметр является вещественным перечислением
         elif self.par.parametr_type.pk == EnumsIds.INT and (
             not self.enum_val
             or any(
-                [self.int_value, self.int_value]
+                [self.int_value, self.double_value]
             )  # если для параметра-перечисления вещественных чисел указаны значения полей int_value, double_value
             or self.enum_val.enum.main_class.pk != EnumsIds.INT
         ):
             raise ValidationError(
-                "Для параметра типа 'Целочисленное перечисление' необходимо выбрать значение из списка целочисленных перечислений."
+                EnumsParErrors.ENUM_FIELD_EMPTY
             )
         # параметр является целочисленным
         elif self.par.parametr_type.pk == ParamIds.INT and (
@@ -196,7 +195,7 @@ class ParProd(models.Model):
             )  # если для целочисленного параметра указаны значения полей enum_val или double_value
         ):
             raise ValidationError(
-                "Для параметра типа 'Целое число' необходимо указать целочисленное значение."
+                IntParErrors.INT_FIELD_EMPTY
             )
         # параметр является вещественным
         elif self.par.parametr_type.pk == ParamIds.DOUBLE and (
@@ -206,7 +205,7 @@ class ParProd(models.Model):
             )  # если для вещественного параметра указаны значения полей enum_val или double_value
         ):
             raise ValidationError(
-                "Для параметра типа 'Вещественное число' необходимо указать вещественное значение."
+                DoubleParErrors.DOUBLE_FIELD_EMPTY
             )
 
     def _get_enum_display_value(self):

@@ -129,10 +129,10 @@ class ClassStruct(models.Model):
         return data
 
     @classmethod
-    def check_class_struct_cycles(self, cls_id: int, main_cls_id: int) -> int:
+    def check_classificator_cycle(self, cls_id: int, main_cls_id: int) -> int:
         with connection.cursor() as cursor:
             cursor.execute(
-                ClassStructQueries.CHECK_CYCLE,
+                ClassStructQueries.CHECK_CLASSIFICATOR_CYCLE,
                 [cls_id, main_cls_id],
             )
             is_cycle = cursor.fetchone()[0]

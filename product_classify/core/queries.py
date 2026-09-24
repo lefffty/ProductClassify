@@ -71,49 +71,6 @@ class DatabaseFunctions:
             END;
         $$;
     """
-    CHECK_CLASSIFICATOR_CYCLE = """
-        CREATE OR REPLACE FUNCTION check_classificator_cycle(cls_id integer, main_cls_id integer) RETURNS boolean
-            LANGUAGE plpgsql
-        AS
-        $$
-            DECLARE
-                MAX_DEPTH SMALLINT := 1000;
-                CURR_DEPTH SMALLINT := 0;
-                CURRENT_ID SMALLINT := main_cls_id;
-            BEGIN
-                -- попытка создать отдельную компоненту связности в классификаторе
-                IF main_cls_id IS NULL THEN
-                    RETURN TRUE;
-                END IF;
-
-                -- попытка создать ссылку изменяемого объекта на самого себя
-                IF main_cls_id = cls_id THEN
-                    RETURN TRUE;
-                END IF;
-
-                -- рекурсивно проходим все цепочку от родителя текущего узла до корня
-                WHILE CURRENT_ID IS NOT NULL LOOP
-                    -- если текущий идентификатор равен изменяемому узлу
-                    IF CURRENT_ID = cls_id THEN
-                        RETURN TRUE;
-                    END IF;
-
-                    CURR_DEPTH := CURR_DEPTH + 1;
-                    IF CURR_DEPTH > MAX_DEPTH THEN
-                        RETURN TRUE;
-                    END IF;
-
-                    -- обновляем идентификатор текущего узла
-                    SELECT classificator.main_class_id
-                    INTO CURRENT_ID
-                    FROM classes_classstruct classificator
-                    WHERE classificator.id = CURRENT_ID;
-                END LOOP;
-
-                RETURN FALSE;
-            END;
-        $$;
-    """
     DELETE_CLASS_AND_DESCENDANTS = """
         CREATE OR REPLACE FUNCTION delete_class_and_descendants(_node_id integer) RETURNS integer
             LANGUAGE plpgsql
@@ -650,18 +607,90 @@ class DatabaseFunctions:
         EXECUTE FUNCTION trg_prevent_eas_cycle();
     """
 
+    CHECK_CLASSIFICATOR_CYCLE = """
+        CREATE OR REPLACE FUNCTION check_classificator_cycle(cls_id BIGINT, main_cls_id BIGINT)
+        RETURNS BOOLEAN
+        AS
+            $$
+                DECLARE
+                    MAX_DEPTH BIGINT := 1000;
+                    CURR_DEPTH BIGINT := 0;
+                    CURRENT_ID BIGINT := main_cls_id;
+                BEGIN
+                    -- попытка создать отдельную компоненту связности в классификаторе
+                    IF main_cls_id IS NULL THEN
+                        RETURN TRUE;
+                    END IF;
+
+                    -- попытка создать ссылку изменяемого объекта на самого себя
+                    IF main_cls_id = cls_id THEN
+                        RETURN TRUE;
+                    END IF;
+
+                    -- рекурсивно проходим все цепочку от родителя текущего узла до корня
+                    WHILE CURRENT_ID IS NOT NULL LOOP
+                        -- если текущий идентификатор равен изменяемому узлу
+                        IF CURRENT_ID = cls_id THEN
+                            RETURN TRUE;
+                        END IF;
+
+                        CURR_DEPTH := CURR_DEPTH + 1;
+                        IF CURR_DEPTH > MAX_DEPTH THEN
+                            RETURN TRUE;
+                        END IF;
+
+                        -- обновляем идентификатор текущего узла
+                        SELECT classificator.main_class_id
+                        INTO CURRENT_ID
+                        FROM classes_classstruct classificator
+                        WHERE classificator.id = CURRENT_ID;
+                    END LOOP;
+
+                    RETURN FALSE;
+                END;
+            $$
+        LANGUAGE plpgsql;
+    """
+    CHECK_CLASSIFICATOR_CYCLE_WRAPPER_FUNCTION = """
+        CREATE OR REPLACE FUNCTION trg_prevent_classificator_cycle()
+        RETURNS TRIGGER
+        AS
+        $$
+            BEGIN
+                IF check_classificator_cycle(new.id, new.main_class_id) THEN
+                    RAISE EXCEPTION '[CLASSIFICATOR_CYCLE] Cycle was detected';
+                END IF;
+                RETURN new;
+            END;
+        $$
+        LANGUAGE plpgsql;
+    """
+    CHECK_CLASSIFICATOR_CYCLE_TRIGGER = """
+        CREATE OR REPLACE TRIGGER trg_classificator_prevent_cycle
+            BEFORE UPDATE ON classes_classstruct
+            FOR EACH ROW
+        EXECUTE FUNCTION trg_prevent_classificator_cycle();
+    """
+
+    DROP_CHECK_CLASSFICATOR_CYCLE_TRIGGER = "DROP TRIGGER IF EXISTS trg_classificator_prevent_cycle ON classes_classstruct;"
+    DROP_CHECK_CLASSIFICATOR_WRAPPER_FUNCTION = "DROP FUNCTION IF EXISTS trg_prevent_classificator_cycle();"
+    DROP_CHECK_CLASSIFICATOR_CYCLE = "DROP FUNCTION IF EXISTS check_classificator_cycle(cls_id BIGINT, main_cls_id BIGINT);"
+
     DROP_CHECK_EAS_CYCLE_TRIGGER = "DROP TRIGGER trg_eas_prevent_cycle ON route_tech_economicactivitysubject;"
     DROP_CHECK_EAS_CYCLE_WRAPPER_FUNCTION = "DROP FUNCTION trg_prevent_eas_cycle();"
     DROP_CHECK_EAS_CYCLE = "DROP FUNCTION check_eas_cycle(eas_id BIGINT, main_subject_id BIGINT);"
 
     DROP_CHECK_CLASSIFICATOR_CYCLE_OLD = "DROP FUNCTION IF EXISTS check_class_struct_cycles(integer, integer);"
     DROP_CHECK_CLASSIFICATOR_CYCLE = "DROP FUNCTION IF EXISTS check_classificator_cycle(integer, integer);"
+
     DROP_DELETE_CLASS_AND_DESCENDANTS = (
         "DROP FUNCTION delete_class_and_descendants(integer);"
     )
+
     DROP_CHECK_EI_CYCLE = "DROP FUNCTION check_ei_cycle(ei_id BIGINT, main_cls_id BIGINT);"
     DROP_CHECK_EI_CYLCE_FUNCTION = "DROP FUNCTION trg_prevent_ei_cycle();"
     DROP_EI_CYCLE_TRIGGER = "DROP TRIGGER trg_ei_prevent_cycle ON ei_ei;"
+    
     DROP_FIND_GR_GR = "DROP FUNCTION find_gr_gr(integer);"
     DROP_GET_TERMINAL_CLASSES = "DROP FUNCTION get_terminal_classes(integer);"
     DROP_ADD_PARAMETR_TO_CLASS = "DROP FUNCTION add_parametr_to_class(integer, integer, double precision, double precision);"

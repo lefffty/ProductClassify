@@ -4,15 +4,23 @@ from django.forms import (
     CharField,
     ModelChoiceField,
 )
-from django.db import InternalError, transaction
 from django.core.validators import MinValueValidator
+
+from core.mixins import CycleCheckFormMixin
 
 from ei.models import Ei
 from ei.constants import EiConsts, Markers
 from ei.errors import EiErrors
 
 
-class EiForm(ModelForm):
+class EiForm(
+    CycleCheckFormMixin,
+    ModelForm,
+):
+    cycle_check_field = "main_class"
+    cycle_check_error_msg = EiErrors.CYCLE_DETECTED
+    cycle_check_marker = Markers.CYCLE_DETECTED
+
     convert_factor = FloatField(
         label="Множитель для перевода",
         validators=[
@@ -72,22 +80,3 @@ class EiForm(ModelForm):
             "convert_factor": "Множитель для перевода в другую единицу измерения",
             "main_class": "Родитель единицы измерения",
         }
-
-    def _post_clean(self):
-        super()._post_clean()
-
-        if self.errors:
-            return
-        
-        try:
-            with transaction.atomic():
-                super().save(commit=True)
-                transaction.set_rollback(True)
-        except InternalError as e:
-            if Markers.CYCLE_DETECTED in str(e):
-                self.add_error(
-                    "main_class",
-                    EiErrors.CYCLE_DETECTED,
-                )
-            else:
-                raise

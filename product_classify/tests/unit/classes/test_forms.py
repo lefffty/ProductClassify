@@ -2,8 +2,6 @@ from django.db.models import QuerySet
 
 from unittest.mock import patch
 
-from faker import Faker
-
 from tests.unit.base import BaseUnitTestCase
 from tests.unit.ei.factories.ei import EiFactory
 from tests.unit.parametr.factories.parametr import ParametrFactory
@@ -21,17 +19,15 @@ from tests.unit.classes.factories.class_struct import (
 )
 
 from ei.models import Ei
-from parametr.models import Parametr
 
 from classes.constants import (
-    ClassStructConsts,
-    MetaConsts,
-    OperationConsts,
-    ProductsConsts,
     ParamIds,
-    EnumsIds
+    EnumsIds,
+    MetaConsts,
+    ProductsConsts,
+    OperationConsts,
 )
-from classes.errors import ClassStructErrors, ParClassErrors
+from classes.errors import ClassStructErrors, ParClassErrors, ChangeParClassErrors
 from classes.models import (
     ClassStruct,
     ParClass
@@ -54,6 +50,29 @@ class ProdClassFormTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.base_ei = Ei.objects.first()
 
+        cls.parent = ClassStruct.objects.create(
+            name="class",
+            short_name="class",
+            base_ei=None,
+            main_class=ClassStruct.objects.get(pk=ProductsConsts.PRODUCT_ID),
+        )
+        cls.child = ClassStruct.objects.create(
+            name="class",
+            short_name="class",
+            base_ei=None,
+            main_class=cls.parent,
+        )
+        cls.grandchild = ClassStruct.objects.create(
+            name="class",
+            short_name="class",
+            base_ei=None,
+            main_class=cls.child,
+        )
+        
+        cls.invalid_data_with_cycle_reference = ProdClassFormData(main_class=cls.child.pk)
+        cls.invalid_data_with_cycle_self_reference = ProdClassFormData(main_class=cls.parent.pk)
+        cls.invalid_data_with_cycle_transitive_reference = ProdClassFormData(main_class=cls.grandchild.pk)
+
         cls.root = ClassStructFactory(base_ei=cls.base_ei)
         cls.child = ChildClassStructFactory(base_ei=cls.base_ei, main_class=cls.root)
         cls.other = ClassStructFactory(base_ei=cls.base_ei)
@@ -74,39 +93,6 @@ class ProdClassFormTest(BaseUnitTestCase):
         self.assertIsInstance(form.fields["base_ei"].queryset, QuerySet)
         self.assertEqual(form.fields["base_ei"].queryset.count(), eis_count)
 
-    def test_check_classificator_cycle_called_with_correct_params(self):
-        """Проверяет, что метод check_classificator_cycle вызывается с правильными параметрами (cls_id и main_cls_id)."""
-        with patch(
-            "classes.models.ClassStruct.terminal_product_classes",
-            return_value=ClassStruct.objects.all(),
-        ):
-            with patch.object(
-                ClassStruct,
-                "check_classificator_cycle",
-                return_value=False,
-            ) as mock_check_classificator_cycle:
-                form_data = ProdClassFormData(main_class=self.other.pk, base=self.base_ei.pk)
-                form = ProdClassForm(data=form_data, instance=self.root)
-                self.assertTrue(form.is_valid())
-                mock_check_classificator_cycle.assert_called_once()
-                call_args = mock_check_classificator_cycle.call_args[0]
-                expected_first_arg_error = (
-                    "cls_id должен быть равен id редактируемого объекта"
-                )
-                expected_second_arg_error = (
-                    "main_cls_id должен быть равен id выбранного родителя"
-                )
-                self.assertEqual(
-                    call_args[0],
-                    self.root.pk,
-                    expected_first_arg_error,
-                )
-                self.assertEqual(
-                    call_args[1],
-                    self.other.pk,
-                    expected_second_arg_error,
-                )
-
     def test_name_field_is_required(self):
         """Проверяет, что поле name обязательно для заполнения и выводится кастомное сообщение об ошибке."""
         form_data = ProdClassFormData(name="", main_class=self.valid_main_class.pk, base_ei=self.base_ei.pk)
@@ -114,7 +100,8 @@ class ProdClassFormTest(BaseUnitTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("name", form.errors)
         self.assertEqual(
-            form.errors["name"], ["Поле для названия класса необходимо заполнить"]
+            form.errors["name"][0],
+            ClassStructErrors.EMPTY_NAME_ERROR
         )
 
     def test_main_class_field_is_required(self):
@@ -124,8 +111,8 @@ class ProdClassFormTest(BaseUnitTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("main_class", form.errors)
         self.assertEqual(
-            form.errors["main_class"],
-            ["Поле для родительского класса необходимо заполнить"],
+            form.errors["main_class"][0],
+            ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
         )
 
     def test_non_terminal_main_class_is_invalid(self):
@@ -133,24 +120,6 @@ class ProdClassFormTest(BaseUnitTestCase):
         form_data = ProdClassFormData(main_class=self.invalid_main_class.pk, base_ei=self.base_ei.pk)
         form = ProdClassForm(data=form_data)
         self.assertFalse(form.is_valid())
-
-    def test_clean_raises_error_when_cycle_detected_while_editing_existing_record(self):
-        """Проверяет, что при редактировании существующей записи и создании циклической ссылки форма невалидна и содержит ошибку о цикле."""
-        with patch(
-            "classes.models.ClassStruct.terminal_product_classes",
-            return_value=ClassStruct.objects.all(),
-        ):
-            form_data = ProdClassFormData(main_class=self.child.pk, base_ei=self.base_ei.pk)
-            form = ProdClassForm(data=form_data, instance=self.root)
-            self.assertFalse(form.is_valid())
-            self.assertIn("__all__", form.errors)
-            expected_error_msg = (
-                "При изменении класса в классификаторе образовывается цикл!"
-            )
-            self.assertEqual(
-                form.errors["__all__"][0],
-                expected_error_msg,
-            )
 
     def test_clean_does_not_raise_error_when_no_cycle_while_editing_existing_record(
         self,
@@ -190,24 +159,6 @@ class ProdClassFormTest(BaseUnitTestCase):
             obj = form.save()
             self.assertEqual(obj.pk, self.root.pk)
             self.assertEqual(obj.name, form_data["name"])
-
-    def test_cycle_when_main_class_is_self(self):
-        """Проверяет, что установка родительским классом самого себя приводит к ошибке цикла."""
-        with patch(
-            "classes.models.ClassStruct.terminal_product_classes",
-            return_value=ClassStruct.objects.all(),
-        ):
-            form_data = ProdClassFormData(main_class=self.root.pk, base_ei=self.base_ei.pk)
-            form = ProdClassForm(data=form_data, instance=self.root)
-            self.assertFalse(form.is_valid())
-            self.assertIn("__all__", form.errors)
-            expected_error_msg = (
-                "При изменении класса в классификаторе образовывается цикл!"
-            )
-            self.assertEqual(
-                form.errors["__all__"][0],
-                expected_error_msg,
-            )
 
     def test_cycle_not_checked_for_new_object(self):
         """Проверяет, что для новых объектов (без instance.pk) проверка циклов не выполняется."""
@@ -249,19 +200,68 @@ class ProdClassFormTest(BaseUnitTestCase):
         self.assertFalse(form.is_valid())
 
         expected_errors = {
-            "name": ["Поле для названия класса необходимо заполнить"],
-            "main_class": ["Поле для родительского класса необходимо заполнить"],
+            "name": ClassStructErrors.EMPTY_NAME_ERROR,
+            "main_class": ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
         }
 
         for key, _ in expected_errors.items():
             self.assertIn(key, form.errors)
-            self.assertEqual(form.errors[key], expected_errors[key])
+            self.assertEqual(form.errors[key][0], expected_errors[key])
+
+    def test_cycle_reference_causes_internal_error_exception_to_be_raised(self):
+        form = ProdClassForm(self.invalid_data_with_cycle_reference, instance=self.parent)
+        self.assertFalse(form.is_valid())
+        self.assertIn(ProdClassForm.cycle_check_field, form.errors)
+        self.assertEqual(
+            form.errors[ProdClassForm.cycle_check_field],
+            [ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR],
+        )
+
+    def test_cycle_self_reference_causes_internal_error_exception_to_be_raised(self):
+        form = ProdClassForm(self.invalid_data_with_cycle_self_reference, instance=self.parent)
+        self.assertFalse(form.is_valid())
+        self.assertIn(ProdClassForm.cycle_check_field, form.errors)
+        self.assertEqual(
+            form.errors[ProdClassForm.cycle_check_field],
+            [ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR],
+        )
+
+    def test_cycle_transitive_reference_causes_internal_error_exception_to_be_raised(self):
+        form = ProdClassForm(self.invalid_data_with_cycle_transitive_reference, instance=self.parent)
+        self.assertFalse(form.is_valid())
+        self.assertIn(ProdClassForm.cycle_check_field, form.errors)
+        self.assertEqual(
+            form.errors[ProdClassForm.cycle_check_field],
+            [ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR],
+        )
 
 
 class EnumClassFormTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.base_ei = Ei.objects.first()
+
+        cls.string_enum = ClassStruct.objects.get(pk=EnumsIds.STRING)
+
+        cls.parent_enum = ClassStruct.objects.create(
+            name="class",
+            short_name="class",
+            main_class=cls.string_enum,
+        )
+        cls.child_enum = ClassStruct.objects.create(
+            name="class",
+            short_name="class",
+            main_class=cls.parent_enum,
+        )
+        cls.grandchild_enum = ClassStruct.objects.create(
+            name="class",
+            short_name="class",
+            main_class=cls.child_enum,
+        )
+
+        cls.invalid_data_with_cycle_reference = EnumsClassFormData(main_class=cls.child_enum.pk)
+        cls.invalid_data_with_cycle_self_reference = EnumsClassFormData(main_class=cls.parent_enum.pk)
+        cls.invalid_data_with_cycle_transitive_reference = EnumsClassFormData(main_class=cls.grandchild_enum.pk)
 
         cls.root = ClassStructFactory(base_ei=cls.base_ei)
         cls.child = ClassStructFactory(base_ei=cls.base_ei, main_class=cls.root)
@@ -276,24 +276,22 @@ class EnumClassFormTest(BaseUnitTestCase):
         """Проверяет, что поле main_class обязательно для заполнения и выводится кастомное сообщение об ошибке."""
         form_data = EnumsClassFormData()
         form = EnumClassForm(data=form_data)
-        expected_error_msg = "Поле для родительского класса необходимо заполнить"
         self.assertFalse(form.is_valid())
         self.assertIn("main_class", form.errors)
         self.assertEqual(
-            form.errors["main_class"],
-            [expected_error_msg],
+            form.errors["main_class"][0],
+            ClassStructErrors.EMPTY_MAIN_CLASS_ERROR,
         )
 
     def test_name_is_required(self):
         """Проверяет, что поле name обязательно для заполнения и выводится кастомное сообщение об ошибке."""
         form_data = EnumsClassFormData(name="", main_class=self.other.pk)
         form = EnumClassForm(data=form_data)
-        expected_error_msg = "Поле для названия класса необходимо заполнить"
         self.assertFalse(form.is_valid())
         self.assertIn("name", form.errors)
         self.assertEqual(
-            form.errors["name"],
-            [expected_error_msg],
+            form.errors["name"][0],
+            ClassStructErrors.EMPTY_NAME_ERROR,
         )
 
     def test_short_name_is_optional(self):
@@ -316,31 +314,6 @@ class EnumClassFormTest(BaseUnitTestCase):
             form = EnumClassForm(data=form_data)
             self.assertTrue(form.is_valid())
 
-    def test_check_classificator_cycle_is_called_with_correct_params(self):
-        """Проверяет, что метод check_classificator_cycle вызывается с правильными параметрами (cls_id и main_cls_id)."""
-        with patch(
-            "classes.models.ClassStruct.all_enum_classes",
-            return_value=ClassStruct.objects.all(),
-        ):
-            with patch.object(
-                ClassStruct,
-                "check_classificator_cycle",
-                return_value=False,
-            ) as mock_check_classificator_cycle:
-                form_data = EnumsClassFormData(main_class=self.other.pk)
-                form = EnumClassForm(data=form_data, instance=self.root)
-                self.assertTrue(form.is_valid())
-                mock_check_classificator_cycle.assert_called_once()
-                call_args = mock_check_classificator_cycle.call_args[0]
-                expected_first_arg_error = (
-                    "cls_id должен быть равен id редактируемого объекта"
-                )
-                expected_second_arg_error = (
-                    "main_cls_id должен быть равен id выбранного родителя"
-                )
-                self.assertEqual(call_args[0], self.root.pk, expected_first_arg_error)
-                self.assertEqual(call_args[1], self.other.pk, expected_second_arg_error)
-
     def test_clean_raises_error_when_cycle_detected_while_editing_existing_record(self):
         """Проверяет, что при редактировании существующей записи и создании циклической ссылки форма невалидна и содержит ошибку о цикле."""
         with patch(
@@ -349,14 +322,11 @@ class EnumClassFormTest(BaseUnitTestCase):
         ):
             form_data = EnumsClassFormData(main_class=self.child.pk)
             form = EnumClassForm(data=form_data, instance=self.root)
-            expected_error_msg = (
-                "При изменении класса в классификаторе образовывается цикл!"
-            )
             self.assertFalse(form.is_valid())
-            self.assertIn("__all__", form.errors)
+            self.assertIn("main_class", form.errors)
             self.assertEqual(
-                form.errors["__all__"][0],
-                expected_error_msg,
+                form.errors["main_class"][0],
+                ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR,
             )
 
     def test_clean_does_not_raise_error_when_no_cycle_while_editing_existing_record(
@@ -402,15 +372,12 @@ class EnumClassFormTest(BaseUnitTestCase):
             return_value=ClassStruct.objects.all(),
         ):
             form_data = EnumsClassFormData(main_class=self.root.pk)
-            expected_error_msg = (
-                "При изменении класса в классификаторе образовывается цикл!"
-            )
             form = EnumClassForm(data=form_data, instance=self.root)
             self.assertFalse(form.is_valid())
-            self.assertIn("__all__", form.errors)
+            self.assertIn("main_class", form.errors)
             self.assertEqual(
-                form.errors["__all__"][0],
-                expected_error_msg,
+                form.errors["main_class"][0],
+                ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR,
             )
 
     def test_cycle_not_checked_for_new_object(self):
@@ -1036,8 +1003,7 @@ class ChangeParClassNumFormTest(BaseUnitTestCase):
             data=form_data, class_id=self.nuts_product_class.pk
         )
         self.assertFalse(form.is_valid(), form.errors)
-        expected_error_msg = "Классы изделия не могут быть одинаковыми!"
-        self.assertEqual(form.errors["__all__"][0], expected_error_msg)
+        self.assertEqual(form.errors["__all__"][0], ChangeParClassErrors.EQUAL_PAR)
 
     def test_clean_does_not_raise_error_if_objects_are_different(self):
         """Проверяет, что при выборе двух разных объектов ParClass

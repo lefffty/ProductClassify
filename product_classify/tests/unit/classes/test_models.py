@@ -9,6 +9,7 @@ from parametr.models import Parametr
 from ei.models import Ei
 
 from classes.models import ClassStruct, ParClass
+from classes.errors import ParClassErrors
 from classes.constants import ProductsConsts, ParamIds, EnumsIds, TYPE_IDS, ENUM_PARAMS
 
 
@@ -187,11 +188,7 @@ class ParClassModelTest(BaseUnitTestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             parclass.full_clean()
-        expected_error_msg = (
-            "Для параметра 'Enum Parametr' типа 'Перечисление' не допускается указывать "
-            "минимальное и максимальное значения. "
-            "Оставьте поля min_value и max_value пустыми."
-        )
+        expected_error_msg = ParClassErrors.ENUM_AGGREGATE_RANGE_ERROR.format(self.enum_parametr.name)
         self.assertEqual(ve.exception.messages[0], expected_error_msg)
 
     def test_min_value_is_none_and_max_value_is_not_none_does_not_raise_validation_error(

@@ -1,10 +1,10 @@
 from django.core.exceptions import ValidationError
-from tests.unit.base import BaseUnitTestCase
 from django.db import IntegrityError
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from decimal import Decimal
 
+from tests.unit.base import BaseUnitTestCase
 from tests.unit.classes.factories.class_struct import ClassStructFactory
 from tests.unit.products.factories.product import ProdFactory
 from tests.unit.products.factories.par_prod import ParProdFactory
@@ -16,6 +16,7 @@ from ei.models import Ei
 from classes.constants import ParamIds, ProductsConsts, EnumsIds
 from classes.models import ClassStruct
 from specifications.models import ProdComponent
+from products.errors import CommonParProdErrors, EnumsParErrors, IntParErrors, DoubleParErrors
 from products.models import Prod
 
 
@@ -137,7 +138,7 @@ class ParProdModelTest(BaseUnitTestCase):
         base_ei = Ei.objects.order_by("id")[1]
         fastener_class = ClassStruct.objects.get(pk=ProductsConsts.FASTENER_ID)
 
-        class_field = ClassStructFactory(
+        cls.class_field = ClassStructFactory(
             name="products_class",
             short_name="prod_cls",
             base_ei=base_ei,
@@ -187,7 +188,7 @@ class ParProdModelTest(BaseUnitTestCase):
         cls.prod = ProdFactory(
             name="test_prod",
             short_name="test",
-            class_field=class_field,
+            class_field=cls.class_field,
             image=cls.image,
         )
 
@@ -266,36 +267,36 @@ class ParProdModelTest(BaseUnitTestCase):
 
         # ParClass для каждого типа параметра
         cls.double_parametr_parclass = ParClassFactory(
-            class_field=class_field,
+            class_field=cls.class_field,
             parametr=cls.double_parametr,
             num=1,
             min_value=1.0,
             max_value=5.0,
         )
         cls.int_parametr_parclass = ParClassFactory(
-            class_field=class_field,
+            class_field=cls.class_field,
             parametr=cls.int_parametr,
             num=2,
             min_value=1,
             max_value=5,
         )
         cls.string_enum_parametr_parclass = ParClassFactory(
-            class_field=class_field,
+            class_field=cls.class_field,
             parametr=cls.string_enum_parametr,
             num=3,
         )
         cls.image_enum_parametr_parclass = ParClassFactory(
-            class_field=class_field,
+            class_field=cls.class_field,
             parametr=cls.image_enum_parametr,
             num=4,
         )
         cls.double_enum_parametr_parclass = ParClassFactory(
-            class_field=class_field,
+            class_field=cls.class_field,
             parametr=cls.double_enum_parametr,
             num=5,
         )
         cls.int_enum_parametr_parclass = ParClassFactory(
-            class_field=class_field,
+            class_field=cls.class_field,
             parametr=cls.int_enum_parametr,
             num=6,
         )
@@ -310,7 +311,7 @@ class ParProdModelTest(BaseUnitTestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
-        expected_error_msg = "Параметр 'invalid_parametr' не принадлежит классу изделия 'products_class'."
+        expected_error_msg = CommonParProdErrors.INVALID_PAR.format(self.invalid_parametr.name, self.class_field.name)
         self.assertEqual(ve.exception.messages[0], expected_error_msg)
 
     def test_clean_raises_validation_error_if_string_enum_value_is_absent(self):
@@ -320,8 +321,7 @@ class ParProdModelTest(BaseUnitTestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
-        expected_error_msg = "Для параметра типа 'Строковое перечисление' необходимо выбрать значение из списка строковых перечислений."
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], EnumsParErrors.ENUM_FIELD_EMPTY)
 
     def test_clean_raises_validation_error_if_string_enum_value_does_not_belong_to_string_enum_class(self):
         parprod = ParProdFactory.build(
@@ -331,8 +331,7 @@ class ParProdModelTest(BaseUnitTestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
-        expected_error_msg = "Для параметра типа 'Строковое перечисление' необходимо выбрать значение из списка строковых перечислений."
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], EnumsParErrors.ENUM_FIELD_EMPTY)
 
     def test_clean_raises_validation_error_if_image_enum_value_is_absent(self):
         parprod = ParProdFactory.build(
@@ -341,8 +340,7 @@ class ParProdModelTest(BaseUnitTestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
-        expected_error_msg = "Для параметра типа 'Перечисление изображений' необходимо выбрать значение из списка перечислений изображений."
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], EnumsParErrors.ENUM_FIELD_EMPTY)
 
     def test_clean_raises_validation_error_if_image_enum_value_does_not_belong_to_image_enum_class(self):
         parprod = ParProdFactory.build(
@@ -352,8 +350,7 @@ class ParProdModelTest(BaseUnitTestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
-        expected_error_msg = "Для параметра типа 'Перечисление изображений' необходимо выбрать значение из списка перечислений изображений."
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], EnumsParErrors.ENUM_FIELD_EMPTY)
 
     def test_clean_raises_validation_error_if_int_enum_value_is_absent(self):
         parprod = ParProdFactory.build(
@@ -362,8 +359,7 @@ class ParProdModelTest(BaseUnitTestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
-        expected_error_msg = "Для параметра типа 'Целочисленное перечисление' необходимо выбрать значение из списка целочисленных перечислений."
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], EnumsParErrors.ENUM_FIELD_EMPTY)
 
     def test_clean_raises_validation_error_if_int_enum_value_does_not_belong_to_int_enum_class(self):
         parprod = ParProdFactory.build(
@@ -373,8 +369,7 @@ class ParProdModelTest(BaseUnitTestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
-        expected_error_msg = "Для параметра типа 'Целочисленное перечисление' необходимо выбрать значение из списка целочисленных перечислений."
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], EnumsParErrors.ENUM_FIELD_EMPTY)
 
     def test_clean_raises_validation_error_if_double_enum_value_is_absent(self):
         parprod = ParProdFactory.build(
@@ -383,8 +378,7 @@ class ParProdModelTest(BaseUnitTestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
-        expected_error_msg = "Для параметра типа 'Вещественное перечисление' необходимо выбрать значение из списка вещественных перечислений."
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], EnumsParErrors.ENUM_FIELD_EMPTY)
 
     def test_clean_raises_validation_error_if_double_enum_value_does_not_belong_to_double_enum_class(self):
         parprod = ParProdFactory.build(
@@ -394,8 +388,7 @@ class ParProdModelTest(BaseUnitTestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
-        expected_error_msg = "Для параметра типа 'Вещественное перечисление' необходимо выбрать значение из списка вещественных перечислений."
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], EnumsParErrors.ENUM_FIELD_EMPTY)
 
     def test_clean_raises_validation_error_if_double_value_is_absent(self):
         parprod = ParProdFactory.build(
@@ -404,8 +397,7 @@ class ParProdModelTest(BaseUnitTestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
-        expected_error_msg = "Для параметра типа 'Вещественное число' необходимо указать вещественное значение."
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], DoubleParErrors.DOUBLE_FIELD_EMPTY)
 
     def test_clean_raises_validation_error_if_int_value_is_absent(self):
         parprod = ParProdFactory.build(
@@ -414,8 +406,7 @@ class ParProdModelTest(BaseUnitTestCase):
         )
         with self.assertRaises(ValidationError) as ve:
             parprod.full_clean()
-        expected_error_msg = "Для параметра типа 'Целое число' необходимо указать целочисленное значение."
-        self.assertEqual(ve.exception.messages[0], expected_error_msg)
+        self.assertEqual(ve.exception.messages[0], IntParErrors.INT_FIELD_EMPTY)
 
     def test_create_object_with_minimum_requirements(self):
         parprod = ParProdFactory(

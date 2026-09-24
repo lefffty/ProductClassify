@@ -1,4 +1,8 @@
-from enum import IntEnum
+from enum import IntEnum, StrEnum
+
+
+class Markers(StrEnum):
+    CLASSIFICATOR_CYCLE = "[CLASSIFICATOR_CYCLE]"
 
 
 class ClassStructConsts(IntEnum):

@@ -6,15 +6,17 @@ from django.forms import (
     CharField,
     Form,
 )
-from django.db import transaction
+from django.db import transaction, InternalError
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 
+from core.mixins import CycleCheckFormMixin
 from ei.models import Ei
 from parametr.models import Parametr
 
 from classes.models import ClassStruct, ParClass
 from classes.constants import (
+    Markers,
     MetaConsts,
     ProdClassConsts,
     ParClassConsts,
@@ -25,8 +27,15 @@ from classes.constants import (
 from classes.errors import ClassStructErrors, ParClassErrors, ChangeParClassErrors
 
 
-class ProdClassForm(ModelForm):
+class ProdClassForm(
+    CycleCheckFormMixin,
+    ModelForm,
+):
     """Форма для создания класса изделия"""
+
+    cycle_check_field = "main_class"
+    cycle_check_marker = Markers.CLASSIFICATOR_CYCLE
+    cycle_check_error_msg = ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR
 
     base_ei = ModelChoiceField(
         label="Единица измерения",
@@ -72,28 +81,16 @@ class ProdClassForm(ModelForm):
         self.fields["main_class"].queryset = ClassStruct.terminal_product_classes()
         self.fields["base_ei"].queryset = Ei.objects.all()
 
-    def clean(self):
-        # проверяем, что поле main_class заполнено
-        if "main_class" not in self.cleaned_data:
-            return super().clean()
 
-        # если форма предназначена для редактирования существующего объекта
-        if self.instance.pk:
-            self.instance.save()
-            cls_id = self.instance.pk
-            main_cls_id = self.cleaned_data["main_class"].id
-            # проверяем, что при редактирования объекта в классификаторе не образовался цикл
-            is_cycle = ClassStruct.check_class_struct_cycles(cls_id, main_cls_id)
-            # выбрасываем исключение, если образовался цикл
-            if is_cycle:
-                raise ValidationError(ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR)
-            return super().clean()
-        else:
-            return super().clean()
-
-
-class EnumClassForm(ModelForm):
+class EnumClassForm(
+    CycleCheckFormMixin,
+    ModelForm,
+):
     """Форма для создания класса перечисления"""
+
+    cycle_check_field = "main_class"
+    cycle_check_marker = Markers.CLASSIFICATOR_CYCLE
+    cycle_check_error_msg = ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR
 
     main_class = ModelChoiceField(
         label="Родительский класс",
@@ -129,25 +126,6 @@ class EnumClassForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["main_class"].queryset = ClassStruct.all_enum_classes()
-
-    def clean(self):
-        # проверяем, что поле main_class заполнено
-        if "main_class" not in self.cleaned_data:
-            return super().clean()
-
-        # если форма предназначена для редактирования существующего объекта
-        if self.instance.pk:
-            self.instance.save()
-            cls_id = self.instance.pk
-            main_cls_id = self.cleaned_data["main_class"].id
-            # проверяем, что при редактирования объекта в классификаторе не образовался цикл
-            is_cycle = ClassStruct.check_class_struct_cycles(cls_id, main_cls_id)
-            # выбрасываем исключение, если образовался цикл
-            if is_cycle:
-                raise ValidationError(ClassStructErrors.CLASSIFICATOR_CYCLE_ERROR)
-            return super().clean()
-        else:
-            return super().clean()
 
 
 class OperationClassForm(ModelForm):
