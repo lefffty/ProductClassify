@@ -74,22 +74,22 @@ class ProdClassFormTest(BaseUnitTestCase):
         self.assertIsInstance(form.fields["base_ei"].queryset, QuerySet)
         self.assertEqual(form.fields["base_ei"].queryset.count(), eis_count)
 
-    def test_check_class_struct_cycles_called_with_correct_params(self):
-        """Проверяет, что метод check_class_struct_cycles вызывается с правильными параметрами (cls_id и main_cls_id)."""
+    def test_check_classificator_cycle_called_with_correct_params(self):
+        """Проверяет, что метод check_classificator_cycle вызывается с правильными параметрами (cls_id и main_cls_id)."""
         with patch(
             "classes.models.ClassStruct.terminal_product_classes",
             return_value=ClassStruct.objects.all(),
         ):
             with patch.object(
                 ClassStruct,
-                "check_class_struct_cycles",
+                "check_classificator_cycle",
                 return_value=False,
-            ) as mock_check_class_struct_cycles:
+            ) as mock_check_classificator_cycle:
                 form_data = ProdClassFormData(main_class=self.other.pk, base=self.base_ei.pk)
                 form = ProdClassForm(data=form_data, instance=self.root)
                 self.assertTrue(form.is_valid())
-                mock_check_class_struct_cycles.assert_called_once()
-                call_args = mock_check_class_struct_cycles.call_args[0]
+                mock_check_classificator_cycle.assert_called_once()
+                call_args = mock_check_classificator_cycle.call_args[0]
                 expected_first_arg_error = (
                     "cls_id должен быть равен id редактируемого объекта"
                 )
@@ -216,12 +216,12 @@ class ProdClassFormTest(BaseUnitTestCase):
             return_value=ClassStruct.objects.all(),
         ):
             with patch.object(
-                ClassStruct, "check_class_struct_cycles"
-            ) as mock_check_class_struct_cycles:
+                ClassStruct, "check_classificator_cycle"
+            ) as mock_check_classificator_cycle:
                 form_data = ProdClassFormData(main_class=self.root.pk, base_ei=self.base_ei.pk)
                 form = ProdClassForm(data=form_data)
                 self.assertTrue(form.is_valid())
-                mock_check_class_struct_cycles.assert_not_called()
+                mock_check_classificator_cycle.assert_not_called()
 
     def test_short_name_is_optional(self):
         """Проверяет, что поле short_name необязательно (может быть None) и форма остаётся валидной."""
@@ -316,22 +316,22 @@ class EnumClassFormTest(BaseUnitTestCase):
             form = EnumClassForm(data=form_data)
             self.assertTrue(form.is_valid())
 
-    def test_check_class_struct_cycles_is_called_with_correct_params(self):
-        """Проверяет, что метод check_class_struct_cycles вызывается с правильными параметрами (cls_id и main_cls_id)."""
+    def test_check_classificator_cycle_is_called_with_correct_params(self):
+        """Проверяет, что метод check_classificator_cycle вызывается с правильными параметрами (cls_id и main_cls_id)."""
         with patch(
             "classes.models.ClassStruct.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
             with patch.object(
                 ClassStruct,
-                "check_class_struct_cycles",
+                "check_classificator_cycle",
                 return_value=False,
-            ) as mock_check_class_struct_cycles:
+            ) as mock_check_classificator_cycle:
                 form_data = EnumsClassFormData(main_class=self.other.pk)
                 form = EnumClassForm(data=form_data, instance=self.root)
                 self.assertTrue(form.is_valid())
-                mock_check_class_struct_cycles.assert_called_once()
-                call_args = mock_check_class_struct_cycles.call_args[0]
+                mock_check_classificator_cycle.assert_called_once()
+                call_args = mock_check_classificator_cycle.call_args[0]
                 expected_first_arg_error = (
                     "cls_id должен быть равен id редактируемого объекта"
                 )
@@ -421,13 +421,13 @@ class EnumClassFormTest(BaseUnitTestCase):
         ):
             with patch.object(
                 ClassStruct,
-                "check_class_struct_cycles",
-            ) as mock_check_class_struct_cycles:
+                "check_classificator_cycle",
+            ) as mock_check_classificator_cycle:
                 form_data = EnumsClassFormData(main_class=self.other.pk)
                 form = EnumClassForm(data=form_data)
                 self.assertTrue(form.is_valid())
                 obj = form.save()
-                mock_check_class_struct_cycles.assert_not_called()
+                mock_check_classificator_cycle.assert_not_called()
                 self.assertIsNotNone(obj.pk)
 
     def test_editing_without_changing_main_class_is_valid(self):

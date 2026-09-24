@@ -525,6 +525,7 @@ class DatabaseFunctions:
         END;
         $$;
     """
+
     CHECK_EI_CYCLE = """
         CREATE OR REPLACE FUNCTION check_ei_cycle(
             ei_id BIGINT,
@@ -586,6 +587,73 @@ class DatabaseFunctions:
         FOR EACH ROW
         EXECUTE FUNCTION trg_prevent_ei_cycle();
     """
+
+    CHECK_EAS_CYCLE = """
+        CREATE OR REPLACE FUNCTION check_eas_cycle(eas_id BIGINT, main_subject_id BIGINT)
+        RETURNS BOOLEAN
+        AS
+            $$
+            DECLARE
+                DEPTH BIGINT := 0;
+                MAX_DEPTH BIGINT := 1000;
+                CURRENT_ID BIGINT := main_subject_id;
+            BEGIN
+                IF main_subject_id IS NULL THEN
+                    RETURN FALSE;
+                END IF;
+
+                IF main_subject_id = eas_id THEN
+                    RETURN TRUE;
+                END IF;
+
+                WHILE CURRENT_ID IS NOT NULL LOOP
+                    IF CURRENT_ID = eas_id THEN
+                        RETURN TRUE;
+                    END IF;
+
+                    DEPTH := DEPTH + 1;
+                    IF DEPTH > MAX_DEPTH THEN
+                        RETURN TRUE;
+                    END IF;
+
+                    SELECT eas.main_subject_id
+                    INTO CURRENT_ID
+                    FROM route_tech_economicactivitysubject eas
+                    WHERE eas.id = CURRENT_ID;
+                END LOOP;
+
+                RETURN FALSE;
+            END;
+            $$
+        LANGUAGE plpgsql;
+    """
+
+    CHECK_EAS_CYCLE_WRAPPER_FUNCTION = """
+        CREATE OR REPLACE FUNCTION trg_prevent_eas_cycle()
+        RETURNS TRIGGER
+        AS
+        $$
+        BEGIN
+            IF check_eas_cycle(new.ID, new.MAIN_SUBJECT_ID) THEN
+                RAISE EXCEPTION '[EAS_CYCLE] Cycle was detected';
+            END IF;
+            RETURN new;
+        END;
+        $$
+        LANGUAGE plpgsql;
+    """
+
+    CHECK_EAS_CYCLE_TRIGGER = """
+        CREATE OR REPLACE TRIGGER trg_eas_prevent_cycle
+        BEFORE UPDATE ON route_tech_economicactivitysubject
+        FOR EACH ROW
+        EXECUTE FUNCTION trg_prevent_eas_cycle();
+    """
+
+    DROP_CHECK_EAS_CYCLE_TRIGGER = "DROP TRIGGER trg_eas_prevent_cycle ON route_tech_economicactivitysubject;"
+    DROP_CHECK_EAS_CYCLE_WRAPPER_FUNCTION = "DROP FUNCTION trg_prevent_eas_cycle();"
+    DROP_CHECK_EAS_CYCLE = "DROP FUNCTION check_eas_cycle(eas_id BIGINT, main_subject_id BIGINT);"
+
     DROP_CHECK_CLASSIFICATOR_CYCLE_OLD = "DROP FUNCTION IF EXISTS check_class_struct_cycles(integer, integer);"
     DROP_CHECK_CLASSIFICATOR_CYCLE = "DROP FUNCTION IF EXISTS check_classificator_cycle(integer, integer);"
     DROP_DELETE_CLASS_AND_DESCENDANTS = (

@@ -16,6 +16,7 @@ from tests.unit.route_tech.factories.gwc import GWCFactory, GWCFormData
 from tests.unit.route_tech.factories.prod_oper import ProdOperationFactory, ProdOperationFormData
 from tests.unit.route_tech.factories.prod_oper_pos import ProdOperationPosFormData
 
+from route_tech.models import EconomicActivitySubject
 from route_tech.errors import EASErrors, GWCErrors, ProdOperErrors, ProdOperationPosErrors
 from route_tech.forms import EconomicActivitySubjectForm, GroupWorkingCenterForm, ProdOperationForm, ProdOperationPosForm
 
@@ -40,7 +41,24 @@ class EconomicActivitySubjectFormTest(BaseUnitTestCase):
     def setUpTestData(cls):
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
 
-        cls.main_subject = EASFactory(main_class=cls.enterprise)
+        cls.main_subject = EconomicActivitySubject.objects.create(
+            name="eas",
+            short_name="eas",
+            main_class=cls.enterprise,
+            main_subject=None,
+        )
+        cls.daughter_subject = EconomicActivitySubject.objects.create(
+            name="eas",
+            short_name="eas",
+            main_class=cls.enterprise,
+            main_subject=cls.main_subject
+        )
+        cls.granddaughter_subject = EconomicActivitySubject.objects.create(
+            name="eas",
+            short_name="eas",
+            main_class=cls.enterprise,
+            main_subject=cls.daughter_subject,
+        )
 
         cls.valid_data = EASFormData(
             main_class=cls.enterprise.pk,
@@ -70,6 +88,19 @@ class EconomicActivitySubjectFormTest(BaseUnitTestCase):
             main_subject=cls.main_subject.pk,
         )
 
+        cls.invalid_data_with_cycle_reference = EASFormData(
+            main_class=cls.enterprise.pk,
+            main_subject=cls.daughter_subject.pk
+        )
+        cls.invalid_data_with_cycle_self_reference = EASFormData(
+            main_class=cls.enterprise.pk,
+            main_subject=cls.main_subject.pk
+        )
+        cls.invalid_data_with_cycle_transitive_reference = EASFormData(
+            main_class=cls.enterprise.pk,
+            main_subject=cls.main_subject.pk
+        )
+
     def test_main_class_queryset(self):
         form = EconomicActivitySubjectForm()
         queryset = form.fields["main_class"].queryset
@@ -80,7 +111,7 @@ class EconomicActivitySubjectFormTest(BaseUnitTestCase):
         form = EconomicActivitySubjectForm()
         queryset = form.fields["main_subject"].queryset
         self.assertIsInstance(queryset, QuerySet)
-        self.assertEqual(len(queryset), 1)
+        self.assertEqual(len(queryset), 3)
 
     def test_name_field_is_required(self):
         form = EconomicActivitySubjectForm(self.empty_name_data)
@@ -128,6 +159,33 @@ class EconomicActivitySubjectFormTest(BaseUnitTestCase):
         self.assertEqual(updated_instance.short_name, self.update_data["short_name"])
         self.assertEqual(updated_instance.main_class.pk, self.update_data["main_class"])
         self.assertEqual(updated_instance.main_subject.pk, self.update_data["main_subject"])
+
+    def test_cycle_reference_causes_internal_error_exception_to_be_raised(self):
+        form = EconomicActivitySubjectForm(self.invalid_data_with_cycle_reference, instance=self.main_subject)
+        self.assertFalse(form.is_valid())
+        self.assertIn("main_subject", form.errors)
+        self.assertEqual(
+            form.errors["main_subject"],
+            [EASErrors.CYCLE_DETECTED]
+        )
+
+    def test_cycle_self_reference_causes_internal_error_exception_to_be_raised(self):
+        form = EconomicActivitySubjectForm(self.invalid_data_with_cycle_self_reference, instance=self.main_subject)
+        self.assertFalse(form.is_valid())
+        self.assertIn("main_subject", form.errors)
+        self.assertEqual(
+            form.errors["main_subject"],
+            [EASErrors.CYCLE_DETECTED]
+        )
+
+    def test_cycle_transitive_reference_causes_internal_error_exception_to_be_raised(self):
+        form = EconomicActivitySubjectForm(self.invalid_data_with_cycle_transitive_reference, instance=self.main_subject)
+        self.assertFalse(form.is_valid())
+        self.assertIn("main_subject", form.errors)
+        self.assertEqual(
+            form.errors["main_subject"],
+            [EASErrors.CYCLE_DETECTED]
+        )
 
 
 class GroupWorkingCenterFormTest(BaseUnitTestCase):

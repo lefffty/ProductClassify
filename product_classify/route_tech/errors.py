@@ -11,6 +11,7 @@ class EASErrors(StrEnum):
     EMPTY_MAIN_CLASS = (
         "Поле для класс субъекта экономической деятельности необходимо заполнить"
     )
+    CYCLE_DETECTED = "Выбор создаёт цикл в иерархии субъектов экономической деятельности."
 
 
 class GWCErrors(StrEnum):

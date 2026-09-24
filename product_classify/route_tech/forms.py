@@ -8,6 +8,7 @@ from django.forms import (
     DecimalField,
     ModelChoiceField,
 )
+from django.db import transaction, InternalError
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
@@ -27,6 +28,7 @@ from route_tech.errors import (
     ProdOperationPosErrors,
 )
 from route_tech.constants import (
+    Markers,
     EASConsts,
     GWCConsts,
     ProdOperationPosConsts,
@@ -77,6 +79,27 @@ class EconomicActivitySubjectForm(ModelForm):
             "main_class",
             "main_subject",
         )
+
+    def _post_clean(self):
+        super()._post_clean()
+
+        if self.errors:
+            return
+
+        try:
+            with transaction.atomic():
+                super().save(commit=True)
+                transaction.set_rollback(True)
+        except InternalError as e: 
+            from loguru import logger
+            logger.info("Inside _post_clean method exception block")
+            if Markers.CYCLE_DETECTED in str(e):
+                self.add_error(
+                    "main_subject",
+                    EASErrors.CYCLE_DETECTED,
+                )
+            else:
+                raise
 
 
 class GroupWorkingCenterForm(ModelForm):

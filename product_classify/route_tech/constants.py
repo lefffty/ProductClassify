@@ -1,5 +1,9 @@
-from enum import IntEnum
+from enum import IntEnum, StrEnum
 from decimal import Decimal
+
+
+class Markers(StrEnum):
+    CYCLE_DETECTED = "[EAS_CYCLE]"
 
 
 class EASConsts(IntEnum):

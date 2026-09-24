@@ -78,6 +78,7 @@ class EiForm(ModelForm):
 
         if self.errors:
             return
+        
         try:
             with transaction.atomic():
                 super().save(commit=True)
