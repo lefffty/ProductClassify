@@ -91,8 +91,6 @@ class EconomicActivitySubjectForm(ModelForm):
                 super().save(commit=True)
                 transaction.set_rollback(True)
         except InternalError as e: 
-            from loguru import logger
-            logger.info("Inside _post_clean method exception block")
             if Markers.CYCLE_DETECTED in str(e):
                 self.add_error(
                     "main_subject",
