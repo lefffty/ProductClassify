@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.urls import reverse
 from django.utils.html import escape
 from django.contrib.auth import get_user_model
@@ -936,7 +938,7 @@ class ModificationCreateViewTest(BaseUnitTestCase):
         cls.prod = ProdFactory(
             class_field=cls.nuts_subclass,
             image=cls.image,
-            cost=800,
+            cost=Decimal("320000.00"),
             ei=cls.ei,
         )
         cls.component_prod = ProdFactory(

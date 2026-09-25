@@ -710,6 +710,40 @@ class DatabaseFunctions:
         EXECUTE FUNCTION recalculate_product_price();
     """
 
+    RECALCULATE_PRODUCT_PRICE_DUE_TO_QUANTITY_UPDATE_FUNCTION = """
+        CREATE OR REPLACE FUNCTION recalculate_product_price_due_to_quantity_change()
+            RETURNS TRIGGER
+        AS
+        $$
+        DECLARE
+            parent_id   BIGINT := COALESCE(NEW.parent_prod_id, OLD.parent_prod_id);
+            new_cost    NUMERIC := 0;
+        BEGIN
+            SELECT COALESCE(SUM(COALESCE(prod.cost, 0) * pc.quantity), 0)
+            INTO new_cost
+            FROM specifications_prodcomponent pc
+            JOIN products_prod prod ON pc.component_id = prod.id
+            WHERE pc.parent_prod_id = parent_id;
+
+            UPDATE products_prod
+            SET cost = new_cost
+            WHERE id = parent_id AND cost IS DISTINCT FROM new_cost;
+
+            RETURN NULL;
+        END;
+        $$
+        LANGUAGE plpgsql;
+    """
+    RECALCULATE_PRODUCT_PRICE_DUE_TO_QUANTITY_UPDATE_TRIGGER = """
+        CREATE OR REPLACE TRIGGER trg_recalculate_prod_cost_after_quantity_update
+        AFTER INSERT OR UPDATE OR DELETE ON specifications_prodcomponent
+        FOR EACH ROW
+        EXECUTE FUNCTION recalculate_product_price_due_to_quantity_change();
+    """
+
+    DROP_PRICE_RECALCULATION_DUE_TO_QUANTITY_UPDATE_TRIGGER = "DROP TRIGGER IF EXISTS trg_recalculate_prod_cost_after_quantity_update ON specifications_prodcomponent;"
+    DROP_PRICE_RECALCULATION_DUE_TO_QUANTITY_UPDATE_FUNCTION = "DROP FUNCTION IF EXISTS recalculate_product_price_due_to_quantity_change();"
+
     DROP_PRICE_RECALCULATION_TRIGGER = "DROP TRIGGER IF EXISTS trg_recalculate_product_cost ON products_prod;"
     DROP_PRICE_RECALCULATION_FUNCTION = "DROP FUNCTION IF EXISTS recalculate_product_price();"
 

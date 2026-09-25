@@ -100,7 +100,7 @@ class ProdModelTest(BaseUnitTestCase):
             short_name="Test short",
             class_field=self.main_class,
             image=self.image,
-            cost=800,
+            cost=Decimal("320000.00"),
             ei=self.ei,
         )
         component_prod = ProdFactory(
@@ -666,3 +666,75 @@ class ProdPriceRecalculationTest(BaseUnitTestCase):
 
         self.assertEqual(self.prod_a.cost, Decimal("60.00"))
         self.assertEqual(self.prod_b.cost, Decimal("30.00"))
+
+
+class ProdCostRecalculationOnQuantityChangeTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.ei = Ei.objects.first()
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.product_class = ClassStructFactory(main_class=cls.nuts_class)
+
+        cls.prod_d = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("5.00"), ei=cls.ei,
+        )
+        cls.prod_c = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("10.00"), ei=cls.ei,
+        )
+        cls.prod_b = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("30.00"), ei=cls.ei,
+        )
+        cls.prod_a = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("60.00"), ei=cls.ei,
+        )
+
+        cls.pc_bc = ProdComponentFactory(
+            parent_prod=cls.prod_b, component=cls.prod_c,
+            num=1, quantity=Decimal("3.00"),
+        )
+        cls.pc_ab = ProdComponentFactory(
+            parent_prod=cls.prod_a, component=cls.prod_b,
+            num=1, quantity=Decimal("2.00"),
+        )
+
+    def test_quantity_updating_recalculates_parent_price(self):
+        self.pc_bc.quantity = Decimal("1.00")
+        self.pc_bc.save(update_fields=["quantity"])
+
+        self.prod_b.refresh_from_db()
+        self.assertEqual(self.prod_b.cost, Decimal("10.00"))
+
+    def test_quantity_updating_causes_cascade_prices_calculations(self):
+        self.pc_bc.quantity = Decimal("1.00")
+        self.pc_bc.save(update_fields=["quantity"])
+
+        self.prod_a.refresh_from_db()
+        self.assertEqual(self.prod_a.cost, Decimal("20.00"))
+
+    def test_adding_component_recalculates_prices(self):
+        self.pc_bd = ProdComponentFactory(
+            parent_prod=self.prod_b, component=self.prod_d,
+            num=1, quantity=Decimal("1.00"),            
+        )
+
+        self.prod_b.refresh_from_db()
+        self.prod_a.refresh_from_db()
+        self.assertEqual(self.prod_b.cost, Decimal("35.00"))
+        self.assertEqual(self.prod_a.cost, Decimal("70.00"))
+
+    def test_deleting_component_recalculates_prices(self):
+        self.pc_bd = ProdComponentFactory(
+            parent_prod=self.prod_b, component=self.prod_d,
+            num=1, quantity=Decimal("1.00"),            
+        )
+
+        self.pc_bd.delete()
+
+        self.prod_b.refresh_from_db()
+        self.prod_a.refresh_from_db()
+        self.assertEqual(self.prod_b.cost, Decimal("30.00"))
+        self.assertEqual(self.prod_a.cost, Decimal("60.00"))
