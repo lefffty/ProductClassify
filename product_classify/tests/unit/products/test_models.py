@@ -4,6 +4,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from decimal import Decimal
 
+from tests.unit.specifications.factories.prod_component import ProdComponentFactory
 from tests.unit.base import BaseUnitTestCase
 from tests.unit.classes.factories.class_struct import ClassStructFactory
 from tests.unit.products.factories.product import ProdFactory
@@ -611,3 +612,57 @@ class ParProdModelTest(BaseUnitTestCase):
             enum_val=self.image_enum_value,
         )
         self.assertEqual(parprod.value, self.image_enum_value.image)
+
+
+class ProdPriceRecalculationTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.ei = Ei.objects.first()
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.product_class = ClassStructFactory(main_class=cls.nuts_class)
+
+        cls.prod_c = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("10.00"), ei=cls.ei,
+        )
+        cls.prod_b = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("30.00"), ei=cls.ei,
+        )
+        cls.prod_a = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("60.00"), ei=cls.ei,
+        )
+
+        cls.pc_bc = ProdComponentFactory(
+            parent_prod=cls.prod_b, component=cls.prod_c,
+            num=1, quantity=Decimal("3.00"),
+        )
+        cls.pc_ab = ProdComponentFactory(
+            parent_prod=cls.prod_a, component=cls.prod_b,
+            num=1, quantity=Decimal("2.00"),
+        )
+
+    def test_child_cost_change_causes_recalculation_of_direct_parent_cost(self):
+        self.prod_c.cost = 5
+        self.prod_c.save(update_fields=["cost"])
+        self.prod_b.refresh_from_db()
+
+        self.assertEqual(self.prod_b.cost, Decimal("15.00"))
+        
+
+    def test_child_cost_change_causes_recalculation_of_all_ancestors(self):
+        self.prod_c.cost = 5
+        self.prod_c.save(update_fields=["cost"])
+
+        self.prod_a.refresh_from_db()
+        self.assertEqual(self.prod_a.cost, Decimal("30.00"))
+
+    def test_no_recalculation_if_cost_did_not_change(self):
+        self.prod_c.save(update_fields=["cost"])
+
+        self.prod_b.refresh_from_db()
+        self.prod_a.refresh_from_db()
+
+        self.assertEqual(self.prod_a.cost, Decimal("60.00"))
+        self.assertEqual(self.prod_b.cost, Decimal("30.00"))

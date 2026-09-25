@@ -672,6 +672,47 @@ class DatabaseFunctions:
         EXECUTE FUNCTION trg_prevent_classificator_cycle();
     """
 
+    RECALCULATE_PRODUCT_PRICE_AFTER_PRICE_UPDATING_FUNCTION = """
+        CREATE OR REPLACE FUNCTION recalculate_product_price()
+        RETURNS TRIGGER
+        AS
+            $$
+                DECLARE
+                    parent_id   BIGINT := 0;
+                    new_cost    NUMERIC := 0;
+                BEGIN
+                    FOR parent_id IN (
+                        SELECT pc.parent_prod_id
+                        FROM specifications_prodcomponent pc
+                        WHERE pc.component_id = new.id
+                    ) LOOP
+                        SELECT COALESCE(SUM(COALESCE(prod.cost, 0) * pc.quantity), 0)
+                        INTO new_cost
+                        FROM specifications_prodcomponent pc
+                        JOIN products_prod prod ON pc.component_id = prod.id
+                        WHERE pc.parent_prod_id = parent_id;
+
+                        UPDATE products_prod
+                        SET cost = new_cost
+                        WHERE id = parent_id AND cost IS DISTINCT FROM new_cost;
+                    END LOOP;
+
+                    RETURN new;
+                END;
+            $$
+        LANGUAGE plpgsql;
+    """
+    RECALCULATE_PRODUCT_PRICE_AFTER_PRICE_UPDATING_TRIGGER = """
+        CREATE OR REPLACE TRIGGER trg_recalculate_product_cost
+            AFTER UPDATE OF cost ON products_prod
+        FOR EACH ROW
+        WHEN ( old.cost IS DISTINCT FROM new.cost)
+        EXECUTE FUNCTION recalculate_product_price();
+    """
+
+    DROP_PRICE_RECALCULATION_TRIGGER = "DROP TRIGGER IF EXISTS trg_recalculate_product_cost ON products_prod;"
+    DROP_PRICE_RECALCULATION_FUNCTION = "DROP FUNCTION IF EXISTS recalculate_product_price();"
+
     DROP_CHECK_CLASSFICATOR_CYCLE_TRIGGER = "DROP TRIGGER IF EXISTS trg_classificator_prevent_cycle ON classes_classstruct;"
     DROP_CHECK_CLASSIFICATOR_WRAPPER_FUNCTION = "DROP FUNCTION IF EXISTS trg_prevent_classificator_cycle();"
     DROP_CHECK_CLASSIFICATOR_CYCLE = "DROP FUNCTION IF EXISTS check_classificator_cycle(cls_id BIGINT, main_cls_id BIGINT);"
