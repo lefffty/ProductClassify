@@ -20,7 +20,6 @@ from specifications.constants import TotalCostRatioConsts, ChangeLogConsts
 from specifications.models import (
     TotalCostRatioResult,
     SpecificationLogResult,
-    SpecificationLogs,
     ProdComponent,
 )
 
@@ -311,7 +310,7 @@ def create_change_log_pdf(results: List[SpecificationLogResult]) -> BytesIO:
     return buffer
 
 
-def save_formset_with_logging(formset: BaseInlineFormSet, product: Prod):
+def save_formset_with_logging(formset: BaseInlineFormSet):
     old_objects = {}
     for form in formset.initial_forms:
         if form.instance.pk:
@@ -323,33 +322,10 @@ def save_formset_with_logging(formset: BaseInlineFormSet, product: Prod):
 
     for form in formset.deleted_forms:
         if form.instance.pk:
-            old_obj = old_objects.get(form.instance.pk)
-            if old_obj:
-                SpecificationLogs.objects.create(
-                    pair=old_obj,
-                    old_quantity=old_obj.quantity,
-                    new_quantity=0,
-                )
             form.instance.delete()
 
     for instance in instances:
-        is_new = instance.pk is None
         instance.save()
-
-        if is_new:
-            SpecificationLogs.objects.create(
-                pair=instance,
-                old_quantity=0,
-                new_quantity=instance.quantity,
-            )
-        else:
-            old_obj = old_objects.get(instance.pk)
-            if old_obj and old_obj.quantity != instance.quantity:
-                SpecificationLogs.objects.create(
-                    pair=instance,
-                    old_quantity=old_obj.quantity,
-                    new_quantity=instance.quantity,
-                )
 
     formset.save_m2m()
 

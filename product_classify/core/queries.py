@@ -741,6 +741,30 @@ class DatabaseFunctions:
         EXECUTE FUNCTION recalculate_product_price_due_to_quantity_change();
     """
 
+    LOG_PRODCOMPONENT_CHANGE_FUNCTION = """
+        CREATE OR REPLACE FUNCTION log_prodcomponent_change()
+        RETURNS TRIGGER
+        AS
+        $$
+            BEGIN
+                INSERT INTO specifications_specificationlogs(id, updated_at, old_quantity, new_quantity, pair_id)
+                VALUES (DEFAULT, now(), old.quantity, new.quantity, new.id);
+                RETURN  new;
+            END;
+        $$
+        LANGUAGE plpgsql;
+    """
+    LOG_PRODCOMPONENT_CHANGE_TRIGGER = """
+        CREATE OR REPLACE TRIGGER trg_log_prodcomponent_change
+        AFTER UPDATE ON specifications_prodcomponent
+        FOR EACH ROW
+        WHEN ( old.quantity IS DISTINCT FROM new.quantity)
+        EXECUTE FUNCTION log_prodcomponent_change();
+    """
+
+    DROP_LOG_PRODCOMPONENT_CHANGE_TRIGGER = "DROP TRIGGER IF EXISTS trg_log_prodcomponent_change ON specifications_prodcomponent;"
+    DROP_LOG_PRODCOMPONENT_CHANGE_FUNCTION = "DROP FUNCTION IF EXISTS log_prodcomponent_change();"
+
     DROP_PRICE_RECALCULATION_DUE_TO_QUANTITY_UPDATE_TRIGGER = "DROP TRIGGER IF EXISTS trg_recalculate_prod_cost_after_quantity_update ON specifications_prodcomponent;"
     DROP_PRICE_RECALCULATION_DUE_TO_QUANTITY_UPDATE_FUNCTION = "DROP FUNCTION IF EXISTS recalculate_product_price_due_to_quantity_change();"
 

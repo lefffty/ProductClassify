@@ -357,10 +357,6 @@ class EditSpecificationViewTest(BaseUnitTestCase):
         new_component = ProdComponent.objects.exclude(pk=self.prodcomponent.pk).first()
         self.assertEqual(new_component.component, self.another_component)
         self.assertEqual(new_component.quantity, 50)
-        log = SpecificationLogs.objects.filter(pair=new_component).first()
-        self.assertIsNotNone(log)
-        self.assertEqual(log.old_quantity, 0)
-        self.assertEqual(log.new_quantity, 50)
 
     def test_can_delete_existing_component(self):
         self.client.force_login(self.allowed_user)

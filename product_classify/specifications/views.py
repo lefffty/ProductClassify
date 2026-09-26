@@ -70,7 +70,7 @@ def edit_specification_view(request: HttpRequest, product_id: int) -> HttpRespon
         formset = ProdComponentFormSet(request.POST, instance=product)
         if formset.is_valid():
             with transaction.atomic():
-                save_formset_with_logging(formset, product)
+                save_formset_with_logging(formset)
             return redirect("products:detail", product_id=product_id)
         else:
             logger.info(formset.errors)

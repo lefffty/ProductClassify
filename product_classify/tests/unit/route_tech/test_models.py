@@ -1,6 +1,8 @@
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 
+from decimal import Decimal
+
 from classes.models import ClassStruct
 from classes.constants import (
     MetaConsts,
@@ -9,6 +11,11 @@ from classes.constants import (
     ProfessionConsts,
     QualificationConsts,
 )
+from ei.models import Ei
+from specifications.models import SpecificationLogs
+
+from tests.unit.base import BaseUnitTestCase
+from tests.unit.specifications.factories.prod_component import ProdComponentFactory
 from tests.unit.classes.factories.class_struct import ClassStructFactory
 from tests.unit.products.factories.product import ProdFactory
 from tests.unit.route_tech.factories.eas import EASFactory
@@ -23,8 +30,6 @@ from route_tech.models import (
     ProdOperationPos
 )
 from route_tech.constants import ProdOperConsts, ProdOperationPosConsts
-
-from tests.unit.base import BaseUnitTestCase
 
 
 class EconomicActivityEntityTest(BaseUnitTestCase):
@@ -352,3 +357,72 @@ class ProdOperationPosTest(BaseUnitTestCase):
             f"({self.input_quantity} -> {self.output_quantity})"
         )
         self.assertEqual(str(prod_oper), expected)
+
+
+class ProdComponentChangeLoggingTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.ei = Ei.objects.first()
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.product_class = ClassStructFactory(main_class=cls.nuts_class)
+
+        cls.prod_d = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("5.00"), ei=cls.ei,
+        )
+        cls.prod_c = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("10.00"), ei=cls.ei,
+        )
+        cls.prod_b = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("30.00"), ei=cls.ei,
+        )
+        cls.prod_a = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("60.00"), ei=cls.ei,
+        )
+
+        cls.pc_bc = ProdComponentFactory(
+            parent_prod=cls.prod_b, component=cls.prod_c,
+            num=1, quantity=Decimal("3.00"),
+        )
+        cls.pc_ab = ProdComponentFactory(
+            parent_prod=cls.prod_a, component=cls.prod_b,
+            num=1, quantity=Decimal("2.00"),
+        )
+
+    def test_adding_prodcomponent_does_not_affect_specificationlog_table(self):
+        count_before = SpecificationLogs.objects.count()
+        self.pc_bd = ProdComponentFactory(
+            parent_prod=self.prod_b, component=self.prod_d,
+            num=1, quantity=Decimal("1.00"),            
+        )
+        count_after = SpecificationLogs.objects.count()
+        self.assertEqual(count_before, count_after)
+
+    def test_deleting_prodcomponent_does_not_affect_specificationlog_table(self):
+        count_before = SpecificationLogs.objects.count()
+        self.pc_bc.delete()
+        count_after = SpecificationLogs.objects.count()
+        self.assertEqual(count_before, count_after)
+
+    def test_updating_prodcomponent_creates_new_record_in_specificationlog_table(self):
+        count_before = SpecificationLogs.objects.count()
+
+        self.pc_bc.quantity = Decimal("1.00")
+        self.pc_bc.save(update_fields=["quantity"])
+
+        count_after = SpecificationLogs.objects.count()
+        self.assertEqual(count_before + 1, count_after)
+
+    def test_updating_prodcomponent_create_new_record_in_specificationlog_table_with_correct_data(self):
+        old_quantity = self.pc_bc.quantity
+        new_quantity = Decimal("1.00")
+        self.pc_bc.quantity = new_quantity
+        self.pc_bc.save(update_fields=["quantity"])
+
+        self.last_log = SpecificationLogs.objects.last()
+        self.assertEqual(self.last_log.old_quantity, old_quantity)
+        self.assertEqual(self.last_log.new_quantity, new_quantity)
+        self.assertEqual(self.last_log.pair.pk, self.pc_bc.pk)
