@@ -21,6 +21,7 @@ gwc_patterns = [
 ]
 
 prod_operation_patterns = [
+    path("list/", views.ProdOperationListView.as_view(), name="list_prod_operation"),
     path("add/", views.ProdOperationCreateView.as_view(), name="add_prod_operation"),
     path(
         "delete/<int:prod_oper_id>/",

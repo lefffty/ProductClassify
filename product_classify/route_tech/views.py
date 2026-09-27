@@ -102,6 +102,12 @@ class GWCDeleteView(CommonContextMixin, DeleteView):
     context_object_name = "center"
 
 
+class ProdOperationListView(CommonContextMixin, ListView):
+    template_name = "route_tech/prod_operation/list.html"
+    model = ProdOperation
+    context_object_name = "operations"
+
+
 class ProdOperationCreateView(CommonContextMixin, CreateView):
     template_name = "route_tech/prod_operation/prod_operation.html"
     model = ProdOperation

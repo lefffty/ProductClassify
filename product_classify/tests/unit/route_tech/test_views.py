@@ -435,6 +435,61 @@ class GWCDeleteViewTest(BaseUnitTestCase):
         self.assertRedirects(response, self.redirect_url)
 
 
+class ProdOperationListViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.tech_oper = ClassStruct.objects.get(pk=OperationConsts.WELDING)
+        cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
+        cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
+
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.product_class = ClassStructFactory(main_class=cls.nuts_class)
+        cls.ei = Ei.objects.first()
+
+        cls.prod = ProdFactory(
+            class_field=cls.product_class,
+            image=None,
+            cost=Decimal("100.00"),
+            ei=cls.ei,
+        )
+
+        cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
+        cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
+
+        cls.stand = ClassStructFactory(main_class=cls.means_of_labor)
+        cls.eas = EASFactory(main_class=cls.enterprise)
+        cls.center = GWCFactory(
+            main_class=cls.stand,
+            eas=cls.eas,
+            place=42,
+        )
+
+        cls.prod_operation = ProdOperationFactory(
+            prod=cls.prod,
+            tech_oper=cls.tech_oper,
+            profession=cls.profession,
+            center=cls.center,
+            qualification=cls.qualification,
+            num_of_workers=3,
+            t_pz=1.0,
+            t_sht=2.0,
+        )
+
+        cls.url = reverse("route_tech:list_prod_operation")
+
+    def test_returns_200_status_code(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_uses_eas_list_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "route_tech/prod_operation/list.html")
+
+    def test_has_eas_list_in_context(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "route_tech/prod_operation/list.html")
+
+
 class ProdOperationCreateViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
