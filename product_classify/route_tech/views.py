@@ -64,6 +64,12 @@ class EASDeleteView(CommonContextMixin, DeleteView):
     context_object_name = "subject"
 
 
+class GWCListView(CommonContextMixin, ListView):
+    model = GroupWorkingCenter
+    template_name = "route_tech/gwc/list.html"
+    context_object_name = "centers"
+
+
 class GWCCreateView(CommonContextMixin, CreateView):
     template_name = "route_tech/gwc/gwc.html"
     model = GroupWorkingCenter

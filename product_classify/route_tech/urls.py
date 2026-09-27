@@ -13,6 +13,7 @@ eas_patterns = [
 ]
 
 gwc_patterns = [
+    path("list/", views.GWCListView.as_view(), name="list_gwc"),
     path("add/", views.GWCCreateView.as_view(), name="add_gwc"),
     path("edit/<int:gwc_id>/", views.GWCUpdateView.as_view(), name="edit_gwc"),
     path("<int:gwc_id>/", views.GWCDetailView.as_view(), name="detail_gwc"),

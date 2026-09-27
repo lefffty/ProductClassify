@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+    Групповые рабочие центры
+{% endblock title %}
+
+{% block content %}
+<div id="gwc-list-container" class="container py-4">
+    <div id="gwc-list-card" class="card shadow-sm">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <h2 id="gwc-list-header" class="card-title h4 mb-0">
+                    <i class="bi bi-tools text-warning"></i>
+                    Групповые рабочие центры
+                </h2>
+
+                {% if perms.route_tech.add_groupworkingcenter %}
+                    <a id="gwc-list-add-btn"
+                       href="{% url 'route_tech:add_gwc' %}"
+                       class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Добавить центр
+                    </a>
+                {% endif %}
+            </div>
+
+            {% if centers %}
+                <div class="table-responsive">
+                    <table id="gwc-list-table" class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 5%;">ID</th>
+                                <th style="width: 25%;">Название</th>
+                                <th style="width: 15%;">Сокращённое</th>
+                                <th style="width: 20%;">Родительский класс</th>
+                                <th style="width: 20%;">Субъект деятельности</th>
+                                <th style="width: 10%;" class="text-center">Место</th>
+                                <th style="width: 5%;" class="text-center">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for center in centers %}
+                                <tr id="gwc-row-{{ center.pk }}">
+                                    <td>{{ center.pk }}</td>
+                                    <td>
+                                        <a href="{% url 'route_tech:detail_gwc' center.pk %}"
+                                           class="text-decoration-none fw-semibold">
+                                            {{ center.name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ center.short_name|default:"—" }}</td>
+                                    <td>{{ center.main_class.name }}</td>
+                                    <td>
+                                        {% if center.eas %}
+                                            <a href="{% url 'route_tech:detail_eas' center.eas.pk %}"
+                                               class="text-decoration-none">
+                                                {{ center.eas.name }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">{{ center.place }}</td>
+                                    <td class="text-center text-nowrap">
+                                        {% if perms.route_tech.change_groupworkingcenter %}
+                                            <a id="gwc-edit-{{ center.pk }}"
+                                               href="{% url 'route_tech:edit_gwc' center.pk %}"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Редактировать">
+                                                Редактировать
+                                            </a>
+                                        {% endif %}
+                                        {% if perms.route_tech.delete_groupworkingcenter %}
+                                            <a id="gwc-delete-{{ center.pk }}"
+                                               href="{% url 'route_tech:delete_gwc' center.pk %}"
+                                               class="btn btn-sm btn-outline-danger"
+                                               title="Удалить">
+                                                Удалить
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div id="gwc-list-empty" class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Групповых рабочих центров пока нет.
+                    {% if perms.route_tech.add_groupworkingcenter %}
+                        <a href="{% url 'route_tech:add_gwc' %}" class="alert-link">Добавьте первый</a>.
+                    {% endif %}
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock content %}
