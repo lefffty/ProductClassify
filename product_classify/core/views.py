@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
 
 from http import HTTPStatus
 
@@ -20,16 +20,16 @@ def get_context_data() -> dict:
     return context
 
 
-def custom_403_handler(request: HttpRequest, exception):
+def custom_403_handler(request: HttpRequest, exception) -> HttpResponse:
     context = get_context_data()
     return render(request, "pages/403.html", status=HTTPStatus.FORBIDDEN, context=context)
 
 
-def custom_404_handler(request: HttpRequest, exception):
+def custom_404_handler(request: HttpRequest, exception) -> HttpResponse:
     context = get_context_data()
     return render(request, "pages/404.html", status=HTTPStatus.NOT_FOUND, context=context)
 
 
-def custom_500_handler(request: HttpRequest):
+def custom_500_handler(request: HttpRequest) -> HttpResponse:
     context = get_context_data()
     return render(request, "pages/500.html", status=HTTPStatus.INTERNAL_SERVER_ERROR, context=context)

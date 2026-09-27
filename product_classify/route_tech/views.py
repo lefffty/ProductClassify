@@ -1,4 +1,4 @@
-from django.views.generic import CreateView, UpdateView, DetailView, DeleteView
+from django.views.generic import CreateView, ListView, UpdateView, DetailView, DeleteView
 from django.urls import reverse_lazy
 from django.http import HttpRequest
 from django.shortcuts import render, redirect, get_object_or_404
@@ -6,8 +6,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from loguru import logger
 
 from core.mixins import CommonContextMixin
-
 from core.views import get_context_data
+
 from products.models import Prod
 
 from route_tech.forms import (
@@ -18,6 +18,12 @@ from route_tech.forms import (
 )
 from route_tech.constants import FormSetConsts
 from route_tech.models import EconomicActivitySubject, GroupWorkingCenter, ProdOperation
+
+
+class EASListView(CommonContextMixin, ListView):
+    template_name = "route_tech/eas/list.html"
+    model = EconomicActivitySubject
+    context_object_name = "subjects"
 
 
 class EASCreateView(CommonContextMixin, CreateView):

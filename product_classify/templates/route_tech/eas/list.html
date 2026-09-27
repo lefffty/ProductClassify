@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+    Субъекты экономической деятельности
+{% endblock title %}
+
+{% block content %}
+<div id="eas-list-container" class="container py-4">
+    <div id="eas-list-card" class="card shadow-sm">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <h2 id="eas-list-header" class="card-title h4 mb-0">
+                    <i class="bi bi-diagram-3 text-primary"></i>
+                    Субъекты экономической деятельности
+                </h2>
+
+                {% if perms.route_tech.add_economicactivitysubject %}
+                    <a id="eas-list-add-btn"
+                       href="{% url 'route_tech:add_eas' %}"
+                       class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Добавить субъект
+                    </a>
+                {% endif %}
+            </div>
+
+            {% if subjects %}
+                <div class="table-responsive">
+                    <table id="eas-list-table" class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 5%;">ID</th>
+                                <th style="width: 30%;">Название</th>
+                                <th style="width: 15%;">Сокращённое</th>
+                                <th style="width: 25%;">Родительский класс</th>
+                                <th style="width: 20%;">Родительский субъект</th>
+                                <th style="width: 5%;" class="text-center">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject in subjects %}
+                                <tr id="eas-row-{{ subject.pk }}">
+                                    <td>{{ subject.pk }}</td>
+                                    <td>
+                                        <a href="{% url 'route_tech:detail_eas' subject.pk %}"
+                                           class="text-decoration-none fw-semibold">
+                                            {{ subject.name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ subject.short_name|default:"—" }}</td>
+                                    <td>{{ subject.main_class.name }}</td>
+                                    <td>
+                                        {% if subject.main_subject %}
+                                            <a href="{% url 'route_tech:detail_eas' subject.main_subject.pk %}"
+                                               class="text-decoration-none">
+                                                {{ subject.main_subject.name }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center text-nowrap">
+                                        <a id="eas-detail-{{ subject.pk }}"
+                                           href="{% url 'route_tech:detail_eas' subject.pk %}"
+                                           class="btn btn-sm btn-outline-secondary"
+                                           title="Просмотр">
+                                            Просмотр
+                                        </a>
+                                        {% if perms.route_tech.change_economicactivitysubject %}
+                                            <a id="eas-edit-{{ subject.pk }}"
+                                               href="{% url 'route_tech:edit_eas' subject.pk %}"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Редактировать">
+                                                Редактировать
+                                            </a>
+                                        {% endif %}
+                                        {% if perms.route_tech.delete_economicactivitysubject %}
+                                            <a id="eas-delete-{{ subject.pk }}"
+                                               href="{% url 'route_tech:delete_eas' subject.pk %}"
+                                               class="btn btn-sm btn-outline-danger"
+                                               title="Удалить">
+                                                Удалить
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div id="eas-list-empty" class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Субъектов экономической деятельности пока нет.
+                    {% if perms.route_tech.add_economicactivitysubject %}
+                        <a href="{% url 'route_tech:add_eas' %}" class="alert-link">Добавьте первый</a>.
+                    {% endif %}
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -5,6 +5,7 @@ from . import views
 app_name = "route_tech"
 
 eas_patterns = [
+    path("list/", views.EASListView.as_view(), name="list_eas"),
     path("add/", views.EASCreateView.as_view(), name="add_eas"),
     path("edit/<int:eas_id>/", views.EASUpdateView.as_view(), name="edit_eas"),
     path("<int:eas_id>/", views.EASDetailView.as_view(), name="detail_eas"),

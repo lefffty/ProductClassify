@@ -17,8 +17,13 @@ from classes.constants import (
 from accounts.constants import RoleCodes
 from accounts.models import Role
 
+from route_tech.models import EconomicActivitySubject, GroupWorkingCenter, ProdOperation, ProdOperationPos
+from route_tech.forms import ProdOperationPosFormSet
+from route_tech.errors import EASErrors, GWCErrors, ProdOperErrors
+
 from ei.models import Ei
 
+from tests.unit.base import BaseUnitTestCase
 from tests.unit.accounts.factories.user import UserFactory
 from tests.unit.classes.factories.class_struct import ClassStructFactory
 from tests.unit.products.factories.product import ProdFactory
@@ -27,13 +32,29 @@ from tests.unit.route_tech.factories.gwc import GWCFactory, GWCFormData
 from tests.unit.route_tech.factories.prod_oper import ProdOperationFactory, ProdOperationFormData
 from tests.unit.route_tech.factories.prod_oper_pos import ProdOperationPosFactory
 
-from route_tech.models import EconomicActivitySubject, GroupWorkingCenter, ProdOperation, ProdOperationPos
-from route_tech.forms import ProdOperationPosFormSet
-from route_tech.errors import EASErrors, GWCErrors, ProdOperErrors
-
-from tests.unit.base import BaseUnitTestCase
 
 User = get_user_model()
+
+
+class EASListViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
+        cls.parent_subject = EASFactory(main_class=cls.enterprise)
+
+        cls.url = reverse("route_tech:list_eas")
+
+    def test_returns_200_status_code(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_uses_eas_list_template(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "route_tech/eas/list.html")
+
+    def test_has_eas_list_in_context(self):
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "route_tech/eas/list.html")
 
 
 class EASCreateViewTest(BaseUnitTestCase):
