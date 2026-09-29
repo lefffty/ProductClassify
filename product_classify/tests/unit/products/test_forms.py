@@ -16,12 +16,12 @@ from tests.unit.products.factories.par_prod import ParProdFormData
 
 from classes.models import ClassStruct, ParClass
 from classes.constants import ProductsConsts, EnumsIds, ParamIds, ProdClassConsts
+from parametr.selectors import ParametrSelector
 from parametr.models import Parametr
 from ei.models import Ei
 from enums.models import Enums
 
 from products.errors import ProdErrors, CommonParProdErrors, IntParErrors, DoubleParErrors, EnumsParErrors
-from products.constants import ProdConsts
 from products.models import Prod, ParProd
 from products.forms import ProdForm, ParProdForm, ModificationForm, SearchForm
 from products.errors import IntParErrors, DoubleParErrors, ProdErrors
@@ -380,7 +380,7 @@ class ParProdFormTest(BaseUnitTestCase):
 
     def test_par_queryset_is_parameters(self):
         form = ParProdForm()
-        parameters_count = Parametr.parameters().count()
+        parameters_count = ParametrSelector.parameters().count()
         self.assertIsInstance(form.fields["par"].queryset, QuerySet)
         self.assertEqual(form.fields["par"].queryset.count(), parameters_count)
 

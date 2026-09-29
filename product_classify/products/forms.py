@@ -20,6 +20,7 @@ from classes.constants import ParamIds, ENUMS_IDS, NUMERIC_PARAMS, ENUM_PARAMS
 from enums.models import Enums
 from ei.models import Ei
 
+from parametr.selectors import ParametrSelector
 from products.models import Parametr, ParProd, Prod
 from products.constants import ProdConsts
 from products.errors import (
@@ -132,7 +133,7 @@ class ParProdForm(ModelForm):
     def __init__(self, *args, **kwargs):
         prod_id = kwargs.pop("prod_id", None)
         super().__init__(*args, **kwargs)
-        self.fields["par"].queryset = Parametr.parameters()
+        self.fields["par"].queryset = ParametrSelector.parameters()
         self.fields["enum_val"].queryset = Enums.objects.select_related("enum").all()
         if prod_id:
             self.fields["prod"].initial = Prod.objects.get(pk=prod_id)

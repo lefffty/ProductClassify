@@ -4,6 +4,7 @@ from classes.models import ClassStruct
 from classes.constants import ParamIds
 from ei.models import Ei
 
+from parametr.selectors import ParametrSelector
 from parametr.models import Parametr
 
 
@@ -61,7 +62,7 @@ class ParametrModelTest(BaseUnitTestCase):
             parametr_type=self.parametr_type,
             par_ei=self.par_ei,
         )
-        parametrs = Parametr.parameters()
+        parametrs = ParametrSelector.parameters()
         self.assertEqual(parametrs.count(), 1)
         self.assertIn(parametr, parametrs)
 
@@ -71,6 +72,6 @@ class ParametrModelTest(BaseUnitTestCase):
             parametr_type=self.agregat_type,
             par_ei=self.par_ei,
         )
-        agregats = Parametr.agregats()
+        agregats = ParametrSelector.agregats()
         self.assertEqual(agregats.count(), 1)
         self.assertIn(agregat, agregats)

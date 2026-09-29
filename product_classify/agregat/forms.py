@@ -6,6 +6,7 @@ from django.forms import (
 )
 
 from parametr.models import Parametr
+from parametr.selectors import ParametrSelector
 
 from core.utils import change_num
 
@@ -36,8 +37,8 @@ class AgregatForm(ModelForm):
     def __init__(self, *args, **kwargs):
         agr = kwargs.pop("agr", None)
         super().__init__(*args, **kwargs)
-        self.fields["agr"].queryset = Parametr.agregats()
-        self.fields["par"].queryset = Parametr.parameters()
+        self.fields["agr"].queryset = ParametrSelector.agregats()
+        self.fields["par"].queryset = ParametrSelector.parameters()
         self.fields["agr"].initial = agr
 
     def clean(self):

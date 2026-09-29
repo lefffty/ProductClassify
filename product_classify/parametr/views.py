@@ -8,10 +8,9 @@ from django.views.generic import (
     UpdateView,
 )
 
-from classes.constants import ParamIds
-
 from core.mixins import CommonContextMixin, HandbookExecutiveRequiredMixin
 
+from parametr.selectors import ParametrSelector
 from parametr.constants import ParametrConsts
 from parametr.models import Parametr
 from parametr.forms import ParametrForm
@@ -29,21 +28,9 @@ class ParametrListView(
 
     def get_queryset(self):
         query = self.request.GET.get("query")
-        parameters = (
-            Parametr.objects
-            .exclude(parametr_type__exact=ParamIds.AGREGAT)
-            .select_related("parametr_type")
-            .only(
-                "id",
-                "name",
-                "short_name",
-                "parametr_type__name",
-            )
-            .order_by("id")
-        )
         if not query:
-            return parameters
-        return parameters.filter(name__icontains=query)
+            return ParametrSelector.fetch_parametrs_list()
+        return ParametrSelector.search_by_name(query)
 
 
 class ParametrDetailView(

@@ -15,6 +15,7 @@ from core.utils import change_num
 from ei.models import Ei
 
 from parametr.models import Parametr
+from parametr.selectors import ParametrSelector
 
 from classes.models import ClassStruct, ParClass
 from classes.constants import (
@@ -287,7 +288,7 @@ class ParClassForm(ModelForm):
     def __init__(self, *args, **kwargs):
         class_field = kwargs.pop("class_field", None)
         super().__init__(*args, **kwargs)
-        self.fields["parametr"].queryset = Parametr.parameters().order_by("id")
+        self.fields["parametr"].queryset = ParametrSelector.parameters()
         self.fields["class_field"].queryset = ClassStruct.products()
         self.fields["class_field"].initial = class_field
 
