@@ -4,6 +4,7 @@ from enum import IntEnum
 class ParametrConsts(IntEnum):
     NAME_MAX_LENGTH =       64
     SHORT_NAME_MAX_LENGTH = 16
+    PER_PAGE =              10
 
 
 class AgrConsts(IntEnum):

@@ -12,6 +12,7 @@ from classes.constants import ParamIds
 
 from core.mixins import CommonContextMixin, HandbookExecutiveRequiredMixin
 
+from parametr.constants import ParametrConsts
 from parametr.models import Parametr
 from parametr.forms import ParametrForm
 
@@ -24,7 +25,7 @@ class ParametrListView(
     permission_required = "parametr.view_parametr"
     template_name = "parametr/list.html"
     context_object_name = "parameters"
-    ordering = "id"
+    paginate_by = ParametrConsts.PER_PAGE
 
     def get_queryset(self):
         parameters = (
@@ -37,6 +38,7 @@ class ParametrListView(
                 "short_name",
                 "parametr_type__name",
             )
+            .order_by("id")
         )
         return parameters
 
