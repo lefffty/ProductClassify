@@ -13,6 +13,7 @@ from core.mixins import CommonContextMixin, HandbookExecutiveRequiredMixin
 from classes.models import ClassStruct
 
 from enums.models import Enums
+from enums.constants import EnumsConsts
 from enums.forms import EnumsForm, ChangeNumForm
 
 
@@ -21,6 +22,7 @@ class EnumsListView(
     CommonContextMixin,
     ListView,
 ):
+    paginate_by = EnumsConsts.PER_PAGE
     permission_required = "enums.view_enums"
     template_name = "enums/list.html"
     context_object_name = "enums"

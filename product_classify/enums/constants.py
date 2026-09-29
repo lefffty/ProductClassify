@@ -7,3 +7,4 @@ class EnumsConsts(IntEnum):
     INT_VALUE_LOWER_BOUND =     0
     DOUBLE_VALUE_LOWER_BOUND =  0.0
     MAX_NUM_VALUE =             32767
+    PER_PAGE =                  10
