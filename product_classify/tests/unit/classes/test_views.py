@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 
 from http import HTTPStatus
 from parameterized import parameterized
-from unittest.mock import patch
 
 from tests.unit.base import BaseUnitTestCase
 from tests.unit.accounts.factories.user import UserFactory
@@ -22,10 +21,6 @@ from tests.unit.classes.factories.class_struct import (
 from accounts.models import Role
 from accounts.constants import RoleCodes
 
-from parametr.models import Parametr
-from parametr.constants import ParametrConsts
-
-from products.models import Prod
 from products.models import ParProd
 
 from ei.models import Ei
@@ -40,7 +35,6 @@ from classes.errors import (
 )
 from classes.constants import (
     OperationConsts,
-    ProdClassConsts,
     ProductsConsts,
     MetaConsts,
     EnumsIds,
@@ -579,16 +573,6 @@ class DeleteClassViewTest(BaseUnitTestCase):
         self.client.force_login(self.allowed_user)
         response = self.client.post(path=self.url)
         self.assertRedirects(response, self.redirect_url, fetch_redirect_response=False)
-
-    def test_delete_class_and_descendants_was_called_with_correct_arguments(self):
-        self.client.force_login(self.allowed_user)
-        with patch.object(
-            ClassStruct,
-            "delete_class_and_descendants"
-        ) as mock_delete_class_and_descendants:
-            self.client.post(path=self.url)
-            mock_delete_class_and_descendants.assert_called_once()
-            mock_delete_class_and_descendants.assert_called_with(self.class_id)
 
 
 class ClassParamCreateViewTest(BaseUnitTestCase):

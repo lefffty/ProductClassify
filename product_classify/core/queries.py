@@ -830,7 +830,7 @@ class DatabaseFunctions:
     DROP_CHECK_CLASSIFICATOR_CYCLE = "DROP FUNCTION IF EXISTS check_classificator_cycle(integer, integer);"
 
     DROP_DELETE_CLASS_AND_DESCENDANTS = (
-        "DROP FUNCTION delete_class_and_descendants(integer);"
+        "DROP FUNCTION IF EXISTS delete_class_and_descendants(integer);"
     )
 
     DROP_CHECK_EI_CYCLE = "DROP FUNCTION check_ei_cycle(ei_id BIGINT, main_cls_id BIGINT);"

@@ -191,12 +191,12 @@ class ClassDeleteView(
             ClassStruct.objects.filter(pk=class_id).select_related("main_class").first()
         )
 
-    def post(self, request, *args, **kwargs):
-        obj = self.get_object()
-        main_class_id = obj.main_class.pk
-        ClassStruct.delete_class_and_descendants(obj.pk)
-        return HttpResponseRedirect(
-            reverse("classes:category_classes", kwargs={"class_id": main_class_id})
+    def get_success_url(self):
+        return reverse_lazy(
+            "classes:category_classes",
+            kwargs={
+                "class_id": self.object.main_class_id,
+            },
         )
 
 

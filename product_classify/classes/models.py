@@ -120,16 +120,6 @@ class ClassStruct(models.Model):
         return cls.objects.filter(id__in=classes_ids)
 
     @classmethod
-    def delete_class_and_descendants(cls, class_id: int):
-        with connection.cursor() as cursor:
-            cursor.execute(
-                ClassStructQueries.DELETE_CLASS_AND_DESCENDANTS,
-                [class_id],
-            )
-            data = cursor.fetchone()[0]
-        return data
-
-    @classmethod
     def operations(cls):
         operations = ClassStruct.objects.filter(
             Q(main_class__exact=MetaConsts.TECH_OPERATION)
