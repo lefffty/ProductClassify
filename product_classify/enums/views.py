@@ -14,6 +14,7 @@ from classes.models import ClassStruct
 
 from enums.models import Enums
 from enums.constants import EnumsConsts
+from enums.selectors import EnumSelector
 from enums.forms import EnumsForm, ChangeNumForm
 
 
@@ -29,13 +30,7 @@ class EnumsListView(
 
     def get_queryset(self):
         class_id = self.kwargs.get("class_id")
-        enums = (
-            Enums.objects
-            .filter(enum__main_class__id=class_id)
-            .select_related("enum", "enum__main_class")
-            .order_by("id")
-        )
-        return enums
+        return EnumSelector.fetch_enums_list(class_id)
 
 
 class EnumsDetailView(
@@ -50,13 +45,7 @@ class EnumsDetailView(
     pk_url_kwarg = "enum_id"
 
     def get_queryset(self):
-        return (
-            Enums.objects
-            .select_related(
-                "enum",
-                "enum__main_class",
-            )
-        )
+        return EnumSelector.fetch_detail_information()
 
 
 class EnumsCreateView(
@@ -81,9 +70,7 @@ class EnumsDeleteView(
     context_object_name = "instance"
 
     def get_queryset(self):
-        return Enums.objects.select_related(
-            "enum__main_class",
-        )
+        return EnumSelector.fetch_detail_information()
 
     def get_success_url(self):
         class_id = self.kwargs.get("class_id")
@@ -108,9 +95,7 @@ class EnumsUpdateView(
     context_object_name = "instance"
 
     def get_queryset(self):
-        return Enums.objects.select_related(
-            "enum__main_class",
-        )
+        return EnumSelector.fetch_detail_information()
 
     def get_success_url(self):
         class_id = self.kwargs.get("class_id")
