@@ -26,11 +26,17 @@ class AgregatListView(
     ListView,
 ):
     permission_required = "agregat.view_agregat"
-    queryset = Parametr.objects.filter(
-        parametr_type__exact=ParamIds.AGREGAT,
-    )
     template_name = "agregat/list.html"
     context_object_name = "agregats"
+
+    def get_queryset(self):
+        query = self.request.GET.get("query")
+        queryset = Parametr.objects.filter(
+            parametr_type__exact=ParamIds.AGREGAT,
+        )
+        if not query:
+            return queryset
+        return queryset.filter(name__icontains=query)
 
 
 class AgregatDetailView(
