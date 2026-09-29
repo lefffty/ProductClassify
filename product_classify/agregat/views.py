@@ -11,11 +11,10 @@ from django.views.generic import (
 
 from parametr.models import Parametr
 
-from classes.constants import ParamIds
-
 from core.mixins import CommonContextMixin, HandbookExecutiveRequiredMixin
 
 from agregat.models import Agregat
+from agregat.selectors import AgregatSelector
 from agregat.forms import AgregatForm, ChangeAgregatNumForm
 
 
@@ -30,12 +29,9 @@ class AgregatListView(
 
     def get_queryset(self):
         query = self.request.GET.get("query")
-        queryset = Parametr.objects.filter(
-            parametr_type__exact=ParamIds.AGREGAT,
-        )
         if not query:
-            return queryset
-        return queryset.filter(name__icontains=query)
+            return AgregatSelector.fetch_all()
+        return AgregatSelector.search_by_name(query)
 
 
 class AgregatDetailView(
@@ -50,19 +46,12 @@ class AgregatDetailView(
 
     def get_object(self):
         agregat_id = self.kwargs.get("agregat_id")
-        agregat = Parametr.objects.get(pk=agregat_id)
-        return agregat
+        return AgregatSelector.fetch_by_id(agregat_id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        agregat = self.object
-        agregat_parametrs = (
-            Agregat.objects
-            .filter(agr=agregat)
-            .select_related("par")
-            .order_by("num")
-        )
-        context["agr_parametrs"] = agregat_parametrs
+        agregat_id = self.kwargs.get("agregat_id")
+        context["agr_parametrs"] = AgregatSelector.agregat_params_list(agregat_id)
         return context
 
 
@@ -87,8 +76,7 @@ class AgregatParametrCreateView(
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         agregat_id = self.kwargs.get("agregat_id")
-        agregat = Parametr.objects.get(pk=agregat_id)
-        context["instance"] = agregat
+        context["instance"] = AgregatSelector.fetch_by_id(agregat_id)
         return context
 
 
@@ -104,11 +92,7 @@ class AgregatParametrDeleteView(
     def get_object(self):
         agregat_id = self.kwargs.get("agregat_id")
         param_id = self.kwargs.get("param_id")
-        return (
-            Agregat.objects.filter(agr=agregat_id, par=param_id)
-            .select_related("agr", "par")
-            .first()
-        )
+        return AgregatSelector.fetch_agregat_parametr(agregat_id, param_id)
 
     def get_success_url(self):
         agregat_id = self.kwargs.get("agregat_id")
