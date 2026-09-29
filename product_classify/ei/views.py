@@ -11,6 +11,7 @@ from django.views.generic import (
 from core.mixins import CommonContextMixin, HandbookExecutiveRequiredMixin
 
 from ei.models import Ei
+from ei.selectors import EiSelector
 from ei.constants import EiConsts
 from ei.forms import EiForm
 
@@ -28,12 +29,8 @@ class EiListView(
     def get_queryset(self):
         query = self.request.GET.get("query")
         if not query:
-            return (
-                Ei.objects.all().order_by("id")
-            )
-        return (
-            Ei.objects.filter(name__icontains=query).order_by("id")
-        )
+            return EiSelector.select_all_order_by_id()
+        return EiSelector.search_by_name(query)
 
 
 class EiDetailView(
