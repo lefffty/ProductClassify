@@ -762,6 +762,53 @@ class DatabaseFunctions:
         EXECUTE FUNCTION log_prodcomponent_change();
     """
 
+    EI_MAIN_CLASS_DELETE_FUNCTION = """
+        CREATE OR REPLACE FUNCTION trg_function_ei_delete()
+        RETURNS TRIGGER
+        AS
+            $$
+                DECLARE
+                    v_count int := 0;
+                    v_first_id int := 0;
+                BEGIN
+                    SELECT COUNT(*)
+                    INTO v_count
+                    FROM ei_ei
+                    WHERE main_class_id = old.id;
+
+                    IF v_count > 0 THEN
+                        SELECT id
+                        INTO v_first_id
+                        FROM ei_ei
+                        WHERE main_class_id = old.id
+                        ORDER BY id
+                        LIMIT 1;
+
+                        UPDATE ei_ei
+                        SET main_class_id = v_first_id
+                        WHERE main_class_id = old.id AND id != v_first_id;
+
+                        UPDATE ei_ei
+                        SET main_class_id = NULL
+                        WHERE id = v_first_id;
+                    END IF;
+
+                    RETURN old;
+                END;
+            $$
+        LANGUAGE plpgsql;
+    """
+    EI_MAIN_CLASS_DELETE_TRIGGER = """
+        CREATE OR REPLACE TRIGGER trg_ei_delete
+        BEFORE DELETE ON ei_ei
+        FOR EACH ROW
+        WHEN ( old.main_class_id IS NULL )
+        EXECUTE FUNCTION trg_function_ei_delete();
+    """
+
+    DROP_EI_MAIN_CLASS_DELETE_FUNCTION = "DROP FUNCTION IF EXISTS trg_function_ei_delete();"
+    DROP_EI_MAIN_CLASS_DELETE_TRIGGER = "DROP TRIGGER IF EXISTS trg_ei_delete ON ei_ei;"
+
     DROP_LOG_PRODCOMPONENT_CHANGE_TRIGGER = "DROP TRIGGER IF EXISTS trg_log_prodcomponent_change ON specifications_prodcomponent;"
     DROP_LOG_PRODCOMPONENT_CHANGE_FUNCTION = "DROP FUNCTION IF EXISTS log_prodcomponent_change();"
 

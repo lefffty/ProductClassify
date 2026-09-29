@@ -1,6 +1,8 @@
 from tests.unit.base import BaseUnitTestCase
 from tests.unit.ei.factories.ei import EiFactory, ChildEiFactory
 
+from ei.models import Ei
+
 
 class EiModelTest(BaseUnitTestCase):
     def test_string_representation(self):
@@ -44,3 +46,49 @@ class EiModelTest(BaseUnitTestCase):
         self.assertNotEqual(ei2.main_class, ei1)
         self.assertIsNone(ei2.main_class)
         self.assertEqual(ei3.main_class, ei2)
+
+
+class MainClassIdChangeOnEiDeleteTriggerTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # удаляемая единица измерения не имеет дочерних элементов
+        cls.gr1_ei1 = EiFactory()
+        # удаляемая единица измерения имеет один дочерний элемент
+        cls.gr2_ei1 = EiFactory()
+        cls.gr2_ei2 = ChildEiFactory(main_class=cls.gr2_ei1)
+        # удаляемая единица измерения имеет несколько дочерних элементов
+        cls.gr3_ei1 = EiFactory()
+        cls.gr3_ei2 = ChildEiFactory(main_class=cls.gr3_ei1)
+        cls.gr3_ei3 = ChildEiFactory(main_class=cls.gr3_ei1)
+
+    def test_removable_object_does_not_have_children(self):
+        removable_pk = self.gr1_ei1.pk
+
+        self.gr1_ei1.delete()
+
+        self.assertEqual(Ei.objects.filter(main_class_id=removable_pk).count(), 0)
+
+    def test_removable_object_has_one_child(self):
+        removable_pk = self.gr2_ei1.pk
+        new_main_class_id = self.gr2_ei2.pk
+        
+        self.gr2_ei1.delete()
+
+        self.assertEqual(Ei.objects.filter(main_class_id=removable_pk).count(), 0)
+        self.assertEqual(Ei.objects.filter(main_class_id=new_main_class_id).count(), 0)
+
+    def test_removable_object_has_more_than_one_children(self):
+        removable_pk = self.gr3_ei1.pk
+        new_main_class_id = self.gr3_ei2.pk
+
+        self.gr3_ei1.delete()
+
+        self.assertEqual(Ei.objects.filter(main_class_id=removable_pk).count(), 0)
+        self.assertEqual(Ei.objects.filter(main_class_id=new_main_class_id).count(), 1)
+
+    def test_removable_object_is_not_parent(self):
+        main_class_id = self.gr3_ei3.main_class_id
+
+        self.gr3_ei3.delete()
+
+        self.assertEqual(Ei.objects.filter(main_class_id=main_class_id).count(), 1)
