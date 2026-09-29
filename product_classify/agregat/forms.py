@@ -1,5 +1,4 @@
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.forms import (
     ModelForm,
     ModelChoiceField,
@@ -7,6 +6,8 @@ from django.forms import (
 )
 
 from parametr.models import Parametr
+
+from core.utils import change_num
 
 from agregat.models import Agregat
 from agregat.constants import AgregatConsts
@@ -94,20 +95,6 @@ class ChangeAgregatNumForm(Form):
         if par_1 == par_2:
             raise ValidationError(AgregatErrors.SAME_PARAMS)
 
-        with transaction.atomic():
-            old_num_1 = par_1.num
-            old_num_2 = par_2.num
-
-            temp_num_1 = AgregatConsts.MAX_NUM_VALUE
-            temp_num_2 = AgregatConsts.MAX_NUM_VALUE - 1
-            par_1.num = temp_num_1
-            par_2.num = temp_num_2
-            par_1.save(update_fields=["num"])
-            par_2.save(update_fields=["num"])
-
-            par_1.num = old_num_2
-            par_2.num = old_num_1
-            par_1.save(update_fields=["num"])
-            par_2.save(update_fields=["num"])
+        change_num(par_1, par_2, AgregatConsts.MAX_NUM_VALUE)
 
         return cleaned_data

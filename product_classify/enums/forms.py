@@ -7,9 +7,10 @@ from django.forms import (
     IntegerField,
     Form,
 )
-from django.db import transaction
 from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
+
+from core.utils import change_num
 
 from classes.models import ClassStruct
 from classes.constants import EnumsIds
@@ -176,20 +177,6 @@ class ChangeNumForm(Form):
         if enum_1.enum.pk != enum_2.enum.pk:
             raise ValidationError(ChangeNumErrors.NON_SAME_CLASS)
 
-        with transaction.atomic():
-            old_num_1 = enum_1.num
-            old_num_2 = enum_2.num
-
-            temp_num_1 = EnumsConsts.MAX_NUM_VALUE
-            temp_num_2 = EnumsConsts.MAX_NUM_VALUE - 1
-            enum_1.num = temp_num_1
-            enum_2.num = temp_num_2
-            enum_1.save(update_fields=["num"])
-            enum_2.save(update_fields=["num"])
-
-            enum_1.num = old_num_2
-            enum_2.num = old_num_1
-            enum_1.save(update_fields=["num"])
-            enum_2.save(update_fields=["num"])
+        change_num(enum_1, enum_2, EnumsConsts.MAX_NUM_VALUE)
 
         return cleaned_data

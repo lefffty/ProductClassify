@@ -31,9 +31,6 @@ def get_total_cost_ratio_view(request: HttpRequest, product_id: int) -> FileResp
 
     form = TotalCostRatioForm(ei=product.ei, data=request.GET)
     if not form.is_valid():
-        logger.info(form.errors)
-        logger.info(form.fields["ei"].queryset)
-        logger.info([ei.pk for ei in form.fields["ei"].queryset.all()])
         context = get_context_data()
         context.update({
             "product": product,

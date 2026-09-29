@@ -6,12 +6,14 @@ from django.forms import (
     CharField,
     Form,
 )
-from django.db import transaction, InternalError
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 
 from core.mixins import CycleCheckFormMixin
+from core.utils import change_num
+
 from ei.models import Ei
+
 from parametr.models import Parametr
 
 from classes.models import ClassStruct, ParClass
@@ -394,18 +396,6 @@ class ChangeParClassNumForm(Form):
         if cls_1 == cls_2:
             raise ValidationError(ChangeParClassErrors.EQUAL_PAR)
 
-        with transaction.atomic():
-            old_num_1 = cls_1.num
-            old_num_2 = cls_2.num
-
-            cls_1.num = ParClassConsts.MAX_NUM_VALUE
-            cls_2.num = ParClassConsts.MAX_NUM_VALUE - 1
-            cls_1.save(update_fields=["num"])
-            cls_2.save(update_fields=["num"])
-
-            cls_1.num = old_num_2
-            cls_2.num = old_num_1
-            cls_1.save(update_fields=["num"])
-            cls_2.save(update_fields=["num"])
+        change_num(cls_1, cls_2, ParClassConsts.MAX_NUM_VALUE)
 
         return cleaned_data

@@ -1,5 +1,4 @@
 from django.urls import reverse_lazy
-from django.db.models import Q
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.views.generic import (
@@ -85,14 +84,6 @@ class AgregatParametrCreateView(
             },
         )
 
-    def form_valid(self, form):
-        instance = form.save(commit=False)
-        agregat_id = self.kwargs.get("agregat_id")
-        num = Agregat.objects.filter(agr=agregat_id).count() + 1
-        setattr(instance, "num", num)
-        instance.save()
-        return super().form_valid(form)
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         agregat_id = self.kwargs.get("agregat_id")
@@ -127,18 +118,6 @@ class AgregatParametrDeleteView(
                 "agregat_id": agregat_id,
             },
         )
-
-    def form_valid(self, form):
-        agregat_id = self.kwargs.get("agregat_id")
-        instance = self.get_object()
-        num = instance.num
-        instance.delete()
-
-        for par_agr in Agregat.objects.filter(Q(agr=agregat_id) & Q(num__gt=num)):
-            par_agr.num = par_agr.num - 1
-            par_agr.save()
-
-        return super().form_valid(form)
 
 
 class ChangeAgregatNumView(
