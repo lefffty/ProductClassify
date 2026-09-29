@@ -5,11 +5,15 @@ from django.db import transaction
 from loguru import logger
 
 from core.decorators import roles_required
+from core.views import get_context_data
 
 from accounts.constants import RoleCodes
 
-from core.views import get_context_data
-from specifications.forms import ProdComponentFormSet
+from ei.models import Ei
+
+from products.models import ParProd
+
+from specifications.forms import ProdComponentFormSet, TotalCostRatioForm
 from specifications.constants import FormsetConsts
 from specifications.models import ProdComponent, Prod, SpecificationLogs
 from specifications.utils import (
@@ -23,15 +27,34 @@ from specifications.utils import (
 
 @roles_required(RoleCodes.BUILDER)
 def get_total_cost_ratio_view(request: HttpRequest, product_id: int) -> FileResponse:
-    try:
-        raw_quantity = request.GET.get("quantity")
-        quantity = int(raw_quantity)
-    except TypeError, ValueError:
-        quantity = 1
-
-    results = ProdComponent.total_cost_ratio(product_id, quantity)
-
     product = get_object_or_404(Prod, pk=product_id)
+
+    form = TotalCostRatioForm(ei=product.ei, data=request.GET)
+    if not form.is_valid():
+        logger.info(form.errors)
+        logger.info(form.fields["ei"].queryset)
+        logger.info([ei.pk for ei in form.fields["ei"].queryset.all()])
+        context = get_context_data()
+        context.update({
+            "product": product,
+            "form": form,
+            "params": (
+                ParProd.objects
+                .filter(prod=product)
+                .select_related("par", "enum_val__enum__main_class")
+            ),
+        })
+        return render(
+            request,
+            "products/detail.html",
+            context=context,
+        )
+
+    quantity = form.cleaned_data["quantity"]
+    ei: Ei = form.cleaned_data["ei"] or product.ei
+    convert_factor = ei.convert_factor
+
+    results = ProdComponent.total_cost_ratio(product_id, quantity, convert_factor)
 
     buffer = create_total_cost_ratio_pdf(results, product)
 

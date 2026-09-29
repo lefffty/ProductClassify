@@ -28,7 +28,8 @@ User = get_user_model()
 class GetTotalCostRatioViewTest(BaseUnitTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.base_ei = Ei.objects.first()
+        cls.base_ei = Ei.objects.get(pk=1)
+        cls.child_ei = Ei.objects.get(pk=3)
         cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
 
         cls.nuts_subclass = ClassStructFactory(
@@ -74,12 +75,12 @@ class GetTotalCostRatioViewTest(BaseUnitTestCase):
 
     def test_returns_200_for_authorized_user(self):
         self.client.force_login(self.allowed_user)
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, data={"quantity": 1, "ei": self.child_ei.pk})
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_content_type(self):
         self.client.force_login(self.allowed_user)
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, data={"quantity": 1, "ei": self.child_ei.pk})
         self.assertEqual(
             response["content-type"],
             "application/pdf"
@@ -89,7 +90,7 @@ class GetTotalCostRatioViewTest(BaseUnitTestCase):
         self.client.force_login(self.allowed_user)
         filename = f"Спецификация_изделия_{self.parent_prod.name}.pdf"
         encoded_filename = quote(filename, safe="")
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, data={"quantity": 1, "ei": self.child_ei.pk})
         self.assertIn(
             f"filename*=utf-8''{encoded_filename}",
             response["Content-Disposition"]

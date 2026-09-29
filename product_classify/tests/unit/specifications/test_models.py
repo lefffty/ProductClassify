@@ -56,7 +56,8 @@ class ProdComponentTest(BaseUnitTestCase):
 
     def test_total_cost_ratio(self):
         quantity = 2
-        total_cost_ratio = ProdComponent.total_cost_ratio(self.prod.pk, quantity)
+        convert_factor = 1.5
+        total_cost_ratio = ProdComponent.total_cost_ratio(self.prod.pk, quantity, convert_factor)
         self.assertEqual(len(total_cost_ratio), 1)
         record = total_cost_ratio[0]
         self.assertEqual(record.parent_id, self.prod.pk)
@@ -67,7 +68,7 @@ class ProdComponentTest(BaseUnitTestCase):
         self.assertEqual(record.ei_short_name, self.base_ei.short_name)
         self.assertEqual(
             record.total_cost,
-            self.component.cost * quantity * self.prodcomponent1.quantity,
+            self.component.cost * quantity * self.prodcomponent1.quantity * convert_factor,
         )
         self.assertEqual(record.level, 1)
 

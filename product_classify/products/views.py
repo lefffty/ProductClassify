@@ -36,6 +36,7 @@ from products.models import (
     Prod,
     ParProd,
 )
+from specifications.forms import TotalCostRatioForm
 
 
 
@@ -63,10 +64,6 @@ def class_products(request: HttpRequest, main_class_id: int, class_id: int):
     ).filter(has_params=False)
 
     prod_count = products_qs.count() + products_no_params.count()
-
-    fastener_classes = ClassStruct.objects.filter(
-        main_class__exact=ProductsConsts.FASTENER_ID
-    )
 
     context = {
         "id": class_id,
@@ -112,6 +109,7 @@ class ProductDetailView(
                 "enum_val__enum__main_class",
             )
         )
+        context["form"] = TotalCostRatioForm(prod.ei)
         return context
 
 

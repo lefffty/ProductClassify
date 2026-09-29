@@ -12,6 +12,7 @@ class ProdQueries:
 class ProdComponentQueries:
     IS_PARENT_PROD = "SELECT * FROM is_parent_prod(%s);"
     TOTAL_COST_RATIO = "SELECT * FROM total_cost_ratio(%s, %s);"
+    TOTAL_COST_RATIO_NEW = "SELECT * FROM total_cost_ratio(%s, %s, %s);"
     PRODUCT_SPECIFICATION = "SELECT * FROM product_specification(%s);"
 
 
@@ -805,6 +806,67 @@ class DatabaseFunctions:
         WHEN ( old.main_class_id IS NULL )
         EXECUTE FUNCTION trg_function_ei_delete();
     """
+
+    TOTAL_COST_RATIO_NEW = """
+        CREATE FUNCTION total_cost_ratio(root_prod integer, num_of_products double precision, convert_fact double precision)
+            RETURNS TABLE(parent_id bigint, parent_prod_name character varying, child_id bigint, child_prod_name character varying, quantity numeric, ei_short_name character varying, total_cost numeric, level integer)
+            LANGUAGE plpgsql
+        AS
+        $$
+        BEGIN
+            RETURN QUERY
+                WITH RECURSIVE r AS (
+                    SELECT
+                        pc.id AS pair_id,
+                        pc.parent_prod_id AS parent_id,
+                        pc.component_id AS child_id,
+                        pc.num AS prod_num,
+                        pc.quantity AS quantity,
+                        1 AS level
+                    FROM specifications_prodcomponent pc
+                    WHERE pc.parent_prod_id = ROOT_PROD
+
+                    UNION
+
+                    SELECT
+                        pc2.id AS pair_id,
+                        pc2.parent_prod_id AS parent_id,
+                        pc2.component_id AS child_id,
+                        pc2.num AS prod_num,
+                        pc2.quantity AS quantity,
+                        r.LEVEL + 1 AS level
+                    FROM specifications_prodcomponent pc2
+                            JOIN r ON pc2.parent_prod_id = r.child_id
+                    WHERE pc2.num = r.prod_num
+                ),
+                grouped_r as (
+                    SELECT
+                        r.parent_id AS gr_parent_id,
+                        r.child_id AS gr_child_id,
+                        r.level AS gr_level,
+                        AVG(r.quantity) as gr_quantity
+                    FROM r
+                    GROUP BY r.parent_id, r.child_id, r.level
+                )
+                SELECT
+                    parent_prod.id AS parent_id,
+                    parent_prod."name" AS parent_prod_name,
+                    child_prod.id AS child_id,
+                    child_prod."name" AS child_prod_name,
+                    grouped_r.gr_quantity AS quantity,
+                    e.short_name AS ei_short_name,
+                    ROUND((child_prod.cost * grouped_r.gr_quantity * NUM_OF_PRODUCTS * convert_fact)::NUMERIC, 2)::NUMERIC AS total_cost,
+                    grouped_r.gr_level AS level
+                FROM grouped_r
+                        JOIN products_prod parent_prod ON grouped_r.gr_parent_id = parent_prod.id
+                        JOIN products_prod child_prod ON grouped_r.gr_child_id = child_prod.id
+                        JOIN ei_ei e ON child_prod.ei_id = e.id
+                ORDER BY grouped_r.gr_level;
+        END;
+        $$;
+    """
+
+    DROP_TOTAL_COST_RATIO_NEW = "DROP FUNCTION IF EXISTS total_cost_ratio(root_prod INTEGER, num_of_products DOUBLE PRECISION, convert_fact DOUBLE PRECISION);"
 
     DROP_EI_MAIN_CLASS_DELETE_FUNCTION = "DROP FUNCTION IF EXISTS trg_function_ei_delete();"
     DROP_EI_MAIN_CLASS_DELETE_TRIGGER = "DROP TRIGGER IF EXISTS trg_ei_delete ON ei_ei;"

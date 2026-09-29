@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load django_bootstrap5 %}
 {% load static %}
 {% load prodparam_display %}
 
@@ -119,17 +120,21 @@
             </div>
 
             <div class="border-top pt-3 mt-2">
-                <form action="{% url 'specifications:total_cost_ratio' product.id %}" method="get" class="row g-2 align-items-end">
-                    <div class="col-auto">
-                        <label for="quantity" class="form-label mb-0">Количество изделий:</label>
+                <form action="{% url 'specifications:total_cost_ratio' product.id %}"
+                    method="get"
+                    class="d-flex flex-wrap align-items-end gap-2">
+
+                    <div>
+                        {% bootstrap_field form.quantity show_label=True show_help=False %}
                     </div>
-                    <div class="col-sm-3">
-                        <input type="number" name="quantity" id="quantity"
-                               min="1" step="1" required
-                               class="form-control form-control-sm"
-                               placeholder="Введите число" value="1">
-                    </div>
-                    <div class="col-auto">
+
+                    {% if form.ei %}
+                        <div>
+                            {% bootstrap_field form.ei show_label=True show_help=False %}
+                        </div>
+                    {% endif %}
+
+                    <div>
                         <button type="submit" class="btn btn-success">
                             <i class="bi bi-calculator"></i> Рассчитать норму расхода
                         </button>

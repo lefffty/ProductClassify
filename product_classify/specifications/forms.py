@@ -1,6 +1,9 @@
 from django import forms
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
 from products.models import Prod
+from ei.models import Ei
 
 from specifications.models import ProdComponent
 
@@ -39,6 +42,31 @@ class ProdComponentForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class TotalCostRatioForm(forms.Form):
+    quantity = forms.DecimalField(
+        min_value=0.0,
+        initial=1.0,
+        required=True,
+        label="Количество изделия",
+    )
+
+    def __init__(self, ei: Ei | None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if ei:
+            ei = get_object_or_404(Ei, pk=ei.pk)
+            queryset = Ei.objects.filter(
+                Q(main_class=ei.main_class)
+                | Q(pk=ei.pk)
+                | Q(pk=ei.main_class_id)
+            )
+            self.fields["ei"] = forms.ModelChoiceField(
+                queryset=queryset,
+                required=False,
+                initial=ei,
+                label="Единица измерения",
+            )
 
 
 ProdComponentFormSet = forms.inlineformset_factory(
