@@ -13,6 +13,7 @@ class Parametr(models.Model):
         max_length=ParametrConsts.NAME_MAX_LENGTH,
         null=False,
         blank=False,
+        db_index=True,
     )
     short_name = models.CharField(
         verbose_name="Сокращенное название параметра",

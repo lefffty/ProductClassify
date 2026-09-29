@@ -28,6 +28,7 @@ class ParametrListView(
     paginate_by = ParametrConsts.PER_PAGE
 
     def get_queryset(self):
+        query = self.request.GET.get("query")
         parameters = (
             Parametr.objects
             .exclude(parametr_type__exact=ParamIds.AGREGAT)
@@ -40,7 +41,9 @@ class ParametrListView(
             )
             .order_by("id")
         )
-        return parameters
+        if not query:
+            return parameters
+        return parameters.filter(name__icontains=query)
 
 
 class ParametrDetailView(

@@ -21,6 +21,50 @@
             <span class="badge bg-secondary">{{ parameters|length }}</span>
         </div>
         <div class="card-body p-0">
+            <form
+                id="parametr-search-form"
+                method="GET"
+                action="{% url 'parametr:list' %}"
+                role="search"
+                class="mb-4"
+            >
+            <div class="input-group">
+                <span class="input-group-text bg-white" id="parametr-search-icon">
+                <i class="bi bi-search"></i>
+                </span>
+
+                <input
+                type="text"
+                name="query"
+                id="parametr-search-input"
+                class="form-control"
+                placeholder="Поиск по названию"
+                value="{{ request.GET.query|default:'' }}"
+                aria-label="Поиск единиц измерения"
+                aria-describedby="parametr-search-icon"
+                autocomplete="off"
+                >
+
+                {% if request.GET.query %}
+                <a
+                    href="{% url 'parametr:list' %}"
+                    id="parametr-search-clear"
+                    class="btn btn-outline-secondary"
+                    title="Очистить поиск"
+                >
+                    Очистить поиск
+                </a>
+                {% endif %}
+
+                <button
+                type="submit"
+                id="parametr-search-submit"
+                class="btn btn-primary"
+                >
+                <i class="bi bi-search"></i> Найти
+                </button>
+            </div>
+            </form>
             {% if parameters %}
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
