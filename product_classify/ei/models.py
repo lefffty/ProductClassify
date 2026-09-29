@@ -1,5 +1,4 @@
 from django.db import models, transaction
-from django.db import InternalError
 
 from ei.constants import EiConsts
 
@@ -10,6 +9,7 @@ class Ei(models.Model):
         max_length=EiConsts.NAME_MAX_LENGTH,
         null=False,
         blank=False,
+        db_index=True,
     )
     short_name = models.CharField(
         verbose_name="Сокращенное название единицы измерения",

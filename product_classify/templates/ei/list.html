@@ -24,6 +24,50 @@
       <span id="ei-count" class="badge bg-secondary">{{ eis|length }}</span>
     </div>
     <div class="card-body p-0">
+    <form
+      id="ei-search-form"
+      method="GET"
+      action="{% url 'ei:list' %}"
+      role="search"
+      class="mb-4"
+    >
+      <div class="input-group">
+        <span class="input-group-text bg-white" id="ei-search-icon">
+          <i class="bi bi-search"></i>
+        </span>
+
+        <input
+          type="text"
+          name="query"
+          id="ei-search-input"
+          class="form-control"
+          placeholder="Поиск по названию"
+          value="{{ request.GET.query|default:'' }}"
+          aria-label="Поиск единиц измерения"
+          aria-describedby="ei-search-icon"
+          autocomplete="off"
+        >
+
+        {% if request.GET.query %}
+          <a
+            href="{% url 'ei:list' %}"
+            id="ei-search-clear"
+            class="btn btn-outline-secondary"
+            title="Очистить поиск"
+          >
+            Очистить поиск
+          </a>
+        {% endif %}
+
+        <button
+          type="submit"
+          id="ei-search-submit"
+          class="btn btn-primary"
+        >
+          <i class="bi bi-search"></i> Найти
+        </button>
+      </div>
+    </form>
       {% if eis %}
       <div class="table-responsive">
         <table id="ei-table" class="table table-hover align-middle mb-0">

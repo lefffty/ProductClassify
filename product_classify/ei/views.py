@@ -22,10 +22,18 @@ class EiListView(
 ):
     paginate_by = EiConsts.PER_PAGE
     permission_required = "ei.view_ei"
-    model = Ei
     template_name = "ei/list.html"
-    ordering = "id"
     context_object_name = "eis"
+
+    def get_queryset(self):
+        query = self.request.GET.get("query")
+        if not query:
+            return (
+                Ei.objects.all().order_by("id")
+            )
+        return (
+            Ei.objects.filter(name__icontains=query).order_by("id")
+        )
 
 
 class EiDetailView(
