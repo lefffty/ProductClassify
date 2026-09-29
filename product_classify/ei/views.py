@@ -11,6 +11,7 @@ from django.views.generic import (
 from core.mixins import CommonContextMixin, HandbookExecutiveRequiredMixin
 
 from ei.models import Ei
+from ei.constants import EiConsts
 from ei.forms import EiForm
 
 
@@ -19,6 +20,7 @@ class EiListView(
     CommonContextMixin,
     ListView
 ):
+    paginate_by = EiConsts.PER_PAGE
     permission_required = "ei.view_ei"
     model = Ei
     template_name = "ei/list.html"

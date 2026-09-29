@@ -9,6 +9,7 @@ class EiConsts(IntEnum):
     CONVERT_FACTOR_MIN_VALUE =  Decimal("0.0")
     DECIMAL_PLACES =            10
     MAX_DIGITS =                20
+    PER_PAGE =                  10
 
 
 class Markers(StrEnum):

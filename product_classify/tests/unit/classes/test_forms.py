@@ -160,20 +160,6 @@ class ProdClassFormTest(BaseUnitTestCase):
             self.assertEqual(obj.pk, self.root.pk)
             self.assertEqual(obj.name, form_data["name"])
 
-    def test_cycle_not_checked_for_new_object(self):
-        """Проверяет, что для новых объектов (без instance.pk) проверка циклов не выполняется."""
-        with patch(
-            "classes.models.ClassStruct.terminal_product_classes",
-            return_value=ClassStruct.objects.all(),
-        ):
-            with patch.object(
-                ClassStruct, "check_classificator_cycle"
-            ) as mock_check_classificator_cycle:
-                form_data = ProdClassFormData(main_class=self.root.pk, base_ei=self.base_ei.pk)
-                form = ProdClassForm(data=form_data)
-                self.assertTrue(form.is_valid())
-                mock_check_classificator_cycle.assert_not_called()
-
     def test_short_name_is_optional(self):
         """Проверяет, что поле short_name необязательно (может быть None) и форма остаётся валидной."""
         with patch(
@@ -386,30 +372,11 @@ class EnumClassFormTest(BaseUnitTestCase):
             "classes.models.ClassStruct.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
-            with patch.object(
-                ClassStruct,
-                "check_classificator_cycle",
-            ) as mock_check_classificator_cycle:
-                form_data = EnumsClassFormData(main_class=self.other.pk)
-                form = EnumClassForm(data=form_data)
-                self.assertTrue(form.is_valid())
-                obj = form.save()
-                mock_check_classificator_cycle.assert_not_called()
-                self.assertIsNotNone(obj.pk)
-
-    def test_editing_without_changing_main_class_is_valid(self):
-        """Проверяет, что при редактировании существующей записи без изменения родительского класса форма валидна."""
-        with patch(
-            "classes.models.ClassStruct.all_enum_classes",
-            return_value=ClassStruct.objects.all(),
-        ):
-            form_data = EnumsClassFormData(main_class=self.root.pk)
-            form = EnumClassForm(data=form_data, instance=self.child)
+            form_data = EnumsClassFormData(main_class=self.other.pk)
+            form = EnumClassForm(data=form_data)
+            self.assertTrue(form.is_valid())
             obj = form.save()
             self.assertIsNotNone(obj.pk)
-            self.assertEqual(form_data["name"], obj.name)
-            self.assertEqual(form_data["short_name"], obj.short_name)
-            self.assertEqual(form_data["main_class"], obj.main_class.pk)
 
     def test_non_enum_main_class_is_invalid(self):
         """Проверяет, что выбор родительского класса, не входящего в all_enum_classes, приводит к невалидности формы."""

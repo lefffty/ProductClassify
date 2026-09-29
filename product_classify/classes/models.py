@@ -130,16 +130,6 @@ class ClassStruct(models.Model):
         return data
 
     @classmethod
-    def check_classificator_cycle(self, cls_id: int, main_cls_id: int) -> int:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                ClassStructQueries.CHECK_CLASSIFICATOR_CYCLE,
-                [cls_id, main_cls_id],
-            )
-            is_cycle = cursor.fetchone()[0]
-        return is_cycle
-
-    @classmethod
     def operations(cls):
         operations = ClassStruct.objects.filter(
             Q(main_class__exact=MetaConsts.TECH_OPERATION)

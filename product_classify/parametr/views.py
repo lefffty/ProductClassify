@@ -27,9 +27,17 @@ class ParametrListView(
     ordering = "id"
 
     def get_queryset(self):
-        parameters = Parametr.objects.exclude(
-            parametr_type__exact=ParamIds.AGREGAT
-        ).select_related("parametr_type")
+        parameters = (
+            Parametr.objects
+            .exclude(parametr_type__exact=ParamIds.AGREGAT)
+            .select_related("parametr_type")
+            .only(
+                "id",
+                "name",
+                "short_name",
+                "parametr_type__name",
+            )
+        )
         return parameters
 
 
