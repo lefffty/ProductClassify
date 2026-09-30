@@ -124,45 +124,6 @@ class EnumsModelTest(BaseUnitTestCase):
         )
         self.assertEqual(str(value), "1.0")
 
-    def test_get_all_image_nums(self):
-        EnumsFactory(
-            enum=self.image_enum_class,
-            num=1,
-            name="Вариант исполнения1",
-            short_name="ВарИсп1",
-            image=self.image,
-        )
-        self.assertEqual(Enums.image_nums().count(), 1)
-
-    def test_get_all_string_enums(self):
-        EnumsFactory(
-            enum=self.string_enum_class,
-            num=1,
-            name="Строковое значение перечисления",
-            short_name="СтрЗнач",
-        )
-        self.assertEqual(Enums.string_nums().count(), 1)
-
-    def test_get_all_integer_enums(self):
-        EnumsFactory(
-            enum=self.int_enum_class,
-            num=1,
-            name="Целочисленное значение",
-            short_name="ЦелЗнач",
-            int_value=1,
-        )
-        self.assertEqual(Enums.int_nums().count(), 1)
-
-    def test_get_all_double_enums(self):
-        EnumsFactory(
-            enum=self.double_enum_class,
-            num=1,
-            name="Вещественное значение",
-            short_name="ВещЗнач",
-            double_value=1.0,
-        )
-        self.assertEqual(Enums.double_nums().count(), 1)
-
     def test_unique_together(self):
         EnumsFactory(enum=self.int_enum_class, num=1)
         with self.assertRaises(IntegrityError):

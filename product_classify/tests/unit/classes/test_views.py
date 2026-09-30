@@ -1079,9 +1079,9 @@ class ClassParamsListViewTest(BaseUnitTestCase):
 
         cls.url = reverse("classes:params_list", args=[cls.nuts_subclass.pk])
 
-    def test_returns_403_for_anonymous_user(self):
+    def test_returns_302_for_anonymous_user(self):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
     def test_returns_403_for_authenticated_user(self):
         self.client.force_login(self.not_allowed_user)

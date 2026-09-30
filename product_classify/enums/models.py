@@ -60,22 +60,6 @@ class Enums(models.Model):
         verbose_name_plural = "Значения перечисления"
         unique_together = ("enum", "num")
 
-    @classmethod
-    def image_nums(cls):
-        return cls.objects.filter(enum__main_class__id=EnumsIds.IMAGE)
-
-    @classmethod
-    def string_nums(cls):
-        return cls.objects.filter(enum__main_class__id=EnumsIds.STRING)
-
-    @classmethod
-    def int_nums(cls):
-        return cls.objects.filter(enum__main_class__id=EnumsIds.INT)
-
-    @classmethod
-    def double_nums(cls):
-        return cls.objects.filter(enum__main_class__id=EnumsIds.DOUBLE)
-
     @property
     def is_image(self):
         return self.enum.main_class_id == EnumsIds.IMAGE

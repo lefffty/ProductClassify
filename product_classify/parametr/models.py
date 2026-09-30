@@ -1,7 +1,7 @@
 from django.db import models
 
 from classes.models import ClassStruct
-from classes.constants import ParamIds, NUMERIC_PARAMS
+from classes.constants import NUMERIC_PARAMS
 from ei.models import Ei
 
 from parametr.constants import ParametrConsts
@@ -48,13 +48,3 @@ class Parametr(models.Model):
     @property
     def is_numeric(self):
         return self.parametr_type.pk in NUMERIC_PARAMS
-
-    @classmethod
-    def parameters(cls):
-        return cls.objects.exclude(
-            parametr_type__exact=ParamIds.AGREGAT
-        ).select_related("par_ei")
-
-    @classmethod
-    def agregats(cls):
-        return cls.objects.filter(parametr_type__exact=ParamIds.AGREGAT)

@@ -38,7 +38,10 @@ class ProdComponent(models.Model):
                 "can_get_product_changelog",
                 "Может получить историю изменений спецификации изделия",
             ),
-            ("can_edit_specification", "Может редактировать спецификацию изделия"),
+            (
+                "can_edit_specification",
+                "Может редактировать спецификацию изделия"
+            ),
         ]
 
     def __str__(self):
