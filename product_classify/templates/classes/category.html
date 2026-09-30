@@ -60,22 +60,26 @@
                                               Список изделий
                                             </i>
                                         </a>
-                                        <a href="{% url 'classes:edit' class.id %}"
-                                           id="category-row-{{ class.id }}-edit-btn"
-                                           class="btn btn-outline-secondary"
-                                           title="Редактировать">
-                                            <i class="bi bi-pencil">
-                                              Редактировать
-                                            </i>
-                                        </a>
-                                        <a href="{% url 'classes:delete' class.id %}"
-                                           id="category-row-{{ class.id }}-delete-btn"
-                                           class="btn btn-outline-danger"
-                                           title="Удалить">
-                                            <i class="bi bi-trash">
-                                              Удалить
-                                            </i>
-                                        </a>
+                                        {% if perms.classes.change_classstruct %}
+                                            <a href="{% url 'classes:edit' class.id %}"
+                                            id="category-row-{{ class.id }}-edit-btn"
+                                            class="btn btn-outline-secondary"
+                                            title="Редактировать">
+                                                <i class="bi bi-pencil">
+                                                Редактировать
+                                                </i>
+                                            </a>
+                                        {% endif %}
+                                        {% if perms.classes.delete_classstruct %}
+                                            <a href="{% url 'classes:delete' class.id %}"
+                                            id="category-row-{{ class.id }}-delete-btn"
+                                            class="btn btn-outline-danger"
+                                            title="Удалить">
+                                                <i class="bi bi-trash">
+                                                Удалить
+                                                </i>
+                                            </a>
+                                        {% endif %}
                                         <a href="{% url 'classes:params_list' class.id %}"
                                            id="category-row-{{ class.id }}-params-btn"
                                            class="btn btn-outline-info"
@@ -102,21 +106,27 @@
 
     <div id="category-actions-card" class="card shadow-sm">
         <div id="category-actions-body" class="card-body d-flex flex-wrap gap-2">
-            <a href="{% url 'classes:delete' main_class.id %}"
-               id="category-delete-main-btn"
-               class="btn btn-outline-danger">
-                Удалить класс
-            </a>
-            <a href="{% url 'classes:edit' main_class.id %}"
-               id="category-edit-main-btn"
-               class="btn btn-outline-secondary">
-                Редактировать
-            </a>
+            {% if perms.classes.delete_classstruct %}
+                <a href="{% url 'classes:delete' main_class.id %}"
+                id="category-delete-main-btn"
+                class="btn btn-outline-danger">
+                    Удалить класс
+                </a>
+            {% endif %}
+            {% if perms.classes.change_classstruct %}
+                <a href="{% url 'classes:edit' main_class.id %}"
+                id="category-edit-main-btn"
+                class="btn btn-outline-secondary">
+                    Редактировать
+                </a>
+            {% endif %}
+            {% if perms.classes.add_parclass %}
             <a href="{% url 'classes:add_param' main_class.id %}"
                id="category-add-param-btn"
                class="btn btn-outline-success">
                 Добавить параметр
             </a>
+            {% endif %}
             <a href="{% url 'classes:params_list' main_class.id %}"
                id="category-params-list-btn"
                class="btn btn-outline-info">

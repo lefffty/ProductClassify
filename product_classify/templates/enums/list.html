@@ -10,9 +10,11 @@
         <h1 class="h3 mb-0">
             <i class="bi bi-list-ul"></i> Значения перечислений
         </h1>
-        <a href="{% url 'enums:change_num' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left-right"></i> Изменить номера
-        </a>
+        {% if perms.enums.change_enums %}
+            <a href="{% url 'enums:change_num' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left-right"></i> Изменить номера
+            </a>
+        {% endif %}
     </div>
 
     <div class="card shadow-sm">
@@ -49,20 +51,24 @@
                                             Подробнее
                                             </i>
                                         </a>
-                                        <a href="{% url 'enums:edit' enum.enum.id enum.id %}"
-                                           class="btn btn-outline-secondary"
-                                           title="Редактировать">
-                                            <i class="bi bi-pencil">
-                                            Редактировать
-                                            </i>
-                                        </a>
-                                        <a href="{% url 'enums:delete' enum.enum.id enum.id %}"
-                                           class="btn btn-outline-danger"
-                                           title="Удалить">
-                                            <i class="bi bi-trash">
-                                            Удалить
-                                            </i>
-                                        </a>
+                                        {% if perms.enums.change_enums %}
+                                            <a href="{% url 'enums:edit' enum.enum.id enum.id %}"
+                                            class="btn btn-outline-secondary"
+                                            title="Редактировать">
+                                                <i class="bi bi-pencil">
+                                                Редактировать
+                                                </i>
+                                            </a>
+                                        {% endif %}
+                                        {% if perms.enums.delete_enums %}
+                                            <a href="{% url 'enums:delete' enum.enum.id enum.id %}"
+                                            class="btn btn-outline-danger"
+                                            title="Удалить">
+                                                <i class="bi bi-trash">
+                                                Удалить
+                                                </i>
+                                            </a>
+                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>

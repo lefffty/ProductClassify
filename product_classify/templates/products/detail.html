@@ -26,12 +26,16 @@
                     </p>
                 </div>
                 <div class="btn-group">
-                    <a href="{% url 'products:edit' product.id %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-pencil"></i> Редактировать
-                    </a>
-                    <a href="{% url 'products:delete' product.id %}" class="btn btn-outline-danger">
-                        <i class="bi bi-trash"></i> Удалить
-                    </a>
+                    {% if perms.products.change_prod %}
+                        <a href="{% url 'products:edit' product.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-pencil"></i> Редактировать
+                        </a>
+                    {% endif %}
+                    {% if perms.products.delete_prod %}
+                        <a href="{% url 'products:delete' product.id %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Удалить
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -42,9 +46,11 @@
             <h5 class="mb-0">
                 <i class="bi bi-sliders2"></i> Параметры изделия
             </h5>
-            <a href="{% url 'products:add_param' product.id %}" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-circle"></i> Добавить параметр
-            </a>
+            {% if perms.products.add_parprod %}
+                <a href="{% url 'products:add_param' product.id %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle"></i> Добавить параметр
+                </a>
+            {% endif %}
         </div>
         <div class="card-body p-0">
             {% if params %}
@@ -71,16 +77,20 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{% url 'products:edit_param' product.id param.par.id %}"
-                                           class="btn btn-outline-secondary"
-                                           title="Редактировать">
-                                            Редактировать
-                                        </a>
-                                        <a href="{% url 'products:delete_param' product.id param.par.id %}"
-                                           class="btn btn-outline-danger"
-                                           title="Удалить">
-                                            Удалить
-                                        </a>
+                                        {% if perms.products.change_parprod %}
+                                            <a href="{% url 'products:edit_param' product.id param.par.id %}"
+                                            class="btn btn-outline-secondary"
+                                            title="Редактировать">
+                                                Редактировать
+                                            </a>
+                                        {% endif %}
+                                        {% if perms.products.delete_parprod %}
+                                            <a href="{% url 'products:delete_param' product.id param.par.id %}"
+                                            class="btn btn-outline-danger"
+                                            title="Удалить">
+                                                Удалить
+                                            </a>
+                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>
@@ -103,44 +113,52 @@
         </div>
         <div class="card-body">
             <div class="d-flex flex-wrap gap-2 mb-3">
-                <a href="{% url 'products:create_modification' product.id %}" class="btn btn-primary">
-                    <i class="bi bi-copy"></i> Создать модификацию
-                </a>
-                <a href="{% url 'specifications:edit' product.id %}" class="btn btn-warning">
-                    <i class="bi bi-pencil-square"></i> Редактировать спецификацию
-                </a>
+                {% if perms.products.can_create_modification %}
+                    <a href="{% url 'products:create_modification' product.id %}" class="btn btn-primary">
+                        <i class="bi bi-copy"></i> Создать модификацию
+                    </a>
+                {% endif %}
+                {% if perms.specifications.can_edit_specification %}
+                    <a href="{% url 'specifications:edit' product.id %}" class="btn btn-warning">
+                        <i class="bi bi-pencil-square"></i> Редактировать спецификацию
+                    </a>
+                {% endif %}
                 <a href="{% url 'route_tech:edit_prod_operation_pos' product.id %}" class="btn btn-info">
                     <i class="bi bi-diagram-3"></i> Редактировать позиции входного ресурса
                 </a>
-                <form action="{% url 'specifications:changelog' product.id %}" method="get" style="display: inline;">
-                    <button type="submit" class="btn btn-outline-secondary">
-                        <i class="bi bi-clock-history"></i> Скачать журнал изменений
-                    </button>
-                </form>
-            </div>
-
-            <div class="border-top pt-3 mt-2">
-                <form action="{% url 'specifications:total_cost_ratio' product.id %}"
-                    method="get"
-                    class="d-flex flex-wrap align-items-end gap-2">
-
-                    <div>
-                        {% bootstrap_field form.quantity show_label=True show_help=False %}
-                    </div>
-
-                    {% if form.ei %}
-                        <div>
-                            {% bootstrap_field form.ei show_label=True show_help=False %}
-                        </div>
-                    {% endif %}
-
-                    <div>
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-calculator"></i> Рассчитать норму расхода
+                {% if perms.specifications.can_get_product_changelog %}
+                    <form action="{% url 'specifications:changelog' product.id %}" method="get" style="display: inline;">
+                        <button type="submit" class="btn btn-outline-secondary">
+                            <i class="bi bi-clock-history"></i> Скачать журнал изменений
                         </button>
-                    </div>
-                </form>
+                    </form>
+                {% endif %}
             </div>
+            
+            {% if perms.specification.can_get_total_cost_ratio %}
+                <div class="border-top pt-3 mt-2">
+                    <form action="{% url 'specifications:total_cost_ratio' product.id %}"
+                        method="get"
+                        class="d-flex flex-wrap align-items-end gap-2">
+
+                        <div>
+                            {% bootstrap_field form.quantity show_label=True show_help=False %}
+                        </div>
+
+                        {% if form.ei %}
+                            <div>
+                                {% bootstrap_field form.ei show_label=True show_help=False %}
+                            </div>
+                        {% endif %}
+
+                        <div>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-calculator"></i> Рассчитать норму расхода
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

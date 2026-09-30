@@ -22,9 +22,11 @@
                         <span class="badge bg-secondary">Всего изделий: {{ prod_count }}</span>
                     </p>
                 </div>
-                <a href="{% url 'products:add' %}" class="btn btn-primary">
-                    Добавить изделие
-                </a>
+                {% if perms.products.add_prod %}
+                    <a href="{% url 'products:add' %}" class="btn btn-primary">
+                        Добавить изделие
+                    </a>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -156,9 +158,11 @@
             <div class="card-body text-center py-5 text-muted">
                 <i class="bi bi-inbox" style="font-size: 3rem;"></i>
                 <p class="mt-3">Изделия для этого класса отсутствуют</p>
-                <a href="{% url 'products:add' %}" class="btn btn-outline-primary">
-                    <i class="bi bi-plus-circle"></i> Добавить первое изделие
-                </a>
+                {% if perms.products.add_prod %}
+                    <a href="{% url 'products:add' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle"></i> Добавить первое изделие
+                    </a>
+                {% endif %}
             </div>
         </div>
     {% endif %}

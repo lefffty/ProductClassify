@@ -77,6 +77,10 @@ class Enums(models.Model):
         return cls.objects.filter(enum__main_class__id=EnumsIds.DOUBLE)
 
     @property
+    def is_image(self):
+        return self.enum.main_class_id == EnumsIds.IMAGE
+
+    @property
     def value(self):
         enum_type = self.enum.main_class_id
         if enum_type == EnumsIds.STRING:

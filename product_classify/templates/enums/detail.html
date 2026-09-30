@@ -25,12 +25,16 @@
                     </p>
                 </div>
                 <div class="btn-group">
-                    <a href="{% url 'enums:edit' enum.enum.id enum.id %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-pencil"></i> Редактировать
-                    </a>
-                    <a href="{% url 'enums:delete' enum.enum.id enum.id %}" class="btn btn-outline-danger">
-                        <i class="bi bi-trash"></i> Удалить
-                    </a>
+                    {% if perms.enums.change_enums %}
+                        <a href="{% url 'enums:edit' enum.enum.id enum.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-pencil"></i> Редактировать
+                        </a>
+                    {% endif %}
+                    {% if perms.enums.delete_enums %}
+                        <a href="{% url 'enums:delete' enum.enum.id enum.id %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Удалить
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -58,7 +62,18 @@
 
                 <dt class="col-sm-3 fw-semibold">Значение</dt>
                 <dd class="col-sm-9">
+                {% if enum.is_image %}
+                    {% if enum.image %}
+                    <img src="{{ enum.image.url }}"
+                        alt="{{ enum.name|default:'Изображение' }}"
+                        class="img-thumbnail"
+                        style="max-width: 200px; max-height: 200px;">
+                    {% else %}
+                    <span class="text-muted">Изображение не задано</span>
+                    {% endif %}
+                {% else %}
                     {{ enum.value }}
+                {% endif %}
                 </dd>
             </dl>
         </div>

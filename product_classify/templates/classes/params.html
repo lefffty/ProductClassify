@@ -23,12 +23,16 @@
                     </p>
                 </div>
                 <div id="params-list-actions" class="btn-group">
-                    <a id="params-list-add-param-btn" href="{% url 'classes:add_param' class.id %}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Добавить параметр
-                    </a>
-                    <a id="params-list-change-num-btn" href="{% url 'classes:change_num' class.id %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left-right"></i> Изменить номера
-                    </a>
+                    {% if perms.classes.add_parclass %}
+                        <a id="params-list-add-param-btn" href="{% url 'classes:add_param' class.id %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Добавить параметр
+                        </a>
+                    {% endif %}
+                    {% if perms.classes.change_parclass %}
+                        <a id="params-list-change-num-btn" href="{% url 'classes:change_num' class.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left-right"></i> Изменить номера
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -79,17 +83,21 @@
                                 <td id="params-list-row-{{ param.id }}-actions">
                                     <div class="btn-group btn-group-sm" role="group">
                                         {% if param.parametr.is_numeric %}
-                                            <a id="params-list-row-{{ param.id }}-edit-btn" href="{% url 'classes:edit_param' class.id param.parametr.id %}"
-                                               class="btn btn-outline-secondary"
-                                               title="Редактировать">
-                                                Редактировать
+                                            {% if perms.classes.change_parclass %}                                            
+                                                <a id="params-list-row-{{ param.id }}-edit-btn" href="{% url 'classes:edit_param' class.id param.parametr.id %}"
+                                                class="btn btn-outline-secondary"
+                                                title="Редактировать">
+                                                    Редактировать
+                                                </a>
+                                            {% endif %}
+                                        {% endif %}
+                                        {% if perms.classes.delete_parclass %}
+                                            <a id="params-list-row-{{ param.id }}-delete-btn" href="{% url 'classes:delete_param' class.id param.parametr.id %}"
+                                            class="btn btn-outline-danger"
+                                            title="Удалить">
+                                                Удалить
                                             </a>
                                         {% endif %}
-                                        <a id="params-list-row-{{ param.id }}-delete-btn" href="{% url 'classes:delete_param' class.id param.parametr.id %}"
-                                           class="btn btn-outline-danger"
-                                           title="Удалить">
-                                            Удалить
-                                        </a>
                                     </div>
                                 </td>
                             </tr>

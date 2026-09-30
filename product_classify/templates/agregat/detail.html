@@ -18,11 +18,13 @@
                         <span class="badge bg-secondary">{{ agregat.parametr_type.name|default:"Агрегат" }}</span>
                     </p>
                 </div>
+                {% if perms.agregat.change_agregat %}
                 <div class="btn-group">
                     <a href="{% url 'agregat:change_num' agregat.id %}" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left-right"></i> Изменить номера
                     </a>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -32,9 +34,11 @@
             <h5 class="mb-0">
                 <i class="bi bi-list-ul"></i> Параметры агрегата
             </h5>
-            <a href="{% url 'agregat:add' agregat.id %}" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-circle"></i> Добавить параметр
-            </a>
+            {% if perms.agregat.add_agregat %}
+                <a href="{% url 'agregat:add' agregat.id %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle"></i> Добавить параметр
+                </a>
+            {% endif %}
         </div>
         <div class="card-body p-0">
             {% if agr_parametrs %}
@@ -59,11 +63,13 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{% url 'agregat:delete' agregat.id parametr.par.id %}"
-                                           class="btn btn-outline-danger"
-                                           title="Удалить параметр">
-                                            Удалить параметр
-                                        </a>
+                                        {% if perms.agregat.delete_agregat %}
+                                            <a href="{% url 'agregat:delete' agregat.id parametr.par.id %}"
+                                            class="btn btn-outline-danger"
+                                            title="Удалить параметр">
+                                                Удалить параметр
+                                            </a>
+                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>

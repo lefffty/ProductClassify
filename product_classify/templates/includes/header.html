@@ -10,6 +10,7 @@
     </button>
     <ul class="nav-menu">
       <li><a href="{% url 'classes:index' %}">Главная</a></li>
+      {% if perms.classes.view_classstruct %}
       <li class="nav-dropdown">
         <a href="#">Классы</a>
         <ul class="nav-dropdown-list">
@@ -20,27 +21,38 @@
           {% endfor %}
         </ul>
       </li>
-      <li><a href="{% url 'ei:list' %}">Единицы измерения</a></li>
-      <li class="nav-dropdown">
-        <a href="#">Перечисления</a>
-        <ul class="nav-dropdown-list">
-          <li><a href="{% url 'enums:list' string_enums_id %}">Строковые</a></li>
-          <li><a href="{% url 'enums:list' image_enums_id %}">Изображений</a></li>
-          <li><a href="{% url 'enums:list' int_enums_id %}">Целочисленные</a></li>
-          <li><a href="{% url 'enums:list' double_enums_id %}">Вещественные</a></li>
-        </ul>
-      </li>
-      <li><a href="{% url 'parametr:list' %}">Параметры</a></li>
-      <li><a href="{% url 'agregat:list' %}">Агрегаты</a></li>
+      {% endif %}
+      {% if perms.ei.view_ei %}
+        <li><a href="{% url 'ei:list' %}">Единицы измерения</a></li>
+      {% endif %}
+      {% if perms.enums.view_enums %}
+        <li class="nav-dropdown">
+          <a href="#">Перечисления</a>
+          <ul class="nav-dropdown-list">
+            <li><a href="{% url 'enums:list' string_enums_id %}">Строковые</a></li>
+            <li><a href="{% url 'enums:list' image_enums_id %}">Изображений</a></li>
+            <li><a href="{% url 'enums:list' int_enums_id %}">Целочисленные</a></li>
+            <li><a href="{% url 'enums:list' double_enums_id %}">Вещественные</a></li>
+          </ul>
+        </li>
+      {% endif %}
+      {% if perms.parametr.view_parametr %}
+        <li><a href="{% url 'parametr:list' %}">Параметры</a></li>
+      {% endif %}
+      {% if perms.agregat.view_agregat %}
+        <li><a href="{% url 'agregat:list' %}">Агрегаты</a></li>
+      {% endif %}
 
-      <li class="nav-dropdown">
-        <a href="#">Технологические операции</a>
-        <ul class="nav-dropdown-list">
-          <li><a href="{% url 'route_tech:list_eas' %}">Субъекты экономической деятельности</a></li>
-          <li><a href="{% url 'route_tech:list_gwc' %}">Групповые рабочие центры</a></li>
-          <li><a href="{% url 'route_tech:list_prod_operation' %}">Изделия с операциями</a></li>
-        </ul>
-      </li>
+      {% if 1 %}      
+        <li class="nav-dropdown">
+          <a href="#">Технологические операции</a>
+          <ul class="nav-dropdown-list">
+            <li><a href="{% url 'route_tech:list_eas' %}">Субъекты экономической деятельности</a></li>
+            <li><a href="{% url 'route_tech:list_gwc' %}">Групповые рабочие центры</a></li>
+            <li><a href="{% url 'route_tech:list_prod_operation' %}">Изделия с операциями</a></li>
+          </ul>
+        </li>
+      {% endif %}
 
       {% if user.is_authenticated %}
         <li class="nav-dropdown nav-user">

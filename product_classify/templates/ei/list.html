@@ -11,9 +11,11 @@
     <h1 id="ei-page-title" class="h3 mb-0">
       <i class="bi bi-rulers"></i>Единицы измерения
     </h1>
-    <a href="{% url 'ei:add' %}" id="ei-add-btn" class="btn btn-primary">
-      Добавить единицу измерения
-    </a>
+    {% if perms.ei.add_ei %}
+      <a href="{% url 'ei:add' %}" id="ei-add-btn" class="btn btn-primary">
+        Добавить единицу измерения
+      </a>
+    {% endif %}
   </div>
 
   <div class="card shadow-sm" id="ei-card">
@@ -99,14 +101,17 @@
                   >
                     Подробнее
                   </a>
-                  <a
-                    href="{% url 'ei:edit' ei.id %}"
-                    id="ei-edit-{{ ei.id }}"
-                    class="btn btn-outline-secondary"
-                    title="Редактировать"
-                  >
-                    Редактировать
-                  </a>
+                  {% if perms.ei.change_ei %}
+                    <a
+                      href="{% url 'ei:edit' ei.id %}"
+                      id="ei-edit-{{ ei.id }}"
+                      class="btn btn-outline-secondary"
+                      title="Редактировать"
+                    >
+                      Редактировать
+                    </a>
+                  {% endif %}
+                  {% if perms.ei.delete_ei %}
                   <a
                     href="{% url 'ei:delete' ei.id %}"
                     id="ei-delete-{{ ei.id }}"
@@ -115,6 +120,7 @@
                   >
                     Удалить
                   </a>
+                  {% endif %}
                 </div>
               </td>
             </tr>

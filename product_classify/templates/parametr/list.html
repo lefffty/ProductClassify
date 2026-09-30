@@ -10,9 +10,11 @@
         <h1 class="h3 mb-0">
             <i class="bi bi-sliders2"></i> Параметры
         </h1>
-        <a href="{% url 'parametr:add' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Добавить параметр
-        </a>
+        {% if perms.parametr.add_parametr %}
+            <a href="{% url 'parametr:add' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Добавить параметр
+            </a>
+        {% endif %}
     </div>
 
     <div class="card shadow-sm">
@@ -89,12 +91,16 @@
                                         <a href="{% url 'parametr:detail' parameter.id %}" class="btn btn-outline-primary btn-sm">
                                             Просмотр
                                         </a>
-                                        <a href="{% url 'parametr:edit' parameter.id %}" class="btn btn-outline-secondary btn-sm">
-                                            Редактировать
-                                        </a>
-                                        <a href="{% url 'parametr:delete' parameter.id %}" class="btn btn-outline-danger btn-sm">
-                                            Удалить
-                                        </a>
+                                        {% if perms.parametr.change_parametr %}
+                                            <a href="{% url 'parametr:edit' parameter.id %}" class="btn btn-outline-secondary btn-sm">
+                                                Редактировать
+                                            </a>
+                                        {% endif %}
+                                        {% if perms.parametr.delete_parametr %}
+                                            <a href="{% url 'parametr:delete' parameter.id %}" class="btn btn-outline-danger btn-sm">
+                                                Удалить
+                                            </a>
+                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>

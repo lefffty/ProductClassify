@@ -192,12 +192,13 @@ class ClassDeleteView(
 
 
 class ClassParamsListView(
-    HandbookExecutiveRequiredMixin,
+    PermissionRequiredMixin,
     CommonContextMixin,
     ListView,
 ):
     """Представление для вывода списка параметров класса"""
 
+    permission_required = "classes.view_parclass"
     template_name = "classes/params.html"
     context_object_name = "params"
 

@@ -19,12 +19,16 @@
                     </p>
                 </div>
                 <div class="btn-group">
-                    <a href="{% url 'parametr:edit' parameter.id %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-pencil"></i> Редактировать
-                    </a>
-                    <a href="{% url 'parametr:delete' parameter.id %}" class="btn btn-outline-danger">
-                        <i class="bi bi-trash"></i> Удалить
-                    </a>
+                    {% if perms.parametr.change_parametr %}
+                        <a href="{% url 'parametr:edit' parameter.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-pencil"></i> Редактировать
+                        </a>
+                    {% endif %}
+                    {% if perms.parametr.delete_parametr %}
+                        <a href="{% url 'parametr:delete' parameter.id %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Удалить
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
