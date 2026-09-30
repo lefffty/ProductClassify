@@ -17,9 +17,8 @@ from typing import List
 from products.models import Prod
 
 from specifications.constants import TotalCostRatioConsts, ChangeLogConsts
+from specifications.selectors import TotalCostRatioResult, SpecificationLogResult
 from specifications.models import (
-    TotalCostRatioResult,
-    SpecificationLogResult,
     ProdComponent,
 )
 

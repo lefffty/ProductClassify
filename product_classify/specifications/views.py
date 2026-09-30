@@ -13,9 +13,10 @@ from ei.models import Ei
 
 from products.models import ParProd
 
+from specifications.selectors import ProdComponentSelector, SpecificationLogsSelector
 from specifications.forms import ProdComponentFormSet, TotalCostRatioForm
 from specifications.constants import FormsetConsts
-from specifications.models import ProdComponent, Prod, SpecificationLogs
+from specifications.models import Prod 
 from specifications.utils import (
     create_total_cost_ratio_pdf,
     create_change_log_pdf,
@@ -51,7 +52,7 @@ def get_total_cost_ratio_view(request: HttpRequest, product_id: int) -> FileResp
     ei: Ei = form.cleaned_data["ei"] or product.ei
     convert_factor = ei.convert_factor
 
-    results = ProdComponent.total_cost_ratio(product_id, quantity, convert_factor)
+    results = ProdComponentSelector.total_cost_ratio(product_id, quantity, convert_factor)
 
     buffer = create_total_cost_ratio_pdf(results, product)
 
@@ -64,7 +65,7 @@ def get_total_cost_ratio_view(request: HttpRequest, product_id: int) -> FileResp
 
 @roles_required(RoleCodes.BUILDER)
 def get_product_changelog_view(_: HttpRequest, product_id: int) -> FileResponse:
-    results = SpecificationLogs.get_changelog(product_id)
+    results = SpecificationLogsSelector.get_changelog(product_id)
 
     product = get_object_or_404(Prod, pk=product_id)
 

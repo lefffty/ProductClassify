@@ -8,7 +8,7 @@ from classes.models import ClassStruct
 from classes.constants import ProductsConsts
 from ei.models import Ei
 
-from specifications.models import ProdComponent, SpecificationLogs
+from specifications.selectors import ProdComponentSelector, SpecificationLogsSelector
 
 
 class ProdComponentTest(BaseUnitTestCase):
@@ -47,17 +47,17 @@ class ProdComponentTest(BaseUnitTestCase):
         self.assertEqual(actual_representation, expected_representation)
 
     def test_is_parent_prod_returns_true_if_product_is_parent(self):
-        is_parent = ProdComponent.is_parent_prod(self.prod.pk)
+        is_parent = ProdComponentSelector.is_parent_prod(self.prod.pk)
         self.assertEqual(is_parent, 1)
 
     def test_is_parent_prod_returns_false_if_product_is_not_parent(self):
-        is_parent = ProdComponent.is_parent_prod(self.component.pk)
+        is_parent = ProdComponentSelector.is_parent_prod(self.component.pk)
         self.assertEqual(is_parent, 0)
 
     def test_total_cost_ratio(self):
         quantity = 2
         convert_factor = 1.5
-        total_cost_ratio = ProdComponent.total_cost_ratio(self.prod.pk, quantity, convert_factor)
+        total_cost_ratio = ProdComponentSelector.total_cost_ratio(self.prod.pk, quantity, convert_factor)
         self.assertEqual(len(total_cost_ratio), 1)
         record = total_cost_ratio[0]
         self.assertEqual(record.parent_id, self.prod.pk)
@@ -73,7 +73,7 @@ class ProdComponentTest(BaseUnitTestCase):
         self.assertEqual(record.level, 1)
 
     def test_product_specification(self):
-        product_specification = ProdComponent.product_specification(self.prod.pk)
+        product_specification = ProdComponentSelector.product_specification(self.prod.pk)
         self.assertEqual(len(product_specification), 1)
         record = product_specification[0]
         self.assertEqual(record.pair_id, self.prodcomponent1.pk)
@@ -132,7 +132,7 @@ class SpecificationLogsTest(BaseUnitTestCase):
             f'для изделия "{self.prod.name}" '
             f'изменилось с 12.0000000000 на 24.0000000000'
         )
-        changelog = SpecificationLogs.get_changelog(self.prod.pk)
+        changelog = SpecificationLogsSelector.get_changelog(self.prod.pk)
         self.assertEqual(len(changelog), 1)
         record = changelog[0]
         self.assertEqual(record.log_id, self.logs1.pk)
