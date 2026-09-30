@@ -138,66 +138,7 @@
     </div>
   </div>
 
-  {% if is_paginated %}
-  <nav
-    id="ei-pagination"
-    aria-label="Пагинация списка единиц измерения"
-    class="mt-4 d-flex justify-content-center"
-  >
-    <ul class="pagination mb-0">
-      {% if page_obj.has_previous %}
-        <li class="page-item">
-          <a class="page-link" href="?{% querystring page=1 %}" aria-label="Первая страница">
-            &laquo; Первая
-          </a>
-        </li>
-        <li class="page-item">
-          <a class="page-link" href="?{% querystring page=page_obj.previous_page_number %}" aria-label="Предыдущая страница">
-            Назад
-          </a>
-        </li>
-      {% else %}
-        <li class="page-item disabled">
-          <span class="page-link">&laquo; Первая</span>
-        </li>
-        <li class="page-item disabled">
-          <span class="page-link">Назад</span>
-        </li>
-      {% endif %}
+  {% include "includes/pagination.html" with aria_label="Пагинация списка единиц измерения" %}
 
-      {% for num in page_obj.paginator.page_range %}
-        {% if num == page_obj.number %}
-          <li class="page-item active" aria-current="page">
-            <span class="page-link">{{ num }}</span>
-          </li>
-        {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
-          <li class="page-item">
-            <a class="page-link" href="?{% querystring page=num %}">{{ num }}</a>
-          </li>
-        {% endif %}
-      {% endfor %}
-
-      {% if page_obj.has_next %}
-        <li class="page-item">
-          <a class="page-link" href="?{% querystring page=page_obj.next_page_number %}" aria-label="Следующая страница">
-            Вперёд
-          </a>
-        </li>
-        <li class="page-item">
-          <a class="page-link" href="?{% querystring page=page_obj.paginator.num_pages %}" aria-label="Последняя страница">
-            Последняя &raquo;
-          </a>
-        </li>
-      {% else %}
-        <li class="page-item disabled">
-          <span class="page-link">Вперёд</span>
-        </li>
-        <li class="page-item disabled">
-          <span class="page-link">Последняя &raquo;</span>
-        </li>
-      {% endif %}
-    </ul>
-  </nav>
-  {% endif %}
 </div>
 {% endblock content %}
