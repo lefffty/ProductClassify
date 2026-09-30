@@ -17,10 +17,13 @@ from django.core.exceptions import ValidationError
 
 from classes.models import ClassStruct, ParClass
 from classes.constants import ParamIds, ENUMS_IDS, NUMERIC_PARAMS, ENUM_PARAMS
+from classes.selectors import ClassificatorSelector
+
 from enums.models import Enums
 from ei.models import Ei
 
 from parametr.selectors import ParametrSelector
+
 from products.models import Parametr, ParProd, Prod
 from products.constants import ProdConsts
 from products.errors import (
@@ -79,7 +82,7 @@ class ProdForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["class_field"].queryset = ClassStruct.products().order_by("name")
+        self.fields["class_field"].queryset = ClassificatorSelector.products().order_by("name")
 
 
 class ParProdForm(ModelForm):

@@ -3,6 +3,8 @@ from django.core.exceptions import ValidationError
 
 from classes.models import ClassStruct
 from classes.constants import EnumsIds, ParamIds
+from classes.selectors import ClassificatorSelector
+
 from ei.models import Ei
 
 from parametr.models import Parametr
@@ -49,7 +51,7 @@ class ParametrForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["parametr_type"].queryset = ClassStruct.parametr_types()
+        self.fields["parametr_type"].queryset = ClassificatorSelector.parametr_types()
         self.fields["par_ei"].queryset = Ei.objects.all()
 
     def clean(self):

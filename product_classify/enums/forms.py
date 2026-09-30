@@ -13,6 +13,7 @@ from django.core.exceptions import ValidationError
 from core.utils import change_num
 
 from classes.models import ClassStruct
+from classes.selectors import ClassificatorSelector
 from classes.constants import EnumsIds
 
 from enums.models import Enums
@@ -93,7 +94,7 @@ class EnumsForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["enum"].queryset = ClassStruct.terminal_enum_classes()
+        self.fields["enum"].queryset = ClassificatorSelector.terminal_enum_classes()
 
     def clean(self):
         cleaned_data = super().clean()

@@ -12,6 +12,7 @@ from tests.unit.classes.factories.class_struct import ClassStructFactory
 from tests.unit.enums.factories.enums import EnumsFormData, ChangeNumFormData, EnumsFactory
 
 from classes.models import ClassStruct
+from classes.selectors import ClassificatorSelector
 from classes.constants import EnumsIds
 
 from enums.errors import CommonEnumErrors, ChangeNumErrors
@@ -82,7 +83,7 @@ class EnumsFormTest(BaseUnitTestCase):
 
     def test_enum_queryset_is_terminal_classes_queryset(self):
         """Проверяет, что поле enum в форме использует queryset из ClassStruct.terminal_enum_classes()."""
-        terminal_enum_classes = ClassStruct.terminal_enum_classes()
+        terminal_enum_classes = ClassificatorSelector.terminal_enum_classes()
         form = EnumsForm()
         self.assertIsInstance(form.fields["enum"].queryset, QuerySet)
         self.assertEqual(len(form.fields["enum"].queryset), len(terminal_enum_classes))

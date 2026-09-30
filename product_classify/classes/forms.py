@@ -28,6 +28,7 @@ from classes.constants import (
     ENUM_PARAMS,
 )
 from classes.errors import ClassStructErrors, ParClassErrors, ChangeParClassErrors
+from classes.selectors import ClassificatorSelector
 
 
 class ProdClassForm(
@@ -81,7 +82,7 @@ class ProdClassForm(
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["main_class"].queryset = ClassStruct.terminal_product_classes()
+        self.fields["main_class"].queryset = ClassificatorSelector.terminal_product_classes()
         self.fields["base_ei"].queryset = Ei.objects.all()
 
 
@@ -128,7 +129,7 @@ class EnumClassForm(
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["main_class"].queryset = ClassStruct.all_enum_classes()
+        self.fields["main_class"].queryset = ClassificatorSelector.all_enum_classes()
 
 
 class OperationClassForm(ModelForm):
@@ -149,7 +150,7 @@ class OperationClassForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["main_class"].queryset = ClassStruct.operations()
+        self.fields["main_class"].queryset = ClassificatorSelector.operations()
 
 
 class EconomicActivitySubjectClassForm(ModelForm):
@@ -289,7 +290,7 @@ class ParClassForm(ModelForm):
         class_field = kwargs.pop("class_field", None)
         super().__init__(*args, **kwargs)
         self.fields["parametr"].queryset = ParametrSelector.parameters()
-        self.fields["class_field"].queryset = ClassStruct.products()
+        self.fields["class_field"].queryset = ClassificatorSelector.products()
         self.fields["class_field"].initial = class_field
 
     def clean(self):

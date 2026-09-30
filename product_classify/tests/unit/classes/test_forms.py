@@ -32,6 +32,7 @@ from classes.models import (
     ClassStruct,
     ParClass
 )
+from classes.selectors import ClassificatorSelector
 from classes.forms import (
     EconomicActivitySubjectClassForm,
     MeansOfLaborClassForm,
@@ -126,7 +127,7 @@ class ProdClassFormTest(BaseUnitTestCase):
     ):
         """Проверяет, что при редактировании существующей записи без создания цикла форма валидна и объект сохраняется с новым родителем."""
         with patch(
-            "classes.models.ClassStruct.terminal_product_classes",
+            "classes.selectors.ClassificatorSelector.terminal_product_classes",
             return_value=ClassStruct.objects.all(),
         ):
             form_data = ProdClassFormData(main_class=self.other.pk, base_ei=self.base_ei.pk)
@@ -138,7 +139,7 @@ class ProdClassFormTest(BaseUnitTestCase):
     def test_clean_does_not_raise_error_when_no_cycle(self):
         """Проверяет, что при создании нового объекта без циклической ссылки форма валидна и объект сохраняется."""
         with patch(
-            "classes.models.ClassStruct.terminal_product_classes",
+            "classes.selectors.ClassificatorSelector.terminal_product_classes",
             return_value=ClassStruct.objects.all(),
         ):
             form_data = ProdClassFormData(main_class=self.root.pk, base_ei=self.ei.pk)
@@ -150,7 +151,7 @@ class ProdClassFormTest(BaseUnitTestCase):
     def test_edit_existing_record_updates_object(self):
         """Проверяет, что при редактировании существующей записи форма обновляет поля объекта, а не создаёт новый."""
         with patch(
-            "classes.models.ClassStruct.terminal_product_classes",
+            "classes.selectors.ClassificatorSelector.terminal_product_classes",
             return_value=ClassStruct.objects.all(),
         ):
             form_data = ProdClassFormData(main_class=self.other.pk, base_ei=self.base_ei.pk)
@@ -163,7 +164,7 @@ class ProdClassFormTest(BaseUnitTestCase):
     def test_short_name_is_optional(self):
         """Проверяет, что поле short_name необязательно (может быть None) и форма остаётся валидной."""
         with patch(
-            "classes.models.ClassStruct.terminal_product_classes",
+            "classes.selectors.ClassificatorSelector.terminal_product_classes",
             return_value=ClassStruct.objects.all(),
         ):
             form_data = ProdClassFormData(short_name="", main_class=self.valid_main_class.pk, base_ei=self.ei.pk)
@@ -173,7 +174,7 @@ class ProdClassFormTest(BaseUnitTestCase):
     def test_base_ei_is_optional(self):
         """Проверяет, что поле base_ei необязательно (может быть None) и форма остаётся валидной."""
         with patch(
-            "classes.models.ClassStruct.terminal_product_classes",
+            "classes.selectors.ClassificatorSelector.terminal_product_classes",
             return_value=ClassStruct.objects.all(),
         ):
             form_data = ProdClassFormData(main_class=self.valid_main_class.pk)
@@ -283,7 +284,7 @@ class EnumClassFormTest(BaseUnitTestCase):
     def test_short_name_is_optional(self):
         """Проверяет, что поле short_name может быть пустой строкой и форма остаётся валидной."""
         with patch(
-            "classes.models.ClassStruct.all_enum_classes",
+            "classes.selectors.ClassificatorSelector.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
             form_data = EnumsClassFormData(short_name="", main_class=self.other.pk)
@@ -293,7 +294,7 @@ class EnumClassFormTest(BaseUnitTestCase):
     def test_short_name_accepts_none(self):
         """Проверяет, что поле short_name может быть None (пустое значение) и форма остаётся валидной."""
         with patch(
-            "classes.models.ClassStruct.all_enum_classes",
+            "classes.selectors.ClassificatorSelector.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
             form_data = EnumsClassFormData(short_name="", main_class=self.other.pk)
@@ -303,7 +304,7 @@ class EnumClassFormTest(BaseUnitTestCase):
     def test_clean_raises_error_when_cycle_detected_while_editing_existing_record(self):
         """Проверяет, что при редактировании существующей записи и создании циклической ссылки форма невалидна и содержит ошибку о цикле."""
         with patch(
-            "classes.models.ClassStruct.all_enum_classes",
+            "classes.selectors.ClassificatorSelector.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
             form_data = EnumsClassFormData(main_class=self.child.pk)
@@ -320,7 +321,7 @@ class EnumClassFormTest(BaseUnitTestCase):
     ):
         """Проверяет, что при редактировании существующей записи без создания цикла форма валидна и объект сохраняется с новым родителем."""
         with patch(
-            "classes.models.ClassStruct.all_enum_classes",
+            "classes.selectors.ClassificatorSelector.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
             form_data = EnumsClassFormData(main_class=self.other.pk)
@@ -330,7 +331,7 @@ class EnumClassFormTest(BaseUnitTestCase):
     def test_clean_does_not_raise_error_when_no_cycle(self):
         """Проверяет, что при создании нового объекта без циклической ссылки форма валидна и объект сохраняется."""
         with patch(
-            "classes.models.ClassStruct.all_enum_classes",
+            "classes.selectors.ClassificatorSelector.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
             form_data = EnumsClassFormData(main_class=self.root.pk)
@@ -340,7 +341,7 @@ class EnumClassFormTest(BaseUnitTestCase):
     def test_edit_existing_record_updates_object(self):
         """Проверяет, что при редактировании существующей записи форма обновляет поля объекта, а не создаёт новый."""
         with patch(
-            "classes.models.ClassStruct.all_enum_classes",
+            "classes.selectors.ClassificatorSelector.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
             form_data = EnumsClassFormData(main_class=self.other.pk)
@@ -354,7 +355,7 @@ class EnumClassFormTest(BaseUnitTestCase):
     def test_cycle_when_main_class_is_self(self):
         """Проверяет, что установка родительским классом самого себя приводит к ошибке цикла."""
         with patch(
-            "classes.models.ClassStruct.all_enum_classes",
+            "classes.selectors.ClassificatorSelector.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
             form_data = EnumsClassFormData(main_class=self.root.pk)
@@ -369,7 +370,7 @@ class EnumClassFormTest(BaseUnitTestCase):
     def test_cycle_not_checked_for_new_object(self):
         """Проверяет, что для новых объектов (без instance.pk) проверка циклов не выполняется."""
         with patch(
-            "classes.models.ClassStruct.all_enum_classes",
+            "classes.selectors.ClassificatorSelector.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
             form_data = EnumsClassFormData(main_class=self.other.pk)
@@ -382,7 +383,7 @@ class EnumClassFormTest(BaseUnitTestCase):
         """Проверяет, что выбор родительского класса, не входящего в all_enum_classes, приводит к невалидности формы."""
         invalid_enum_main_class = ClassStructFactory()
         with patch(
-            "classes.models.ClassStruct.all_enum_classes",
+            "classes.selectors.ClassificatorSelector.all_enum_classes",
             return_value=ClassStruct.objects.filter(
                 pk__in=[self.root.pk, self.child.pk, self.other.pk]
             ),
@@ -395,7 +396,7 @@ class EnumClassFormTest(BaseUnitTestCase):
     def test_create_new_object_saves_correctly(self):
         """Проверяет, что при создании нового объекта с валидными данными форма сохраняет объект с корректными полями."""
         with patch(
-            "classes.models.ClassStruct.all_enum_classes",
+            "classes.selectors.ClassificatorSelector.all_enum_classes",
             return_value=ClassStruct.objects.all(),
         ):
             form_data = EnumsClassFormData(main_class=self.root.pk)
@@ -1023,7 +1024,7 @@ class OperationClassFormTest(BaseUnitTestCase):
     def test_main_class_queryset_is_operations_queryset(self):
         form = OperationClassForm()
         self.assertIsInstance(form.fields["main_class"].queryset, QuerySet)
-        self.assertEqual(len(form.fields["main_class"].queryset), len(ClassStruct.operations()))
+        self.assertEqual(len(form.fields["main_class"].queryset), len(ClassificatorSelector.operations()))
 
     def test_name_field_is_required(self):
         form = OperationClassForm(self.empty_name_data)

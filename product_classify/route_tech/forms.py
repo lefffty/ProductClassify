@@ -13,7 +13,10 @@ from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
 
 from classes.models import ClassStruct
+from classes.selectors import ClassificatorSelector
+
 from products.models import Prod
+
 from core.mixins import CycleCheckFormMixin
 
 from route_tech.models import (
@@ -75,7 +78,7 @@ class EconomicActivitySubjectForm(
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["main_class"].queryset = ClassStruct.economic_activity_subjects()
+        self.fields["main_class"].queryset = ClassificatorSelector.economic_activity_subjects()
         self.fields["main_subject"].queryset = EconomicActivitySubject.objects.all()
 
     class Meta:
@@ -141,7 +144,7 @@ class GroupWorkingCenterForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["main_class"].queryset = ClassStruct.means_of_labor()
+        self.fields["main_class"].queryset = ClassificatorSelector.means_of_labor()
         self.fields["eas"].queryset = EconomicActivitySubject.objects.all()
 
 
@@ -203,9 +206,9 @@ class ProdOperationForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["prod"].queryset = Prod.objects.all()
-        self.fields["tech_oper"].queryset = ClassStruct.technological_operations()
-        self.fields["profession"].queryset = ClassStruct.professions()
-        self.fields["qualification"].queryset = ClassStruct.qualifications()
+        self.fields["tech_oper"].queryset = ClassificatorSelector.technological_operations()
+        self.fields["profession"].queryset = ClassificatorSelector.professions()
+        self.fields["qualification"].queryset = ClassificatorSelector.qualifications()
 
 
 class ProdOperationPosForm(ModelForm):

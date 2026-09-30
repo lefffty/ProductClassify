@@ -6,8 +6,10 @@ from tests.unit.base import BaseUnitTestCase
 from tests.unit.classes.factories.class_struct import ClassStructFactory
 
 from parametr.models import Parametr
+
 from ei.models import Ei
 
+from classes.selectors import ClassificatorSelector
 from classes.models import ClassStruct, ParClass
 from classes.errors import ParClassErrors
 from classes.constants import ProductsConsts, ParamIds, EnumsIds, TYPE_IDS, ENUM_PARAMS
@@ -33,76 +35,76 @@ class ClassStructModelTest(BaseUnitTestCase):
         self.assertEqual(str(class1), class1.name)
 
     def test_products_returns_valid_queryset_and_valid_class(self):
-        products = ClassStruct.products()
+        products = ClassificatorSelector.products()
         self.assertIsInstance(products, QuerySet)
         self.assertEqual(products.model, ClassStruct)
 
     def test_products_contains_expected_ids(self):
-        products = ClassStruct.products()
+        products = ClassificatorSelector.products()
         expected_ids = {1, 2, 3, 4, 5}
         actual_ids = set(products.values_list("id", flat=True))
         self.assertEqual(len(actual_ids), len(expected_ids))
         self.assertSetEqual(actual_ids, expected_ids)
 
     def test_terminal_product_classes_returns_queryset_and_valid_class(self):
-        terminal_product_classes = ClassStruct.terminal_product_classes()
+        terminal_product_classes = ClassificatorSelector.terminal_product_classes()
         self.assertIsInstance(terminal_product_classes, QuerySet)
         self.assertEqual(terminal_product_classes.model, ClassStruct)
 
     def test_terminal_enum_classes_returns_queryset_and_valid_class(self):
-        terminal_enum_classes = ClassStruct.terminal_enum_classes()
+        terminal_enum_classes = ClassificatorSelector.terminal_enum_classes()
         self.assertIsInstance(terminal_enum_classes, QuerySet)
         self.assertEqual(terminal_enum_classes.model, ClassStruct)
 
     def test_parametr_types_returns_queryset_and_valid_class(self):
-        parametr_types = ClassStruct.parametr_types()
+        parametr_types = ClassificatorSelector.parametr_types()
         self.assertIsInstance(parametr_types, QuerySet)
         self.assertEqual(parametr_types.model, ClassStruct)
 
     def test_parametr_types_contains_expected_ids(self):
-        parametr_types = ClassStruct.parametr_types()
+        parametr_types = ClassificatorSelector.parametr_types()
         actual_ids = set(parametr_types.values_list("id", flat=True))
         self.assertEqual(len(actual_ids), len(TYPE_IDS))
         self.assertSetEqual(actual_ids, set(TYPE_IDS))
 
     def test_enum_classes_returns_queryset_and_valid_class(self):
-        enum_classes = ClassStruct.enum_classes()
+        enum_classes = ClassificatorSelector.enum_classes()
         self.assertIsInstance(enum_classes, QuerySet)
         self.assertEqual(enum_classes.model, ClassStruct)
 
     def test_enum_classes_contains_expected_ids(self):
-        enum_classes = ClassStruct.enum_classes()
+        enum_classes = ClassificatorSelector.enum_classes()
         actual_ids = set(enum_classes.values_list("id", flat=True))
         self.assertEqual(len(actual_ids), len(ENUM_PARAMS))
         self.assertSetEqual(actual_ids, set(ENUM_PARAMS))
 
     def test_all_enum_classes_returns_queryset_and_valid_class(self):
-        all_enum_classes = ClassStruct.all_enum_classes()
+        all_enum_classes = ClassificatorSelector.all_enum_classes()
         self.assertIsInstance(all_enum_classes, QuerySet)
         self.assertEqual(all_enum_classes.model, ClassStruct)
 
     def test_technological_operations(self):
-        technological_operations = ClassStruct.technological_operations()
+        technological_operations = ClassificatorSelector.technological_operations()
         self.assertIsInstance(technological_operations, QuerySet)
         self.assertEqual(len(technological_operations), 9)
 
     def test_professions(self):
-        professions = ClassStruct.professions()
+        professions = ClassificatorSelector.professions()
         self.assertIsInstance(professions, QuerySet)
         self.assertEqual(len(professions), 8)
 
     def test_qualifications(self):
-        qualifications = ClassStruct.qualifications()
+        qualifications = ClassificatorSelector.qualifications()
         self.assertIsInstance(qualifications, QuerySet)
         self.assertEqual(len(qualifications), 7)
 
     def test_economic_activity_subjects(self):
-        subjects = ClassStruct.economic_activity_subjects()
+        subjects = ClassificatorSelector.economic_activity_subjects()
         self.assertIsInstance(subjects, QuerySet)
         self.assertEqual(len(subjects), 3)
     
     def test_means_of_labor(self):
-        means_of_labor = ClassStruct.means_of_labor()
+        means_of_labor = ClassificatorSelector.means_of_labor()
         self.assertIsInstance(means_of_labor, QuerySet)
         self.assertEqual(len(means_of_labor), 0)
 

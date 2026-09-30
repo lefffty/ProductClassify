@@ -1,17 +1,13 @@
 from django.core.validators import MinValueValidator
-from django.db import models, connection
-from django.db.models import QuerySet, Q, F
+from django.db import models
+from django.db.models import Q, F
 from django.forms import ValidationError
 
 from ei.models import Ei
-from core.queries import ClassStructQueries
 
 from classes.constants import (
-    EnumsIds,
     ClassStructConsts,
     ParClassConsts,
-    ProductsConsts,
-    MetaConsts,
     ParamIds,
     ENUMS_IDS,
     NUMERIC_PARAMS,
@@ -56,112 +52,6 @@ class ClassStruct(models.Model):
 
     def __str__(self):
         return self.name
-
-    @classmethod
-    def products(cls) -> QuerySet:
-        """Returns QuerySet of products classes"""
-        with connection.cursor() as cursor:
-            cursor.execute(ClassStructQueries.FIND_GR_GR, [ProductsConsts.PRODUCT_ID])
-            data = cursor.fetchall()
-            prod_classes_ids = [element[0] for element in data]
-        return cls.objects.filter(id__in=prod_classes_ids)
-
-    @classmethod
-    def terminal_product_classes(cls) -> QuerySet[ClassStruct]:
-        """Returns QuerySet of terminal products classes"""
-        with connection.cursor() as cursor:
-            cursor.execute(ClassStructQueries.FIND_GR_GR, [ProductsConsts.PRODUCT_ID])
-            terminal_classes = cursor.fetchall()
-            terminal_classes_ids = [element[0] for element in terminal_classes]
-        return cls.objects.filter(id__in=terminal_classes_ids)
-
-    @classmethod
-    def terminal_enum_classes(cls) -> QuerySet:
-        """Returns QuerySet of terminal enum classes"""
-        with connection.cursor() as cursor:
-            cursor.execute(ClassStructQueries.GET_TERMINAL_CLASSES, [EnumsIds.PARENT])
-            terminal_enum_classes = cursor.fetchall()
-            terminal_enum_classes_ids = [
-                element[0] for element in terminal_enum_classes
-            ]
-            terminal_enum_classes_ids.extend(ENUMS_IDS)
-            ids = set(terminal_enum_classes_ids)
-            ids = ids.difference(ENUMS_IDS)
-        return cls.objects.filter(id__in=ids)
-
-    @classmethod
-    def parametr_types(cls) -> QuerySet:
-        """Returns QuerySet of parametr types"""
-        string_enum = ClassStruct.objects.filter(pk=EnumsIds.STRING)
-        image_enum = ClassStruct.objects.filter(pk=EnumsIds.IMAGE)
-        num_enums = ClassStruct.objects.filter(main_class__exact=EnumsIds.NUMERIC)
-        num_params = ClassStruct.objects.filter(main_class__exact=ParamIds.NUMERIC)
-        agregat_type = ClassStruct.objects.filter(pk__in=[ParamIds.AGREGAT])
-        result_queryset = (
-            string_enum | image_enum | num_params | num_enums | agregat_type
-        )
-        return result_queryset
-
-    @classmethod
-    def enum_classes(cls) -> QuerySet:
-        """Returns QuerySet of enum classes"""
-        string_enum = ClassStruct.objects.filter(pk=EnumsIds.STRING)
-        image_enum = ClassStruct.objects.filter(pk=EnumsIds.IMAGE)
-        num_enums = ClassStruct.objects.filter(main_class__exact=EnumsIds.NUMERIC)
-        return string_enum | image_enum | num_enums
-
-    @classmethod
-    def all_enum_classes(cls) -> QuerySet:
-        """Returns QuerySet of all enum classes"""
-        with connection.cursor() as cursor:
-            cursor.execute(ClassStructQueries.FIND_GR_GR, [EnumsIds.NUMERIC])
-            classes_ids = cursor.fetchall()
-            classes_ids = [element[0] for element in classes_ids]
-        return cls.objects.filter(id__in=classes_ids)
-
-    @classmethod
-    def operations(cls):
-        operations = ClassStruct.objects.filter(
-            Q(main_class__exact=MetaConsts.TECH_OPERATION)
-            | Q(pk__exact=MetaConsts.OPERATION)
-            | Q(main_class__exact=MetaConsts.OPERATION)
-        )
-        return operations
-
-    @classmethod
-    def technological_operations(cls):
-        operations = ClassStruct.objects.filter(
-            main_class__exact=MetaConsts.TECH_OPERATION
-        )
-        return operations
-
-    @classmethod
-    def professions(cls):
-        professions = ClassStruct.objects.filter(
-            main_class__exact=MetaConsts.PROFESSION
-        )
-        return professions
-
-    @classmethod
-    def qualifications(cls):
-        qualifications = ClassStruct.objects.filter(
-            main_class__exact=MetaConsts.QUALIFICATION
-        )
-        return qualifications
-
-    @classmethod
-    def economic_activity_subjects(self):
-        subjects = ClassStruct.objects.filter(
-            main_class__exact=MetaConsts.ECONOMIC_ACTIVITY_SUBJECT
-        )
-        return subjects
-
-    @classmethod
-    def means_of_labor(self):
-        means_of_labor = ClassStruct.objects.filter(
-            main_class__exact=MetaConsts.MEANS_OF_LABOR
-        )
-        return means_of_labor
 
 
 class ParClass(models.Model):

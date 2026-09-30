@@ -31,7 +31,7 @@ class ParametrFormTest(BaseUnitTestCase):
         cls.NEW_SHORT_NAME = "New short name"
 
     def test_parametr_type_queryset_are_parametr_types(self):
-        """Проверяет, что поле parametr_type использует queryset с объектами ClassStruct.parametr_types()."""
+        """Проверяет, что поле parametr_type использует queryset с объектами ClassificatorSelector.parametr_types()."""
         form = ParametrForm()
         self.assertIsInstance(form.fields["parametr_type"].queryset, QuerySet)
 
@@ -493,8 +493,8 @@ class ParametrFormTest(BaseUnitTestCase):
         self.assertEqual(obj.par_ei, new_form_data["par_ei"])
 
     def test_parametr_type_queryset_uses_parametr_types_method(self):
-        """Проверяет, что queryset для parametr_type формируется через вызов ClassStruct.parametr_types()."""
-        with patch("classes.models.ClassStruct.parametr_types") as mock_method:
+        """Проверяет, что queryset для parametr_type формируется через вызов ClassificatorSelector.parametr_types()."""
+        with patch("classes.selectors.ClassificatorSelector.parametr_types") as mock_method:
             mock_method.return_value = ClassStruct.objects.none()
             _ = ParametrForm()
             mock_method.assert_called_once()

@@ -1,6 +1,5 @@
-from django.shortcuts import redirect
-from django.http import Http404, HttpResponseRedirect
-from django.urls import reverse_lazy, reverse
+from django.shortcuts import redirect, get_object_or_404
+from django.urls import reverse_lazy
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.views.generic import (
     FormView,
@@ -20,6 +19,7 @@ from classes.models import (
     ClassStruct,
     ParClass,
 )
+from classes.selectors import ClassificatorSelector, ParClassSelector
 from classes.forms import (
     EconomicActivitySubjectClassForm,
     ProfessionClassForm,
@@ -57,20 +57,12 @@ class CategoryClassesListView(
 
     def get_queryset(self):
         self.class_id = self.kwargs.get("class_id")
-        try:
-            self.cls = ClassStruct.objects.get(pk=self.class_id)
-            classes = (
-                ClassStruct.objects.filter(main_class=self.cls)
-                .select_related("main_class")
-                .order_by("id")
-            )
-            return classes
-        except ClassStruct.DoesNotExist:
-            raise Http404(f"Класса с ID={self.class_id} не существует")
+        self.cls_ = get_object_or_404(ClassStruct, pk=self.class_id)
+        return ClassificatorSelector.category_classes_list(self.cls_)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["main_class"] = self.cls
+        context["main_class"] = self.cls_
         return context
 
 
@@ -155,9 +147,10 @@ class ClassUpdateView(
 
     pk_url_kwarg = "class_id"
 
-    def get_queryset(self):
-        return ClassStruct.objects.select_related("main_class")
-
+    def get_object(self) -> ClassStruct:
+        class_id = self.kwargs.get("class_id")
+        return ClassificatorSelector.fetch_detail_info(class_id)
+    
     def get_template_names(self):
         if self.object.main_class_id in ENUMS_IDS:
             return ["classes/enum_class.html"]
@@ -187,9 +180,7 @@ class ClassDeleteView(
 
     def get_object(self) -> ClassStruct:
         class_id = self.kwargs.get("class_id")
-        return (
-            ClassStruct.objects.filter(pk=class_id).select_related("main_class").first()
-        )
+        return ClassificatorSelector.fetch_detail_info(class_id)
 
     def get_success_url(self):
         return reverse_lazy(
@@ -212,20 +203,12 @@ class ClassParamsListView(
 
     def get_queryset(self):
         class_id = self.kwargs.get("class_id")
-        params = (
-            ParClass.objects.filter(class_field=class_id)
-            .select_related("parametr__par_ei", "parametr__parametr_type")
-            .order_by("num")
-        )
-        return params
+        return ParClassSelector.fetch_parclass_list(class_id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         class_id = self.kwargs.get("class_id")
-        class_ = (
-            ClassStruct.objects.filter(pk=class_id).select_related("main_class").first()
-        )
-        context["class"] = class_
+        context["class"] = ClassificatorSelector.fetch_detail_info(class_id)
         return context
 
 
@@ -242,7 +225,8 @@ class ClassParamCreateView(
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        class_ = ClassStruct.objects.get(pk=self.kwargs.get("class_id"))
+        class_id = self.kwargs.get("class_id")
+        class_ = get_object_or_404(ClassStruct, pk=class_id)
         context["instance"] = class_
         return context
 
@@ -265,10 +249,7 @@ class ClassParamUpdateView(
     def get_object(self):
         class_id = self.kwargs.get("class_id")
         param_id = self.kwargs.get("param_id")
-        return ParClass.objects.get(
-            class_field=class_id,
-            parametr=param_id,
-        )
+        return ParClassSelector.fetch_by_ids(class_id, param_id)
 
     def get_success_url(self):
         return reverse_lazy(
@@ -286,10 +267,9 @@ class ClassParamDeleteView(
     context_object_name = "instance"
 
     def get_object(self):
-        return ParClass.objects.get(
-            class_field=self.kwargs.get("class_id"),
-            parametr=self.kwargs.get("param_id"),
-        )
+        class_id = self.kwargs.get("class_id")
+        param_id = self.kwargs.get("param_id")
+        return ParClassSelector.fetch_by_ids(class_id, param_id)
 
     def get_success_url(self):
         return reverse_lazy("classes:params_list", args=[self.kwargs.get("class_id")])
@@ -306,7 +286,8 @@ class ChangeParClassNumView(
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["instance"] = ClassStruct.objects.get(pk=self.kwargs.get("class_id"))
+        class_id = self.kwargs.get("class_id")
+        context["instance"] = get_object_or_404(ClassStruct, pk=class_id)
         return context
 
     def get_form_kwargs(self):
