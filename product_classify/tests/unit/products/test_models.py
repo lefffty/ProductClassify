@@ -14,9 +14,13 @@ from tests.unit.enums.factories.enums import EnumsFactory
 from tests.unit.classes.factories.parclass import ParClassFactory
 
 from ei.models import Ei
+
 from classes.constants import ParamIds, ProductsConsts, EnumsIds
 from classes.models import ClassStruct
+
 from specifications.models import ProdComponent
+
+from products.services import ProdService
 from products.errors import CommonParProdErrors, EnumsParErrors, IntParErrors, DoubleParErrors
 from products.models import Prod
 
@@ -119,7 +123,7 @@ class ProdModelTest(BaseUnitTestCase):
         )
         mod_name = "Mod name"
         mod_short_name = "Mod short"
-        data = Prod.create_modification(prod.pk, mod_name, mod_short_name)
+        data = ProdService.create_modification(prod.pk, name=mod_name, short_name=mod_short_name)
         modification = Prod.objects.get(pk=data.modification_id)
         self.assertEqual(modification.modification.pk, prod.pk)
         self.assertEqual(modification.image, prod.image)

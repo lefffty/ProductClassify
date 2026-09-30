@@ -3,12 +3,16 @@ from faker import Faker
 from tests.unit.base import BaseUnitTestCase
 
 from classes.models import ClassStruct, ParClass
-from ei.models import Ei
-from products.models import Prod, ParProd
-from products.utils import get_filtered_products
-from parametr.models import Parametr
-from enums.models import Enums
 from classes.constants import ProdClassConsts, ProductsConsts, ParamIds, EnumsIds
+
+from ei.models import Ei
+
+from products.models import Prod, ParProd
+from products.selectors import ProdSelector
+
+from parametr.models import Parametr
+
+from enums.models import Enums
 
 
 class GetFilteredProductsTest(BaseUnitTestCase):
@@ -136,12 +140,12 @@ class GetFilteredProductsTest(BaseUnitTestCase):
         cls.products_qs = Prod.objects.filter(class_field=cls.nuts_subclass)
 
     def test_filtered_products_returns_all_products_if_filters_were_not_specified(self):
-        filtered_queryset = get_filtered_products(self.products_qs, {}, self.nuts_subclass.pk)
+        filtered_queryset = ProdSelector.get_filtered_products(self.products_qs, {}, self.nuts_subclass.pk)
         self.assertEqual(list(filtered_queryset), [self.prod1, self.prod2])
 
     def test_filtered_products_returns_not_none_queryset_if_products_fits_filters(self):
         param_name = self.parclass1.parametr.name
-        filtered_queryset = get_filtered_products(
+        filtered_queryset = ProdSelector.get_filtered_products(
             self.products_qs,
             {
                 param_name: ("140", "160")
@@ -152,7 +156,7 @@ class GetFilteredProductsTest(BaseUnitTestCase):
 
     def test_filtered_products_returns_none_queryset_if_products_does_not_fit_filters(self):
         param_name = self.parclass1.parametr.name
-        filtered_queryset = get_filtered_products(
+        filtered_queryset = ProdSelector.get_filtered_products(
             self.products_qs,
             {
                 param_name: ("180", "190"),

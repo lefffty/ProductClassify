@@ -4,7 +4,6 @@ from django.http import HttpRequest
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.db.models import Exists, OuterRef
 from django.contrib.auth.views import RedirectURLMixin
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic import (
@@ -15,7 +14,6 @@ from django.views.generic import (
     DeleteView,
 )
 
-from classes.constants import ProductsConsts
 from classes.models import ClassStruct
 
 from core.mixins import (
@@ -25,19 +23,19 @@ from core.mixins import (
 )
 from core.views import get_context_data
 
+from products.services import ProdService
 from products.forms import (
     ProdForm,
     ParProdForm,
     SearchForm,
     ModificationForm,
 )
-from products.utils import get_filtered_products
+from products.selectors import ParProdSelector, ProdSelector
 from products.models import (
     Prod,
     ParProd,
 )
 from specifications.forms import TotalCostRatioForm
-
 
 
 @login_required
@@ -49,7 +47,7 @@ def class_products(request: HttpRequest, main_class_id: int, class_id: int):
         ClassStruct.objects.select_related("main_class"), pk=class_id
     )
 
-    base_qs = Prod.objects.filter(class_field_id=class_id).select_related("class_field")
+    base_qs = ProdSelector.fetch_base_queryset(class_id)
 
     products_qs = base_qs
 
@@ -57,11 +55,9 @@ def class_products(request: HttpRequest, main_class_id: int, class_id: int):
 
     if search_form.is_valid():
         form_data = search_form.cleaned_data
-        products_qs = get_filtered_products(products_qs, form_data, class_id)
+        products_qs = ProdSelector.get_filtered_products(products_qs, form_data, class_id)
 
-    products_no_params = base_qs.annotate(
-        has_params=Exists(ParProd.objects.filter(prod=OuterRef("pk")))
-    ).filter(has_params=False)
+    products_no_params = ProdSelector.annotate_filtered_products(base_qs)
 
     prod_count = products_qs.count() + products_no_params.count()
 
@@ -90,25 +86,14 @@ class ProductDetailView(
     pk_url_kwarg = "product_id"
     context_object_name = "product"
 
-    def get_queryset(self):
-        return (
-            Prod.objects
-            .select_related(
-                "class_field__main_class"
-            )
-        )
+    def get_object(self):
+        product_id = self.kwargs.get("product_id")
+        return ProdSelector.fetch_by_id(product_id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         prod = self.object
-        context["params"] = (
-            ParProd.objects
-            .filter(prod=prod)
-            .select_related(
-                "par",
-                "enum_val__enum__main_class",
-            )
-        )
+        context["params"] = ProdSelector.fetch_detail_info(prod)
         context["form"] = TotalCostRatioForm(prod.ei)
         return context
 
@@ -157,7 +142,7 @@ class ProductDeleteView(
 
     def get_success_url(self):
         prod_id = self.kwargs.get("prod_id")
-        product = Prod.objects.get(pk=prod_id)
+        product = get_object_or_404(Prod, pk=prod_id)
         class_id = product.class_field.pk
         main_class_id = product.class_field.main_class.pk
         return reverse_lazy(
@@ -188,11 +173,7 @@ class ProductParamSingleObject(
     def get_object(self):
         prod_id = self.kwargs.get("prod_id")
         param_id = self.kwargs.get("param_id")
-        instance = ParProd.objects.get(
-            prod=prod_id,
-            par=param_id,
-        )
-        return instance
+        return ParProdSelector.fetch_object_by_ids(prod_id, param_id)
 
 
 class ProductParamUpdateView(
@@ -232,7 +213,7 @@ class ProductParamCreateView(
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         prod_id = self.kwargs.get("prod_id")
-        product = Prod.objects.get(pk=prod_id)
+        product = get_object_or_404(Prod, pk=prod_id)
         context["instance"] = product
         return context
 
@@ -247,10 +228,7 @@ class ModificationCreateView(
 
     def form_valid(self, form: ModificationForm):
         cleaned_data = form.cleaned_data
-        name = cleaned_data.get("name")
-        short_name = cleaned_data.get("short_name")
-        modification = Prod.create_modification(
-            self.kwargs.get("product_id"), name, short_name
-        )
+        product_id = self.kwargs.get("product_id")
+        modification = ProdService.create_modification(product_id, **cleaned_data)
         modification_id = modification.modification_id
         return redirect("products:detail", product_id=modification_id)

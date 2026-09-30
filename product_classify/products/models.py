@@ -1,19 +1,18 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
-from django.db import models, connection
-
-from collections import namedtuple
+from django.db import models
 
 from classes.models import ClassStruct, ParClass
 from classes.constants import ParamIds, EnumsIds
+
 from parametr.models import Parametr
-from core.queries import ProdQueries
+
 from enums.models import Enums
+
 from ei.models import Ei
+
 from products.errors import CommonParProdErrors, IntParErrors, DoubleParErrors, EnumsParErrors
 from products.constants import ProdConsts
-
-ModificationResult = namedtuple("ModificationResult", field_names=["modification_id"])
 
 
 class Prod(models.Model):
@@ -74,16 +73,6 @@ class Prod(models.Model):
 
     def __str__(self):
         return self.name
-
-    @classmethod
-    def create_modification(
-        self, product_id: int, name: str, short_name: str
-    ) -> ModificationResult:
-        with connection.cursor() as cursor:
-            params = [product_id, name, short_name]
-            cursor.execute(ProdQueries.CREATE_MODIFICATION, params=params)
-            row = cursor.fetchall()[0]
-        return ModificationResult(*row)
 
 
 class ParProd(models.Model):
