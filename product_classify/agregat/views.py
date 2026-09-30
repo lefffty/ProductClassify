@@ -13,6 +13,7 @@ from parametr.models import Parametr
 
 from core.mixins import CommonContextMixin, HandbookExecutiveRequiredMixin
 
+from agregat.constants import AgregatConsts
 from agregat.models import Agregat
 from agregat.selectors import AgregatSelector
 from agregat.forms import AgregatForm, ChangeAgregatNumForm
@@ -23,6 +24,7 @@ class AgregatListView(
     CommonContextMixin,
     ListView,
 ):
+    paginate_by = AgregatConsts.PER_PAGE
     permission_required = "agregat.view_agregat"
     template_name = "agregat/list.html"
     context_object_name = "agregats"

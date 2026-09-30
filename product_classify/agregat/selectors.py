@@ -9,7 +9,7 @@ class AgregatSelector:
     @staticmethod
     def search_by_name(query: str):
         return Parametr.objects.filter(
-           Q(parametr_type__exact=ParamIds.AGREGAT) |
+           Q(parametr_type__exact=ParamIds.AGREGAT) &
            Q(name__icontains=query)
         )
 

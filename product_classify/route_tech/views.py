@@ -147,7 +147,7 @@ class ProdOperationDetailView(CommonContextMixin, DetailView):
 
 def edit_prod_operation_positions_view(request: HttpRequest, product_id: int):
     context = get_context_data()
-    product = Prod.objects.get(pk=product_id)
+    product = get_object_or_404(Prod, pk=product_id)
     edit_mode = request.GET.get("edit") == "1"
     prod_operation = get_object_or_404(ProdOperation, prod=product)
 
