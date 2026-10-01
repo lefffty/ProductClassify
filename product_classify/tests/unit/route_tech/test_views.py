@@ -3,6 +3,7 @@ from django.utils.html import escape
 from django.contrib.auth import get_user_model
 
 from decimal import Decimal
+from unittest.mock import patch
 from http import HTTPStatus
 
 from classes.models import ClassStruct
@@ -1329,4 +1330,251 @@ class EditTechnologicalRoutePositionsViewTest(BaseUnitTestCase):
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
         self.assertFalse(
             ProdOperationPos.objects.filter(pk=self.existing_pos1.pk).exists()
+        )
+
+
+class GetTechnologicalRouteViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.tech_oper = ClassStruct.objects.get(pk=OperationConsts.WELDING)
+        cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
+        cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
+
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.product_class = ClassStructFactory(main_class=cls.nuts_class)
+
+        cls.ei = Ei.objects.first()
+
+        cls.prod = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("100.00"), ei=cls.ei,
+        )
+        cls.output_prod = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("200.00"), ei=cls.ei,
+        )
+
+        cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
+        cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
+
+        cls.stand = ClassStructFactory(main_class=cls.means_of_labor)
+        cls.eas = EASFactory(main_class=cls.enterprise)
+        cls.center = GWCFactory(main_class=cls.stand, eas=cls.eas, place=42)
+
+        cls.parent_prod_oper = ProdOperationFactory(
+            prod=cls.prod,
+            tech_oper=cls.tech_oper,
+            profession=cls.profession,
+            center=cls.center,
+            qualification=cls.qualification,
+        )
+        cls.output_prod_oper1 = ProdOperationFactory(
+            prod=cls.output_prod,
+            tech_oper=cls.tech_oper,
+            profession=cls.profession,
+            center=cls.center,
+            qualification=cls.qualification,
+        )
+        cls.output_prod_oper2 = ProdOperationFactory(
+            prod=cls.output_prod,
+            tech_oper=cls.tech_oper,
+            profession=cls.profession,
+            center=cls.center,
+            qualification=cls.qualification,
+        )
+
+        cls.existing_pos1 = ProdOperationPosFactory(
+            input_prod_oper=cls.parent_prod_oper,
+            output_prod_oper=cls.output_prod_oper1,
+            input_quantity=Decimal("1.5"),
+            output_quantity=Decimal("2.0"),
+        )
+        cls.existing_pos2 = ProdOperationPosFactory(
+            input_prod_oper=cls.parent_prod_oper,
+            output_prod_oper=cls.output_prod_oper2,
+            input_quantity=Decimal("3.0"),
+            output_quantity=Decimal("4.0"),
+        )
+
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
+        cls.url = reverse("route_tech:tech_route", kwargs={"product_id": cls.output_prod.pk})
+        cls.url_404 = reverse("route_tech:tech_route", kwargs={"product_id": 99999})
+
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_returns_404_for_nonexistent_product(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url_404)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+
+    def test_uses_technological_route_template(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "products/technological_route.html")
+
+    def test_get_tech_route_method_is_called(self):
+        self.client.force_login(self.allowed_user)
+        with patch(
+            "route_tech.selectors.TechRouteSelector.get_tech_route"
+        ) as mock_tech_route:
+            self.client.get(self.url)
+            mock_tech_route.assert_called_once()
+            args, _ = mock_tech_route.call_args
+            product_id = args[0]
+            self.assertEqual(product_id, self.output_prod.pk)
+
+    def test_has_records_in_context(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertIn("route", response.context)
+
+
+class DownloadTechnologicalRoutePdfViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.tech_oper = ClassStruct.objects.get(pk=OperationConsts.WELDING)
+        cls.profession = ClassStruct.objects.get(pk=ProfessionConsts.WELDER)
+        cls.qualification = ClassStruct.objects.get(pk=QualificationConsts.FIRST_RANK)
+
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.product_class = ClassStructFactory(main_class=cls.nuts_class)
+
+        cls.ei = Ei.objects.first()
+
+        cls.prod = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("100.00"), ei=cls.ei,
+        )
+        cls.output_prod = ProdFactory(
+            class_field=cls.product_class, image=None,
+            cost=Decimal("200.00"), ei=cls.ei,
+        )
+
+        cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
+        cls.means_of_labor = ClassStruct.objects.get(pk=MetaConsts.MEANS_OF_LABOR)
+
+        cls.stand = ClassStructFactory(main_class=cls.means_of_labor)
+        cls.eas = EASFactory(main_class=cls.enterprise)
+        cls.center = GWCFactory(main_class=cls.stand, eas=cls.eas, place=42)
+
+        cls.parent_prod_oper = ProdOperationFactory(
+            prod=cls.prod,
+            tech_oper=cls.tech_oper,
+            profession=cls.profession,
+            center=cls.center,
+            qualification=cls.qualification,
+        )
+        cls.output_prod_oper1 = ProdOperationFactory(
+            prod=cls.output_prod,
+            tech_oper=cls.tech_oper,
+            profession=cls.profession,
+            center=cls.center,
+            qualification=cls.qualification,
+        )
+        cls.output_prod_oper2 = ProdOperationFactory(
+            prod=cls.output_prod,
+            tech_oper=cls.tech_oper,
+            profession=cls.profession,
+            center=cls.center,
+            qualification=cls.qualification,
+        )
+
+        cls.existing_pos1 = ProdOperationPosFactory(
+            input_prod_oper=cls.parent_prod_oper,
+            output_prod_oper=cls.output_prod_oper1,
+            input_quantity=Decimal("1.5"),
+            output_quantity=Decimal("2.0"),
+        )
+        cls.existing_pos2 = ProdOperationPosFactory(
+            input_prod_oper=cls.parent_prod_oper,
+            output_prod_oper=cls.output_prod_oper2,
+            input_quantity=Decimal("3.0"),
+            output_quantity=Decimal("4.0"),
+        )
+
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
+        cls.url = reverse("route_tech:tech_route_pdf", kwargs={"product_id": cls.output_prod.pk})
+        cls.url_404 = reverse("route_tech:tech_route_pdf", kwargs={"product_id": 99999})
+
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_returns_404_for_nonexistent_product(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url_404)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+
+    def test_get_route_tech_method_was_called(self):
+        self.client.force_login(self.allowed_user)
+        with patch(
+            "route_tech.selectors.TechRouteSelector.get_tech_route"
+        ) as mock_tech_route:
+            self.client.get(self.url)
+            mock_tech_route.assert_called_once()
+            args, _ = mock_tech_route.call_args
+            product_id = args[0]
+            self.assertEqual(product_id, self.output_prod.pk)
+
+    def test_create_route_tech_get_method_was_called(self):
+        self.client.force_login(self.allowed_user)
+        with patch(
+            "route_tech.pdf.PdfGenerator.create_tech_route_pdf"
+        ) as mock_pdf_route:
+            self.client.get(self.url)
+            mock_pdf_route.assert_called_once()
+            args, _ = mock_pdf_route.call_args
+            records, product = args
+            self.assertEqual(len(records), 2)
+            self.assertEqual(product.pk, self.output_prod.pk)
+
+    def test_generate_tech_route_filename_method_was_called(self):
+        self.client.force_login(self.allowed_user)
+        with patch(
+            "route_tech.pdf.PdfGenerator.generate_tech_route_filename"
+        ) as mock_generate_filename:
+            self.client.get(self.url)
+            mock_generate_filename.assert_called_once()
+            args, _ = mock_generate_filename.call_args
+            product_name = args[0]
+            self.assertEqual(product_name, self.output_prod.name)
+
+    def test_content_type(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(
+            response["content-type"],
+            "application/pdf",
         )

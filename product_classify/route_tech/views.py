@@ -1,6 +1,7 @@
 from django.views.generic import CreateView, ListView, UpdateView, DetailView, DeleteView
+from django.http import FileResponse
 from django.urls import reverse_lazy
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import permission_required, login_required
 from django.http import HttpRequest
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.shortcuts import render, redirect, get_object_or_404
@@ -18,7 +19,8 @@ from route_tech.forms import (
     GroupWorkingCenterForm,
     ProdOperationForm,
 )
-from route_tech.selectors import EASSelector
+from route_tech.pdf import PdfGenerator
+from route_tech.selectors import EASSelector, TechRouteSelector, GWCSelector, ProdOperationSelector
 from route_tech.constants import FormSetConsts
 from route_tech.models import EconomicActivitySubject, GroupWorkingCenter, ProdOperation
 
@@ -27,8 +29,10 @@ class EASListView(PermissionRequiredMixin, CommonContextMixin, ListView):
     permission_required = "route_tech.view_economicactivitysubject"
     template_name = "route_tech/eas/list.html"
     ordering = "id"
-    model = EconomicActivitySubject
     context_object_name = "subjects"
+
+    def get_queryset(self):
+        return EASSelector.fetch_list()
 
 
 class EASCreateView(PermissionRequiredMixin, CommonContextMixin, CreateView):
@@ -82,9 +86,11 @@ class EASDeleteView(PermissionRequiredMixin, CommonContextMixin, DeleteView):
 
 class GWCListView(PermissionRequiredMixin, CommonContextMixin, ListView):
     permission_required = "route_tech.view_groupworkingcenter"
-    model = GroupWorkingCenter
     template_name = "route_tech/gwc/list.html"
     context_object_name = "centers"
+
+    def get_queryset(self):
+        return GWCSelector.fetch_list()
 
 
 class GWCCreateView(PermissionRequiredMixin, CommonContextMixin, CreateView):
@@ -127,8 +133,10 @@ class GWCDeleteView(PermissionRequiredMixin, CommonContextMixin, DeleteView):
 class ProdOperationListView(PermissionRequiredMixin, CommonContextMixin, ListView):
     permission_required = "route_tech.view_prodoperation"
     template_name = "route_tech/prod_operation/list.html"
-    model = ProdOperation
     context_object_name = "operations"
+
+    def get_queryset(self):
+        return ProdOperationSelector.fetch_list()
 
 
 class ProdOperationCreateView(PermissionRequiredMixin, CommonContextMixin, CreateView):
@@ -210,3 +218,35 @@ def edit_prod_operation_positions_view(request: HttpRequest, product_id: int):
         "products/prodoperation_pos_edit.html",
         context=context,
     )
+
+
+@login_required
+@permission_required("route_tech.view_prodoperationpos", raise_exception=True)
+def get_technological_route_view(request: HttpRequest, product_id: int):
+    product = get_object_or_404(Prod, pk=product_id)
+    route = TechRouteSelector.get_tech_route(product_id)
+    context = get_context_data()
+    context["route"] = route
+    context["product"] = product
+    return render(
+        request,
+        "products/technological_route.html",
+        context=context,
+    )
+
+
+@login_required
+@permission_required("route_tech.view_prodoperationpos", raise_exception=True)
+def download_technological_route_pdf_view(request: HttpRequest, product_id: int):
+    product = get_object_or_404(Prod, pk=product_id)
+    records = TechRouteSelector.get_tech_route(product_id)
+    file_content = PdfGenerator.create_tech_route_pdf(records, product)
+    filename = PdfGenerator.generate_tech_route_filename(product.name)
+    response = FileResponse(
+        file_content,
+        as_attachment=True,
+        filename=filename,
+        content_type="application/pdf",
+    )
+    response["Content-Disposition"] = f"attachment; filename={filename}"
+    return response

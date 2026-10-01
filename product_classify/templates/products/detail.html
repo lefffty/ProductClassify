@@ -113,6 +113,13 @@
         </div>
         <div class="card-body">
             <div class="d-flex flex-wrap gap-2 mb-3">
+                {% if perms.route_tech.view_prodoperationpos %}
+                    <a id="prod-detail-tech-route-btn"
+                       href="{% url 'route_tech:tech_route' product.pk %}"
+                       class="btn btn-outline-primary">
+                        <i class="bi bi-diagram-3"></i> Технологический маршрут
+                    </a>
+                {% endif %}
                 {% if perms.products.can_create_modification %}
                     <a href="{% url 'products:create_modification' product.id %}" class="btn btn-primary">
                         <i class="bi bi-copy"></i> Создать модификацию

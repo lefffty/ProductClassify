@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Технологический маршрут — {{ product.name }}
+{% endblock title %}
+
+{% block content %}
+<div id="tech-route-container" class="container py-4">
+    <div id="tech-route-card" class="card shadow-sm">
+        <div class="card-body">
+
+            <div id="tech-route-header" class="d-flex justify-content-between align-items-start mb-4">
+                <h2 id="tech-route-title" class="card-title h4 mb-0">
+                    <i class="bi bi-diagram-3 text-primary"></i>
+                    Технологический маршрут
+                    <span class="text-muted fs-5">— {{ product.name }}</span>
+                </h2>
+                <span id="tech-route-count" class="badge bg-secondary">
+                    Операций: {{ route|length }}
+                </span>
+            </div>
+
+            {% if route %}
+                <div class="table-responsive">
+                    <table id="tech-route-table" class="table table-hover align-middle mb-0">
+                        <thead id="tech-route-table-header" class="table-light">
+                            <tr>
+                                <th scope="col" class="text-center" style="width: 1%">№</th>
+                                <th scope="col">Входное изделие</th>
+                                <th scope="col">Выходное изделие</th>
+                                <th scope="col">Операция</th>
+                                <th scope="col">Профессия</th>
+                                <th scope="col">Рабочий центр</th>
+                                <th scope="col">СЭД</th>
+                                <th scope="col">Квалификация</th>
+                                <th scope="col" class="text-end">Кол-во вход.</th>
+                                <th scope="col" class="text-end">Кол-во выход.</th>
+                                <th scope="col" class="text-end">T&nbsp;пз</th>
+                                <th scope="col" class="text-end">T&nbsp;шт</th>
+                                <th scope="col" class="text-center">Исп.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tech-route-table-body">
+                            {% for record in route %}
+                                <tr id="tech-route-row-{{ forloop.counter }}">
+                                    <td class="text-center text-muted">{{ forloop.counter }}</td>
+                                    <td>
+                                        <strong>{{ record.input_prod_name|default:"—" }}</strong>
+                                        {% if record.input_prod_short_name %}
+                                            <br><small class="text-muted">{{ record.input_prod_short_name }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ record.output_prod_name|default:"—" }}</strong>
+                                        {% if record.output_prod_short_name %}
+                                            <br><small class="text-muted">{{ record.output_prod_short_name }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ record.operation_name|default:"—" }}
+                                        {% if record.operation_short_name %}
+                                            <br><small class="text-muted">{{ record.operation_short_name }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ record.profession_name|default:"—" }}</td>
+                                    <td>
+                                        {{ record.gwc_name|default:"—" }}
+                                        {% if record.gwc_short_name %}
+                                            <br><small class="text-muted">{{ record.gwc_short_name }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ record.eas_name|default:"—" }}
+                                        {% if record.eas_short_name %}
+                                            <br><small class="text-muted">{{ record.eas_short_name }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ record.qualification_name|default:"—" }}</td>
+                                    <td class="text-end">{{ record.input_quantity|default:"—" }}</td>
+                                    <td class="text-end">{{ record.output_quantity|default:"—" }}</td>
+                                    <td class="text-end">{{ record.t_pz|default:"—" }}</td>
+                                    <td class="text-end">{{ record.t_sht|default:"—" }}</td>
+                                    <td class="text-center">{{ record.num_of_workers|default:"—" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div id="tech-route-empty-state" class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox" style="font-size: 3rem"></i>
+                    <p id="tech-route-empty-msg" class="mt-3">
+                        Технологический маршрут для изделия «{{ product.name }}» отсутствует.
+                    </p>
+                </div>
+            {% endif %}
+
+            <div id="tech-route-actions" class="d-flex flex-wrap gap-2 mt-4">
+                <a id="tech-route-back-btn"
+                   href="{% url 'products:detail' product.pk %}"
+                   class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> К изделию
+                </a>
+
+                {% if route %}
+                    <a id="tech-route-pdf-btn"
+                       href="{% url 'route_tech:tech_route_pdf' product.pk %}"
+                       class="btn btn-danger ms-auto">
+                        <i class="bi bi-file-earmark-pdf"></i> Скачать PDF
+                    </a>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock content %}

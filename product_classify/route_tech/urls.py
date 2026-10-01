@@ -48,10 +48,16 @@ prod_operation_pos_patterns = [
     ),
 ]
 
+tech_route_patterns = [
+    path("technological_route/<int:product_id>", views.get_technological_route_view, name="tech_route"),
+    path("technological_route/<int:product_id>/pdf", views.download_technological_route_pdf_view, name="tech_route_pdf"),
+]
+
 
 urlpatterns = [
     path("eas/", include(eas_patterns)),
     path("gwc/", include(gwc_patterns)),
     path("prod_oper/", include(prod_operation_patterns)),
     path("prod_operation_positions/", include(prod_operation_pos_patterns)),
+    path("", include(tech_route_patterns)),
 ]
