@@ -30,6 +30,20 @@ class ProdSelector:
         )
 
     @staticmethod
+    def search_by_name(query: str):
+        if query:
+            return (
+                Prod.objects
+                .filter(name__icontains=query)
+                .select_related(
+                    "class_field",
+                    "ei",
+                    "modification",
+                )
+            )
+        return Prod.objects.all()
+
+    @staticmethod
     def fetch_base_queryset(class_id: int):
         return (
             Prod.objects

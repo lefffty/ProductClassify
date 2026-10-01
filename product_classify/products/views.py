@@ -13,6 +13,7 @@ from django.views.generic import (
     UpdateView,
     DeleteView,
 )
+from django.views.generic.list import ListView
 
 from classes.models import ClassStruct
 
@@ -36,6 +37,20 @@ from products.models import (
     ParProd,
 )
 from specifications.forms import TotalCostRatioForm
+
+
+class ProductListView(
+    PermissionRequiredMixin,
+    CommonContextMixin,
+    ListView
+):
+    permission_required = "products.view_prod"
+    template_name = "products/list.html"
+    context_object_name = "products"
+
+    def get_queryset(self):
+        query = self.request.GET.get("query")
+        return ProdSelector.search_by_name(query)
 
 
 @login_required
@@ -72,7 +87,7 @@ def class_products(request: HttpRequest, main_class_id: int, class_id: int):
         "prod_count": prod_count,
     }
     context.update(get_context_data())
-    return render(request, "products/list.html", context)
+    return render(request, "products/class_products.html", context)
 
 
 class ProductDetailView(

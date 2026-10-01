@@ -1,176 +1,242 @@
 {% extends "base.html" %}
-{% load django_bootstrap5 %}
 
-{% block title %}
-    Изделия класса "{{ cls.name }}"
-{% endblock title %}
+{% block title %}Список изделий{% endblock title %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h3 mb-2">
-                        <i class="bi bi-box-seam"></i> Изделия класса
-                        <a href="{% url 'classes:category_classes' cls.main_class.id %}" class="text-decoration-none">
-                            "{{ cls.name }}"
+<div id="prod-list-container" class="container py-4">
+
+    <div id="prod-list-header" class="d-flex justify-content-between align-items-center mb-4">
+        <h1 id="prod-list-title" class="h3 mb-0">
+            <i class="bi bi-box-seam text-primary"></i> Изделия
+        </h1>
+        {% if perms.products.add_prod %}
+            <a href="{% url 'products:add' %}" id="prod-list-add-btn" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Добавить изделие
+            </a>
+        {% endif %}
+    </div>
+
+    <form id="prod-list-search-form" method="get" action="{% url 'products:list' %}" role="search" class="mb-4">
+        <div class="input-group">
+            <span class="input-group-text bg-white" id="prod-list-search-icon">
+                <i class="bi bi-search"></i>
+            </span>
+            <input type="text"
+                   name="query"
+                   id="prod-list-search-input"
+                   class="form-control"
+                   placeholder="Поиск по названию или сокращению"
+                   value="{{ request.GET.query|default:'' }}"
+                   aria-label="Поиск изделий"
+                   autocomplete="off">
+            {% if request.GET.query %}
+                <a href="{% url 'products:list' %}"
+                   id="prod-list-search-clear"
+                   class="btn btn-outline-secondary"
+                   title="Очистить поиск"
+                   aria-label="Очистить поиск">
+                    Очистить поиск
+                </a>
+            {% endif %}
+            <button type="submit" id="prod-list-search-submit" class="btn btn-primary">
+                <i class="bi bi-search"></i> Найти
+            </button>
+        </div>
+    </form>
+
+    <div id="prod-list-card" class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Все изделия</h5>
+            <span id="prod-list-count" class="badge bg-secondary">
+                {% if page_obj %}{{ page_obj.paginator.count }}{% else %}{{ products|length }}{% endif %}
+            </span>
+        </div>
+
+        <div class="card-body p-0">
+            {% if products %}
+                <div class="table-responsive">
+                    <table id="prod-list-table" class="table table-hover align-middle mb-0">
+                        <thead id="prod-list-table-header" class="table-light">
+                            <tr>
+                                <th scope="col" class="text-center" style="width: 1%">ID</th>
+                                <th scope="col">Изображение</th>
+                                <th scope="col">Название</th>
+                                <th scope="col">Сокращение</th>
+                                <th scope="col">Класс</th>
+                                <th scope="col" class="text-end">Стоимость</th>
+                                <th scope="col">Ед. изм.</th>
+                                <th scope="col">Модификация</th>
+                                <th scope="col" class="text-nowrap" style="width: 1%">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="prod-list-table-body">
+                            {% for prod in products %}
+                                <tr id="prod-list-row-{{ prod.id }}">
+                                    <td class="text-center text-muted">{{ prod.id }}</td>
+
+                                    <td>
+                                        {% if prod.image %}
+                                            <a href="{{ prod.image.url }}" target="_blank">
+                                                <img src="{{ prod.image.url }}"
+                                                     alt="{{ prod.name }}"
+                                                     class="rounded"
+                                                     style="max-height: 48px; max-width: 48px; object-fit: cover;">
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <a href="{% url 'products:detail' prod.pk %}"
+                                           class="text-decoration-none fw-semibold">
+                                            {{ prod.name }}
+                                        </a>
+                                    </td>
+
+                                    <td>{{ prod.short_name|default:"—" }}</td>
+
+                                    <td>
+                                        {% if prod.class_field %}
+                                            <a href="{% url 'classes:category_classes' prod.class_field.pk %}"
+                                               class="text-decoration-none text-muted">
+                                                {{ prod.class_field.name }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="text-end">
+                                        {% if prod.cost is not None %}
+                                            {{ prod.cost|floatformat:2 }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>{{ prod.ei.short_name|default:"—" }}</td>
+
+                                    <td>
+                                        {% if prod.modification %}
+                                            <a href="{% url 'products:detail' prod.modification.pk %}"
+                                               class="text-decoration-none text-muted">
+                                                {{ prod.modification.name }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'products:detail' prod.pk %}"
+                                               id="prod-list-detail-{{ prod.id }}"
+                                               class="btn btn-outline-primary"
+                                               title="Подробнее">
+                                                Подробнее
+                                            </a>
+                                            {% if perms.products.change_prod %}
+                                                <a href="{% url 'products:edit' prod.pk %}"
+                                                   id="prod-list-edit-{{ prod.id }}"
+                                                   class="btn btn-outline-secondary"
+                                                   title="Редактировать">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            {% endif %}
+                                            {% if perms.products.delete_prod %}
+                                                <a href="{% url 'products:delete' prod.pk %}"
+                                                   id="prod-list-delete-{{ prod.id }}"
+                                                   class="btn btn-outline-danger"
+                                                   title="Удалить">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div id="prod-list-empty-state" class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox" style="font-size: 3rem"></i>
+                    {% if request.GET.query %}
+                        <p id="prod-list-empty-msg" class="mt-3">
+                            По запросу «{{ request.GET.query }}» ничего не найдено.
+                        </p>
+                        <a href="{% url 'products:list' %}"
+                           id="prod-list-empty-reset-btn"
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-counterclockwise"></i> Сбросить поиск
                         </a>
-                    </h1>
-                    <p class="text-muted mb-0">
-                        <span class="badge bg-light text-dark me-2">ID класса: {{ cls.id }}</span>
-                        <span class="badge bg-secondary">Всего изделий: {{ prod_count }}</span>
-                    </p>
+                    {% else %}
+                        <p id="prod-list-empty-msg" class="mt-3">Изделия отсутствуют.</p>
+                        {% if perms.products.add_prod %}
+                            <a href="{% url 'products:add' %}"
+                               id="prod-list-add-first-btn"
+                               class="btn btn-outline-primary">
+                                <i class="bi bi-plus-circle"></i> Добавить первое изделие
+                            </a>
+                        {% endif %}
+                    {% endif %}
                 </div>
-                {% if perms.products.add_prod %}
-                    <a href="{% url 'products:add' %}" class="btn btn-primary">
-                        Добавить изделие
+            {% endif %}
+        </div>
+    </div>
+
+    {% if is_paginated %}
+    <nav id="prod-list-pagination"
+         aria-label="Пагинация списка изделий"
+         class="mt-4 d-flex justify-content-center">
+        <ul class="pagination mb-0">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% querystring page=1 %}" aria-label="Первая страница">
+                        &laquo; Первая
                     </a>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div class="card shadow-sm mb-4 col-md-6 col-lg-4 mx-auto">
-        <div class="card-header bg-white">
-            <h5 class="mb-0">
-                Фильтр изделий
-            </h5>
-        </div>
-        <div class="card-body">
-            <form method="get" action="{% url 'products:class_products' main_class_id id %}">
-                {% csrf_token %}
-                <div class="row g-6">
-                    {% for field in search_form %}
-                        <div class="col-12">
-                            {% bootstrap_field field show_label=True show_help=True %}
-                        </div>
-                    {% endfor %}
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary w-100">Найти</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    {% if products %}
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-list-ul"></i> Изделия с параметрами
-                </h5>
-                <span class="badge bg-secondary">{{ products|length }}</span>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>ID</th>
-                                <th>Название</th>
-                                <th>Родительский класс</th>
-                                <th>Изображение</th>
-                                <th scope="col" class="text-nowrap" style="width: 1%;">Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for product in products %}
-                            <tr>
-                                <td>{{ product.id }}</td>
-                                <td><strong>{{ product.name }}</strong></td>
-                                <td>{{ product.class_field|default:"—" }}</td>
-                                <td>
-                                    {% if product.image %}
-                                        <a href="{{ product.image.url }}" target="_blank" class="d-inline-block">
-                                            <img src="{{ product.image.url }}"
-                                                 alt="Изображение изделия"
-                                                 style="max-height: 50px; max-width: 80px; object-fit: cover;"
-                                                 class="rounded border">
-                                        </a>
-                                    {% else %}
-                                        <span class="text-muted">—</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{% url 'products:detail' product.id %}"
-                                           class="btn btn-outline-primary"
-                                           title="Подробнее">
-                                            Подробнее
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    {% endif %}
-
-    {% if products_no_params %}
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-box"></i> Изделия без параметров
-                </h5>
-                <span class="badge bg-secondary">{{ products_no_params|length }}</span>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>ID</th>
-                                <th>Название</th>
-                                <th>Родительский класс</th>
-                                <th scope="col" class="text-nowrap" style="width: 1%;">Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for product in products_no_params %}
-                            <tr>
-                                <td>{{ product.id }}</td>
-                                <td><strong>{{ product.name }}</strong></td>
-                                <td>{{ product.class_field|default:"—" }}</td>
-                                <td>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{% url 'products:detail' product.id %}"
-                                           class="btn btn-outline-primary"
-                                           title="Подробнее">
-                                            Подробнее
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    {% endif %}
-
-    {% if not products and not products_no_params %}
-        <div class="card shadow-sm">
-            <div class="card-body text-center py-5 text-muted">
-                <i class="bi bi-inbox" style="font-size: 3rem;"></i>
-                <p class="mt-3">Изделия для этого класса отсутствуют</p>
-                {% if perms.products.add_prod %}
-                    <a href="{% url 'products:add' %}" class="btn btn-outline-primary">
-                        <i class="bi bi-plus-circle"></i> Добавить первое изделие
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% querystring page=page_obj.previous_page_number %}" aria-label="Предыдущая страница">
+                        Назад
                     </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo; Первая</span></li>
+                <li class="page-item disabled"><span class="page-link">Назад</span></li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if num == page_obj.number %}
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% querystring page=num %}">{{ num }}</a>
+                    </li>
                 {% endif %}
-            </div>
-        </div>
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% querystring page=page_obj.next_page_number %}" aria-label="Следующая страница">
+                        Вперёд
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% querystring page=page_obj.paginator.num_pages %}" aria-label="Последняя страница">
+                        Последняя &raquo;
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">Вперёд</span></li>
+                <li class="page-item disabled"><span class="page-link">Последняя &raquo;</span></li>
+            {% endif %}
+        </ul>
+    </nav>
     {% endif %}
 
-    <div class="mt-4">
-        <a href="{% url 'classes:category_classes' cls.main_class.id %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Вернуться к подклассам
-        </a>
-    </div>
 </div>
 {% endblock content %}

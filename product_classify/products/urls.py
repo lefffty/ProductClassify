@@ -5,6 +5,11 @@ app_name = "products"
 
 urlpatterns = [
     path(
+        "list/",
+        views.ProductListView.as_view(),
+        name="list",
+    ),
+    path(
         "<int:main_class_id>/<int:class_id>/products/",
         views.class_products,
         name="class_products",

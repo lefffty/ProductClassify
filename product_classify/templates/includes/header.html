@@ -22,6 +22,13 @@
         </ul>
       </li>
       {% endif %}
+      {% if perms.products.view_prod %}
+        <li>
+            <a href="{% url 'products:list' %}">
+                <i class="bi bi-box-seam"></i> Изделия
+            </a>
+        </li>
+      {% endif %}
       {% if perms.ei.view_ei %}
         <li><a href="{% url 'ei:list' %}">Единицы измерения</a></li>
       {% endif %}
@@ -36,9 +43,11 @@
           </ul>
         </li>
       {% endif %}
+
       {% if perms.parametr.view_parametr %}
         <li><a href="{% url 'parametr:list' %}">Параметры</a></li>
       {% endif %}
+
       {% if perms.agregat.view_agregat %}
         <li><a href="{% url 'agregat:list' %}">Агрегаты</a></li>
       {% endif %}

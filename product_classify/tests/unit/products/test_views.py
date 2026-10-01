@@ -1,10 +1,9 @@
-from decimal import Decimal
-
 from django.urls import reverse
 from django.utils.html import escape
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 
+from decimal import Decimal
 from urllib.parse import urlencode
 from PIL import Image
 from http import HTTPStatus
@@ -1147,7 +1146,7 @@ class ClassProductsViewTest(BaseUnitTestCase):
     def test_class_products_view_uses_list_template(self):
         self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
-        self.assertTemplateUsed(response, "products/list.html")
+        self.assertTemplateUsed(response, "products/class_products.html")
 
     def test_class_products_view_renders_search_form(self):
         self.client.force_login(self.allowed_user)
@@ -1208,3 +1207,56 @@ class ClassProductsViewTest(BaseUnitTestCase):
             "test parametr2": str(4),
         })
         self.assertEqual(response.context["products"].count(), 2)
+
+
+class ProductsListViewTest(BaseUnitTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.nuts_class = ClassStruct.objects.get(pk=ProductsConsts.NUTS_ID)
+        cls.nuts_subclass = ClassStructFactory(
+            main_class=cls.nuts_class,
+        )
+
+        cls.prod1 = ProdFactory(class_field=cls.nuts_subclass)
+        cls.prod2 = ProdFactory(class_field=cls.nuts_subclass)
+        cls.prod3 = ProdFactory(class_field=cls.nuts_subclass)
+        cls.prod4 = ProdFactory(class_field=cls.nuts_subclass, name="subscription")
+
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.CHIEF_MECHANIC_DEPT_EMPLOYEE)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
+        cls.url = reverse("products:list")
+
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_uses_products_list_template(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertTemplateUsed(response, "products/list.html")
+
+    def test_has_products_in_context(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertIn("products", response.context)
+        self.assertEqual(len(response.context["products"]), 4)
+
+    def test_filters_products_if_query(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url, data={"query": "subscript"})
+        self.assertIn("products", response.context)
+        self.assertEqual(len(response.context["products"]), 1)
