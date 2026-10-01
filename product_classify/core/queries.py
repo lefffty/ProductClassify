@@ -24,6 +24,10 @@ class EASQueries:
     GET_ALL_EAS_DESCENDANTS = "SELECT * FROM get_all_eas_descendants(%s);"
 
 
+class TechRouteQueries:
+    GET_TECH_ROUTE = "SELECT * FROM tech_route(%s);"
+
+
 class DatabaseFunctions:
     CHECK_CLASSIFICATOR_CYCLE_OLD = """
         CREATE OR REPLACE FUNCTION check_class_struct_cycles(cls_id integer, main_cls_id integer) RETURNS boolean
@@ -912,6 +916,94 @@ class DatabaseFunctions:
             level INT
         );
     """
+
+    CREATE_TECH_ROUTE_TYPE = """
+        CREATE TYPE ROUTE_TYPE AS (
+            input_prod_name          VARCHAR,
+            input_prod_short_name    VARCHAR,
+            output_prod_name         VARCHAR,
+            output_prod_short_name   VARCHAR,
+            operation_name           VARCHAR,
+            operation_short_name     VARCHAR,
+            profession_name          VARCHAR,
+            gwc_name                 VARCHAR,
+            gwc_short_name           VARCHAR,
+            eas_name                 VARCHAR,
+            eas_short_name           VARCHAR,
+            qualification_name       VARCHAR,
+            input_prod_quantity      NUMERIC,
+            output_prod_quantity     NUMERIC,
+            t_pz                     DOUBLE PRECISION,
+            t_sht                    DOUBLE PRECISION,
+            number_of_workers        SMALLINT
+        );
+    """
+
+    CREATE_TECH_ROUTE_FUNCTION = """
+        CREATE OR REPLACE FUNCTION tech_route(product_id BIGINT)
+        RETURNS SETOF ROUTE_TYPE
+        AS
+            $$
+                BEGIN
+                    RETURN QUERY
+                    WITH RECURSIVE recursion AS (
+                        SELECT
+                            pop.input_prod_oper_id AS input_id
+                        FROM route_tech_prodoperationpos pop
+                        WHERE pop.output_prod_oper_id IN (
+                            SELECT
+                                po.id
+                            FROM route_tech_prodoperation po
+                            WHERE po.prod_id = product_id
+                        )
+        
+                        UNION
+        
+                        SELECT
+                            pop2.input_prod_oper_id AS input_id
+                        FROM route_tech_prodoperationpos pop2
+                        JOIN recursion ON pop2.output_prod_oper_id = recursion.input_id
+                    )
+                    SELECT
+                        pr1.name AS input_prod_name
+                        , pr1.short_name AS input_prod_short_name
+                        , pr2.name AS output_prod_name
+                        , pr2.short_name AS output_prod_short_name
+                        , oper1.name AS operation_name
+                        , oper1.short_name AS operation_short_name
+                        , prof1.name AS profession_name
+                        , rtg.name AS gwc_name
+                        , rtg.short_name AS gwc_short_name
+                        , rte.name AS eas_name
+                        , rte.short_name AS eas_short_name
+                        , qual1.name AS qualification_name
+                        , pop.input_quantity AS input_quantity
+                        , pop.output_quantity AS output_quantity
+                        , po1.t_pz AS t_pz
+                        , po1.t_sht AS t_sht
+                        , po1.num_of_workers AS num_of_workers
+                    FROM route_tech_prodoperationpos pop
+                    JOIN route_tech_prodoperation po1 ON pop.input_prod_oper_id = po1.id
+                    JOIN route_tech_prodoperation po2 ON pop.output_prod_oper_id = po2.id
+                    JOIN products_prod pr1 ON po1.prod_id = pr1.id
+                    JOIN products_prod pr2 ON po2.prod_id = pr2.id
+                    JOIN classes_classstruct oper1 ON po1.tech_oper_id = oper1.id
+                    JOIN classes_classstruct prof1 ON po1.profession_id = prof1.id
+                    JOIN route_tech_groupworkingcenter rtg ON po1.center_id = rtg.id
+                    JOIN route_tech_economicactivitysubject rte ON rtg.eas_id = rte.id
+                    JOIN classes_classstruct qual1 ON po1.qualification_id = qual1.id
+                    WHERE pop.input_prod_oper_id IN (
+                        SELECT
+                            input_id
+                        FROM recursion
+                    );
+                END;
+            $$
+        LANGUAGE plpgsql;
+    """
+
+    DROP_TECH_ROUTE_TYPE = "DROP TYPE IF EXISTS ROUTE_TYPE;"
+    DROP_TECH_ROUTE_FUNCTION = "DROP FUNCTION IF EXISTS tech_route(product_id BIGINT);"
 
     DROP_GET_ALL_EAS_DESCENDANTS = "DROP FUNCTION IF EXISTS get_all_eas_descendants(eas_id BIGINT);"
 
