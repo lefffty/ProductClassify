@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Групповой рабочий центр — {{ center.name }}
+{% endblock title %}
+
+{% block content %}
+<div id="gwc-detail-container" class="container py-4">
+    <div id="gwc-detail-card" class="card shadow-sm">
+        <div class="card-body">
+
+            <div id="gwc-detail-header" class="d-flex justify-content-between align-items-start mb-4">
+                <h2 id="gwc-detail-title" class="card-title h4 mb-0">
+                    <i class="bi bi-tools text-primary"></i>
+                    Групповой рабочий центр
+                    <span class="text-muted fs-5">— {{ center.name }}</span>
+                </h2>
+                <span id="gwc-detail-id" class="badge bg-secondary">
+                    ID {{ center.id }}
+                </span>
+            </div>
+
+            <dl id="gwc-detail-info" class="row mb-4">
+                <dt id="gwc-detail-name-help" class="col-sm-4 fw-semibold">Название</dt>
+                <dd id="gwc-detail-name" class="col-sm-8">{{ center.name }}</dd>
+
+                <dt id="gwc-detail-short-name-help" class="col-sm-4 fw-semibold">Сокращённое название</dt>
+                <dd id="gwc-detail-short-name" class="col-sm-8">
+                    {{ center.short_name|default:"—" }}
+                </dd>
+
+                <dt id="gwc-detail-main-class-help" class="col-sm-4 fw-semibold">Родительский класс</dt>
+                <dd id="gwc-detail-main-class" class="col-sm-8">
+                    {% if center.main_class %}
+                        <a href="{% url 'classes:category_classes' center.main_class.pk %}"
+                           class="text-decoration-none">
+                            {{ center.main_class.name }}
+                        </a>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </dd>
+
+                <dt id="gwc-detail-eas-help" class="col-sm-4 fw-semibold">
+                    Субъект экономической деятельности
+                </dt>
+                <dd id="gwc-detail-eas" class="col-sm-8">
+                    {% if center.eas %}
+                        <a href="{% url 'route_tech:detail_eas' center.eas.pk %}"
+                           class="text-decoration-none">
+                            {{ center.eas.name }}
+                        </a>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </dd>
+
+                <dt id="gwc-detail-place-help" class="col-sm-4 fw-semibold">
+                    Количество рабочих мест
+                </dt>
+                <dd id="gwc-detail-place" class="col-sm-8">
+                    {{ center.place|default:"—" }}
+                </dd>
+            </dl>
+
+            <div id="gwc-detail-actions" class="d-flex flex-wrap gap-2">
+
+                {% if perms.route_tech.change_groupworkingcenter %}
+                    <a id="gwc-detail-edit-btn"
+                       href="{% url 'route_tech:edit_gwc' center.pk %}"
+                       class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Редактировать
+                    </a>
+                {% endif %}
+
+                {% if perms.route_tech.delete_groupworkingcenter %}
+                    <a id="gwc-detail-delete-btn"
+                       href="{% url 'route_tech:delete_gwc' center.pk %}"
+                       class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Удалить
+                    </a>
+                {% endif %}
+
+                {% if perms.route_tech.view_groupworkingcenter %}
+                    <a id="gwc-detail-back-btn"
+                       href="{% url 'route_tech:list_gwc' %}"
+                       class="btn btn-outline-secondary ms-auto">
+                        <i class="bi bi-arrow-left"></i> К списку
+                    </a>
+                {% endif %}
+
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock content %}

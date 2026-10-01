@@ -24,11 +24,6 @@ prod_operation_patterns = [
     path("list/", views.ProdOperationListView.as_view(), name="list_prod_operation"),
     path("add/", views.ProdOperationCreateView.as_view(), name="add_prod_operation"),
     path(
-        "delete/<int:prod_oper_id>/",
-        views.ProdOperationDeleteView.as_view(),
-        name="delete_prod_operation",
-    ),
-    path(
         "edit/<int:prod_oper_id>/",
         views.ProdOperationUpdateView.as_view(),
         name="edit_prod_operation",
@@ -37,6 +32,11 @@ prod_operation_patterns = [
         "<int:prod_oper_id>/",
         views.ProdOperationDetailView.as_view(),
         name="detail_prod_operation",
+    ),
+    path(
+        "delete/<int:prod_oper_id>/",
+        views.ProdOperationDeleteView.as_view(),
+        name="delete_prod_operation",
     ),
 ]
 

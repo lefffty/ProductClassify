@@ -20,12 +20,16 @@
                     </p>
                 </div>
                 <div id="eas-detail-actions" class="btn-group">
-                    <a id="eas-detail-edit-btn" href="{% url 'route_tech:edit_eas' subject.id %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-pencil"></i> Редактировать
-                    </a>
-                    <a id="eas-detail-delete-btn" href="{% url 'route_tech:delete_eas' subject.id %}" class="btn btn-outline-danger">
-                        <i class="bi bi-trash"></i> Удалить
-                    </a>
+                    {% if perms.route_tech.change_economicactivitysubject %}
+                        <a id="eas-detail-edit-btn" href="{% url 'route_tech:edit_eas' subject.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-pencil"></i> Редактировать
+                        </a>
+                    {% endif %}
+                    {% if perms.route_tech.delete_economicactivitysubject %}
+                        <a id="eas-detail-delete-btn" href="{% url 'route_tech:delete_eas' subject.id %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Удалить
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>

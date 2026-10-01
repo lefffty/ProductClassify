@@ -43,13 +43,19 @@
         <li><a href="{% url 'agregat:list' %}">Агрегаты</a></li>
       {% endif %}
 
-      {% if 1 %}      
+      {% if perms.route_tech.view_prodoperation %}
         <li class="nav-dropdown">
           <a href="#">Технологические операции</a>
           <ul class="nav-dropdown-list">
-            <li><a href="{% url 'route_tech:list_eas' %}">Субъекты экономической деятельности</a></li>
-            <li><a href="{% url 'route_tech:list_gwc' %}">Групповые рабочие центры</a></li>
-            <li><a href="{% url 'route_tech:list_prod_operation' %}">Изделия с операциями</a></li>
+            {% if perms.route_tech.view_economicactivitysubject %}
+              <li><a href="{% url 'route_tech:list_eas' %}">Субъекты экономической деятельности</a></li>
+            {% endif %}
+            {% if perms.route_tech.view_groupworkingcenter %}
+              <li><a href="{% url 'route_tech:list_gwc' %}">Групповые рабочие центры</a></li>
+            {% endif %}
+            {% if perms.route_tech.view_prodoperation %}
+              <li><a href="{% url 'route_tech:list_prod_operation' %}">Изделия с операциями</a></li>
+            {% endif %}
           </ul>
         </li>
       {% endif %}

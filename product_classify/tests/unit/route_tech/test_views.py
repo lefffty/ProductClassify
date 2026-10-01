@@ -32,7 +32,6 @@ from tests.unit.route_tech.factories.gwc import GWCFactory, GWCFormData
 from tests.unit.route_tech.factories.prod_oper import ProdOperationFactory, ProdOperationFormData
 from tests.unit.route_tech.factories.prod_oper_pos import ProdOperationPosFactory
 
-
 User = get_user_model()
 
 
@@ -42,17 +41,35 @@ class EASListViewTest(BaseUnitTestCase):
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
         cls.parent_subject = EASFactory(main_class=cls.enterprise)
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
         cls.url = reverse("route_tech:list_eas")
 
-    def test_returns_200_status_code(self):
+    def test_returns_302_status_code_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_status_code_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_status_code_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_uses_eas_list_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/eas/list.html")
 
     def test_has_eas_list_in_context(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/eas/list.html")
 
@@ -86,18 +103,41 @@ class EASCreateViewTest(BaseUnitTestCase):
             main_subject="",
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
         cls.url = reverse("route_tech:add_eas")
         cls.redirect_url = reverse("classes:index")
 
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_uses_eas_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/eas/eas.html")
 
     def test_uses_renders_form(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("form", response.context)
 
     def test_can_save_a_POST_request_with_non_parent(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url, self.valid_data)
         eas = EconomicActivitySubject.objects.last()
         self.assertIsNotNone(eas.pk)
@@ -107,6 +147,7 @@ class EASCreateViewTest(BaseUnitTestCase):
         self.assertIsNone(eas.main_subject)
 
     def test_can_save_a_POST_request_with_parent(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url, self.valid_data_with_parent)
         eas = EconomicActivitySubject.objects.last()
         self.assertIsNotNone(eas.pk)
@@ -116,18 +157,22 @@ class EASCreateViewTest(BaseUnitTestCase):
         self.assertIsNotNone(eas.main_subject.pk)
 
     def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.valid_data)
         self.assertRedirects(response, self.redirect_url)
 
     def test_empty_name_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.empty_name_data)
         self.assertContains(response, escape(EASErrors.EMPTY_NAME))
 
     def test_empty_short_name_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.empty_short_name_data)
         self.assertContains(response, escape(EASErrors.EMPTY_SHORT_NAME))
 
     def test_empty_main_class_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.empty_main_class_data)
         self.assertContains(response, escape(EASErrors.EMPTY_MAIN_CLASS))
 
@@ -148,18 +193,41 @@ class EASUpdateViewTest(BaseUnitTestCase):
             main_subject=cls.parent_subject.pk,
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
         cls.url = reverse("route_tech:edit_eas", args=[cls.subject.pk])
         cls.redirect_url = reverse("route_tech:detail_eas", args=[cls.subject.pk])
 
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_uses_eas_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/eas/eas.html")
 
     def test_renders_form(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("form", response.context)
 
     def test_can_save_a_POST_request(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url, self.valid_update_data)
         self.subject.refresh_from_db()
         self.assertEqual(self.subject.name, self.valid_update_data["name"])
@@ -168,6 +236,7 @@ class EASUpdateViewTest(BaseUnitTestCase):
         self.assertEqual(self.subject.main_subject.pk, self.parent_subject.pk)
 
     def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.valid_update_data)
         self.assertRedirects(response, self.redirect_url)
 
@@ -183,13 +252,35 @@ class EASDetailViewTest(BaseUnitTestCase):
             main_subject=cls.parent_subject,
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
         cls.url = reverse("route_tech:detail_eas", args=[cls.subject.pk])
 
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_uses_eas_detail_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/eas/detail.html")
 
     def test_renders_correct_information(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertContains(response, self.subject.name)
         self.assertContains(response, self.subject.short_name)
@@ -205,18 +296,41 @@ class EASDeleteViewTest(BaseUnitTestCase):
         cls.enterprise = ClassStruct.objects.get(pk=MetaConsts.ENTERPRISE)
         cls.subject = EASFactory(main_class=cls.enterprise)
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
         cls.url = reverse("route_tech:delete_eas", args=[cls.subject.pk])
         cls.redirect_url = reverse("classes:index")
 
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_uses_eas_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/eas/eas.html")
 
     def test_can_save_a_POST_request(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url)
         self.assertEqual(EconomicActivitySubject.objects.count(), 0)
 
     def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url)
         self.assertRedirects(response, self.redirect_url)
 
@@ -236,17 +350,35 @@ class GWCListViewTest(BaseUnitTestCase):
             place=42,
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
         cls.url = reverse("route_tech:list_gwc")
 
-    def test_returns_200_status_code(self):
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_uses_eas_list_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/gwc/list.html")
 
     def test_has_eas_list_in_context(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/gwc/list.html")
 
@@ -300,18 +432,41 @@ class GWCCreateViewTest(BaseUnitTestCase):
             place=-1,
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
         cls.url = reverse("route_tech:add_gwc")
         cls.redirect_url = reverse("classes:index")
 
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_uses_gwc_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/gwc/gwc.html")
 
     def test_renders_form(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("form", response.context)
 
     def test_can_save_a_POST_request(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url, self.valid_data)
         gwc = GroupWorkingCenter.objects.last()
         self.assertEqual(gwc.name, self.valid_data["name"])
@@ -321,30 +476,37 @@ class GWCCreateViewTest(BaseUnitTestCase):
         self.assertEqual(gwc.eas.pk, self.valid_data["eas"])
 
     def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.valid_data)
         self.assertRedirects(response, self.redirect_url)
 
     def test_empty_name_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.empty_name_data)
         self.assertContains(response, escape(GWCErrors.EMPTY_NAME))
 
     def test_empty_short_name_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.empty_short_name_data)
         self.assertContains(response, escape(GWCErrors.EMPTY_SHORT_NAME))
 
     def test_empty_main_class_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.empty_main_class_data)
         self.assertContains(response, escape(GWCErrors.EMPTY_MAIN_CLASS))
 
     def test_empty_eas_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.empty_eas_data)
         self.assertContains(response, escape(GWCErrors.EMPTY_EAS))
 
     def test_empty_place_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.empty_place_data)
         self.assertContains(response, escape(GWCErrors.EMPTY_PLACE))
 
     def test_invalid_place_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.invalid_place_data)
         self.assertContains(response, escape(GWCErrors.INVALID_PLACE))
 
@@ -370,18 +532,41 @@ class GWCUpdateViewTest(BaseUnitTestCase):
             place=84,
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
         cls.url = reverse("route_tech:edit_gwc", args=[cls.gwc.pk])
         cls.redirect_url = reverse("route_tech:detail_gwc", args=[cls.gwc.pk])
 
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_uses_gwc_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/gwc/gwc.html")
 
     def test_renders_form(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("form", response.context)
 
     def test_can_save_a_POST_request(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url, self.valid_update_data)
         self.gwc.refresh_from_db()
         self.assertEqual(self.gwc.name, self.valid_update_data["name"])
@@ -391,6 +576,7 @@ class GWCUpdateViewTest(BaseUnitTestCase):
         self.assertEqual(self.gwc.eas.pk, self.valid_update_data["eas"])
 
     def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.valid_update_data)
         self.assertRedirects(response, self.redirect_url)
 
@@ -410,14 +596,36 @@ class GWCDeleteViewTest(BaseUnitTestCase):
             place=42,
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
         cls.url = reverse("route_tech:delete_gwc", args=[cls.gwc.pk])
         cls.redirect_url = reverse("classes:index")
 
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_uses_gwc_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/gwc/gwc.html")
 
     def test_renders_information_about_removable_object(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertContains(response, self.gwc.pk)
         self.assertContains(response, self.gwc.name)
@@ -427,10 +635,12 @@ class GWCDeleteViewTest(BaseUnitTestCase):
         self.assertContains(response, self.gwc.place)
 
     def test_can_save_a_POST_request(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url)
         self.assertEqual(GroupWorkingCenter.objects.count(), 0)
 
     def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url)
         self.assertRedirects(response, self.redirect_url)
 
@@ -475,17 +685,35 @@ class ProdOperationListViewTest(BaseUnitTestCase):
             t_sht=2.0,
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
         cls.url = reverse("route_tech:list_prod_operation")
 
-    def test_returns_200_status_code(self):
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_uses_eas_list_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/prod_operation/list.html")
 
     def test_has_eas_list_in_context(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/prod_operation/list.html")
 
@@ -560,18 +788,41 @@ class ProdOperationCreateViewTest(BaseUnitTestCase):
             num_of_workers=0, t_pz=1.0, t_sht=2.0,
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
         cls.url = reverse("route_tech:add_prod_operation")
         cls.redirect_url = reverse("classes:index")
 
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_uses_prod_operation_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/prod_operation/prod_operation.html")
 
     def test_renders_form(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("form", response.context)
 
     def test_can_save_a_POST_request(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url, self.valid_data)
         instance = ProdOperation.objects.last()
         self.assertIsNotNone(instance.pk)
@@ -585,30 +836,37 @@ class ProdOperationCreateViewTest(BaseUnitTestCase):
         self.assertEqual(instance.t_sht, self.valid_data["t_sht"])
 
     def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.valid_data)
         self.assertRedirects(response, self.redirect_url)
 
     def test_empty_prod_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.empty_prod_data)
         self.assertContains(response, ProdOperErrors.EMPTY_PROD)
 
     def test_empty_tech_oper_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.empty_tech_oper_data)
         self.assertContains(response, ProdOperErrors.EMPTY_TECH_OPER)
 
     def test_empty_profession_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.empty_profession_data)
         self.assertContains(response, ProdOperErrors.EMPTY_PROFESSION)
 
     def test_empty_center_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.empty_center_data)
         self.assertContains(response, ProdOperErrors.EMPTY_CENTER)
 
     def test_empty_qualification_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.empty_qualification_data)
         self.assertContains(response, ProdOperErrors.EMPTY_QUALIFICATION)
 
     def test_invalid_num_of_workers_validation_error_is_shown_on_page(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.invalid_num_of_workers_data)
         self.assertContains(response, ProdOperErrors.INVALID_NUM_OF_WORKERS)
 
@@ -653,14 +911,36 @@ class ProdOperationDeleteViewTest(BaseUnitTestCase):
             t_sht=2.0,
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
         cls.url = reverse("route_tech:delete_prod_operation", args=[cls.prod_operation.pk])
         cls.redirect_url = reverse("classes:index")
 
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_uses_prod_operation_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/prod_operation/prod_operation.html")
 
     def test_renders_information_about_removable_object(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertContains(response, self.prod_operation.pk)
         self.assertContains(response, self.prod_operation.prod.name)
@@ -670,10 +950,12 @@ class ProdOperationDeleteViewTest(BaseUnitTestCase):
         self.assertContains(response, self.prod_operation.qualification.name)
 
     def test_can_save_a_POST_request(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url)
         self.assertEqual(ProdOperation.objects.count(), 0)
 
     def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url)
         self.assertRedirects(response, self.redirect_url)
 
@@ -732,18 +1014,41 @@ class ProdOperationUpdateViewTest(BaseUnitTestCase):
             t_sht=4.0,
         )
 
+        cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
+        cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
+
         cls.url = reverse("route_tech:edit_prod_operation", args=[cls.prod_operation.pk])
         cls.redirect_url = reverse("route_tech:detail_prod_operation", args=[cls.prod_operation.pk])
 
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_403_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
     def test_uses_prod_operation_template(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertTemplateUsed(response, "route_tech/prod_operation/prod_operation.html")
 
     def test_renders_form(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.get(self.url)
         self.assertIn("form", response.context)
 
     def test_can_save_a_POST_request(self):
+        self.client.force_login(self.allowed_user)
         self.client.post(self.url, self.valid_update_data)
         self.prod_operation.refresh_from_db()
         self.assertEqual(self.prod_operation.prod.pk, self.valid_update_data["prod"])
@@ -756,6 +1061,7 @@ class ProdOperationUpdateViewTest(BaseUnitTestCase):
         self.assertEqual(self.prod_operation.t_sht, self.valid_update_data["t_sht"])
 
     def test_redirects_after_POST_request(self):
+        self.client.force_login(self.allowed_user)
         response = self.client.post(self.url, self.valid_update_data)
         self.assertRedirects(response, self.redirect_url)
 
@@ -861,7 +1167,10 @@ class EditTechnologicalRoutePositionsViewTest(BaseUnitTestCase):
         ]
 
         cls.allowed_role = Role.objects.get(code=RoleCodes.TECHNOLOGIST)
+        cls.not_allowed_role = Role.objects.get(code=RoleCodes.BUILDER)
+
         cls.allowed_user = UserFactory(role=cls.allowed_role)
+        cls.not_allowed_user = UserFactory(role=cls.not_allowed_role)
 
         cls.url = reverse("route_tech:edit_prod_operation_pos", args=[cls.prod.pk])
         cls.redirect_url = reverse("products:detail", args=[cls.prod.pk])
@@ -877,6 +1186,20 @@ class EditTechnologicalRoutePositionsViewTest(BaseUnitTestCase):
             for key, value in form_data.items():
                 data[f'{self.prefix_name}-{idx}-{key}'] = value
         return data
+
+    def test_returns_302_for_anonymous_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_302_for_not_authorized_user(self):
+        self.client.force_login(self.not_allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+
+    def test_returns_200_for_authorized_user(self):
+        self.client.force_login(self.allowed_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_uses_edit_positions_template(self):
         self.client.force_login(self.allowed_user)

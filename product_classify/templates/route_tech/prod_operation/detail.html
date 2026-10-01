@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Пара «Изделие-Операция» — {{ instance.prod.name }} / {{ instance.tech_oper.name }}
+{% endblock title %}
+
+{% block content %}
+<div id="prod-oper-detail-container" class="container py-4">
+    <div id="prod-oper-detail-card" class="card shadow-sm">
+        <div class="card-body">
+
+            <div id="prod-oper-detail-header" class="d-flex justify-content-between align-items-start mb-4">
+                <h2 id="prod-oper-detail-title" class="card-title h4 mb-0">
+                    <i class="bi bi-diagram-3 text-primary"></i>
+                    Пара «Изделие-Операция»
+                    <span class="text-muted fs-5">
+                        — {{ instance.prod.name }} / {{ instance.tech_oper.name }}
+                    </span>
+                </h2>
+                <span id="prod-oper-detail-id" class="badge bg-secondary">
+                    ID {{ instance.id }}
+                </span>
+            </div>
+
+            <dl id="prod-oper-detail-info" class="row mb-4">
+                <dt id="prod-oper-detail-prod-help" class="col-sm-4 fw-semibold">Изделие</dt>
+                <dd id="prod-oper-detail-prod" class="col-sm-8">
+                    {% if instance.prod %}
+                        <a href="{% url 'products:detail' instance.prod.pk %}"
+                           class="text-decoration-none">
+                            {{ instance.prod.name }}
+                        </a>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </dd>
+
+                <dt id="prod-oper-detail-tech-oper-help" class="col-sm-4 fw-semibold">Операция</dt>
+                <dd id="prod-oper-detail-tech-oper" class="col-sm-8">
+                    {{ instance.tech_oper.name|default:"—" }}
+                </dd>
+
+                <dt id="prod-oper-detail-profession-help" class="col-sm-4 fw-semibold">Профессия рабочего</dt>
+                <dd id="prod-oper-detail-profession" class="col-sm-8">
+                    {{ instance.profession.name|default:"—" }}
+                </dd>
+
+                <dt id="prod-oper-detail-center-help" class="col-sm-4 fw-semibold">Групповой рабочий центр</dt>
+                <dd id="prod-oper-detail-center" class="col-sm-8">
+                    {% if instance.center %}
+                        <a href="{% url 'route_tech:detail_gwc' instance.center.pk %}"
+                           class="text-decoration-none">
+                            {{ instance.center.name }}
+                        </a>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </dd>
+
+                <dt id="prod-oper-detail-qualification-help" class="col-sm-4 fw-semibold">Квалификация рабочего</dt>
+                <dd id="prod-oper-detail-qualification" class="col-sm-8">
+                    {{ instance.qualification.name|default:"—" }}
+                </dd>
+
+                <dt id="prod-oper-detail-num-of-workers-help" class="col-sm-4 fw-semibold">
+                    Количество исполнителей
+                </dt>
+                <dd id="prod-oper-detail-num-of-workers" class="col-sm-8">
+                    {{ instance.num_of_workers|default:"—" }}
+                </dd>
+
+                <dt id="prod-oper-detail-t-pz-help" class="col-sm-4 fw-semibold">
+                    Норма подготовительно-заключительного времени
+                </dt>
+                <dd id="prod-oper-detail-t-pz" class="col-sm-8">
+                    {{ instance.t_pz|default:"—" }}
+                </dd>
+
+                <dt id="prod-oper-detail-t-sht-help" class="col-sm-4 fw-semibold">
+                    Норма штучного времени
+                </dt>
+                <dd id="prod-oper-detail-t-sht" class="col-sm-8">
+                    {{ instance.t_sht|default:"—" }}
+                </dd>
+            </dl>
+
+            <div id="prod-oper-detail-actions" class="d-flex flex-wrap gap-2">
+                <a id="prod-oper-detail-back-btn"
+                   href="{% url 'route_tech:list_prod_operation' %}"
+                   class="btn btn-outline-secondary ms-auto">
+                    <i class="bi bi-arrow-left"></i> К списку
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock content %}
