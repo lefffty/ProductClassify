@@ -9,6 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("route_tech", "0007_create_trigger_checking_cycle"),
+        ("specifications", "__latest__"),
     ]
 
     operations = [

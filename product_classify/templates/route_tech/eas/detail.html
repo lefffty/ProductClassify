@@ -75,10 +75,12 @@
             <h5 class="mb-0"><i class="bi bi-diagram-3"></i> Дочерние субъекты</h5>
         </div>
         <div id="eas-detail-children-body" class="card-body">
-            {% if subject.children.exists %}
+            {% if children %}
                 <ul class="list-group list-group-flush">
-                    {% for child in subject.children.all %}
-                        <li class="list-group-item">
+                    {% for child in children %}
+                        <li class="list-group-item"
+                            id="eas-child-{{ child.id }}"
+                            style="padding-left: {% widthratio child.level 1 24 %}px;">
                             <a href="{% url 'route_tech:detail_eas' child.id %}" class="text-decoration-none">
                                 {{ child.name }}
                             </a>

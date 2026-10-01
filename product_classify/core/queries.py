@@ -20,6 +20,10 @@ class SpecificationLogsQueries:
     GET_CHANGE_LOG = "SELECT * FROM get_changelog(%s);"
 
 
+class EASQueries:
+    GET_ALL_EAS_DESCENDANTS = "SELECT * FROM get_all_eas_descendants(%s);"
+
+
 class DatabaseFunctions:
     CHECK_CLASSIFICATOR_CYCLE_OLD = """
         CREATE OR REPLACE FUNCTION check_class_struct_cycles(cls_id integer, main_cls_id integer) RETURNS boolean
@@ -865,6 +869,53 @@ class DatabaseFunctions:
         END;
         $$;
     """
+
+    GET_ALL_EAS_DESCENDANTS = """
+        CREATE OR REPLACE FUNCTION get_all_eas_descendants(eas_id BIGINT)
+        RETURNS SETOF eas_descendant_record
+        AS
+            $$
+                BEGIN
+                    RETURN QUERY WITH RECURSIVE recursive AS (
+                        SELECT
+                            eas_id AS parent_id
+                            , eas1.id AS child_id
+                            , 1 AS level
+                        FROM route_tech_economicactivitysubject eas1
+                        WHERE eas1.main_subject_id = eas_id
+        
+                        UNION
+        
+                        SELECT
+                            r.child_id AS parent_id
+                            , eas2.id AS child_id
+                            , r.level + 1 AS level
+                        FROM route_tech_economicactivitysubject eas2
+                        JOIN recursive r ON eas2.main_subject_id = r.child_id
+                    )
+                    SELECT
+                        eas.id
+                        , eas.name
+                        , eas.short_name
+                        , r.level AS level
+                    FROM route_tech_economicactivitysubject eas
+                    JOIN recursive r ON eas.id = r.child_id;
+                END;
+            $$
+        LANGUAGE plpgsql;
+    """
+    CREATE_DESCENDANT_RECORD_TYPE = """
+        CREATE TYPE eas_descendant_record AS (
+            id BIGINT,
+            name VARCHAR,
+            short_name VARCHAR,
+            level INT
+        );
+    """
+
+    DROP_GET_ALL_EAS_DESCENDANTS = "DROP FUNCTION IF EXISTS get_all_eas_descendants(eas_id BIGINT);"
+
+    DROP_DESCENDANT_RECORD_TYPE = "DROP TYPE IF EXISTS eas_descendant_record;"
 
     DROP_TOTAL_COST_RATIO_NEW = "DROP FUNCTION IF EXISTS total_cost_ratio(root_prod INTEGER, num_of_products DOUBLE PRECISION, convert_fact DOUBLE PRECISION);"
 

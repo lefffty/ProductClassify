@@ -18,6 +18,7 @@ from route_tech.forms import (
     GroupWorkingCenterForm,
     ProdOperationForm,
 )
+from route_tech.selectors import EASSelector
 from route_tech.constants import FormSetConsts
 from route_tech.models import EconomicActivitySubject, GroupWorkingCenter, ProdOperation
 
@@ -25,6 +26,7 @@ from route_tech.models import EconomicActivitySubject, GroupWorkingCenter, ProdO
 class EASListView(PermissionRequiredMixin, CommonContextMixin, ListView):
     permission_required = "route_tech.view_economicactivitysubject"
     template_name = "route_tech/eas/list.html"
+    ordering = "id"
     model = EconomicActivitySubject
     context_object_name = "subjects"
 
@@ -60,6 +62,13 @@ class EASDetailView(PermissionRequiredMixin, CommonContextMixin, DetailView):
     pk_url_kwarg = "eas_id"
     template_name = "route_tech/eas/detail.html"
     context_object_name = "subject"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        eas_id = self.kwargs.get("eas_id")
+        children = EASSelector.get_all_eas_descendants(eas_id)
+        context["children"] = children
+        return context
 
 
 class EASDeleteView(PermissionRequiredMixin, CommonContextMixin, DeleteView):
