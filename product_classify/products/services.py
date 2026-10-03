@@ -1,11 +1,7 @@
 from django.db import connection
 
-from collections import namedtuple
-
 from core.queries import ProdQueries
-
-
-ModificationResult = namedtuple("ModificationResult", field_names=["modification_id"])
+from core.types import ModificationResult
 
 
 class ProdService:

@@ -1,45 +1,9 @@
 from django.db import connection
 
 from typing import List
-from collections import namedtuple
 
 from core.queries import ProdComponentQueries, SpecificationLogsQueries
-
-
-TotalCostRatioResult = namedtuple(
-    "TotalCostRatioResult",
-    field_names=[
-        "parent_id",
-        "parent_prod_name",
-        "child_id",
-        "child_prod_name",
-        "quantity",
-        "ei_short_name",
-        "total_cost",
-        "level",
-    ],
-)
-SpecificationRecordResult = namedtuple(
-    "SpecificationRecordResult",
-    field_names=[
-        "pair_id",
-        "parent_id",
-        "child_id",
-        "prod_num",
-        "quantity",
-    ],
-)
-
-SpecificationLogResult = namedtuple(
-    "SpecificationLogResult",
-    field_names=[
-        "log_id",
-        "parent_id",
-        "comp_id",
-        "updated_at",
-        "log_string",
-    ],
-)
+from core.types import TotalCostRatioResult, SpecificationRecordResult, SpecificationLogResult
 
 
 class ProdComponentSelector:

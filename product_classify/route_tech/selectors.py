@@ -1,44 +1,11 @@
 from django.db import connection
 
 from typing import List
-from collections import namedtuple
 
 from core.queries import EASQueries, TechRouteQueries
+from core.types import EASRecordResult, TechRouteRecord
 
 from route_tech.models import GroupWorkingCenter, EconomicActivitySubject, ProdOperation
-
-EASRecordResult = namedtuple(
-    "EASRecordResult",
-    field_names=[
-        "id",
-        "name",
-        "short_name",
-        "level",
-    ]
-)
-
-TechRouteRecord = namedtuple(
-    "TechRouteRecord",
-    field_names=[
-        "input_prod_name",
-        "input_prod_short_name",
-        "output_prod_name",
-        "output_prod_short_name",
-        "operation_name",
-        "operation_short_name",
-        "profession_name",
-        "gwc_name",
-        "gwc_short_name",
-        "eas_name",
-        "eas_short_name",
-        "qualification_name",
-        "input_quantity",
-        "output_quantity",
-        "t_pz",
-        "t_sht",
-        "num_of_workers",
-    ]
-)
 
 
 class EASSelector:
